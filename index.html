@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trading Desk Pro | Terminal Financiero en Tiempo Real</title>
+    <meta name="description" content="Dashboard financiero profesional con datos de mercados en tiempo real, transmisiones en vivo y análisis de mercados. Monitoreo de criptomonedas, acciones, forex y commodities.">
+    <meta name="keywords" content="trading, mercados, finanzas, bitcoin, ethereum, acciones, dólar, merval, commodities, bolsa, inversiones">
+    <meta name="author" content="Trading Desk Pro">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tudominio.com/">
+    <meta property="og:title" content="Trading Desk Pro | Terminal Financiero">
+    <meta property="og:description" content="Dashboard financiero profesional con datos de mercados en tiempo real">
+    <meta property="og:image" content="https://tudominio.com/og-image.png">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://tudominio.com/">
+    <meta property="twitter:title" content="Trading Desk Pro | Terminal Financiero">
+    <meta property="twitter:description" content="Dashboard financiero profesional con datos de mercados en tiempo real">
+    <meta property="twitter:image" content="https://tudominio.com/twitter-image.png">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#000000">
+    <meta name="msapplication-TileColor" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Trading Desk">
+    <link rel="preload" as="script" href="/src/main.jsx">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Trading Desk Pro",
+      "description": "Terminal financiero profesional con datos de mercados en tiempo real",
+      "url": "https://tudominio.com",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+    <style>
+      body {
+        margin: 0;
+        background-color: #000000;
+        color: #EAEAEA;
+        font-family: 'JetBrains Mono', monospace;
+        overflow-x: hidden;
+      }
+      
+      #root {
+        background-color: #000000;
+        min-height: 100vh;
+      }
+      .app-loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #000000;
+        color: #00FF9D;
+        font-family: 'JetBrains Mono', monospace;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid #1A1A1A;
+        border-top: 3px solid #00FF9D;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      .loading-text {
+        text-align: center;
+        line-height: 1.5;
+      }
+      .loading-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      
+      .loading-subtitle {
+        font-size: 12px;
+        color: #CCCCCC;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: #1E1E1E;
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: #3b82f6;
+        border-radius: 3px;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: #0066FF;
+      }
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <div id="loading-state" class="app-loading">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">
+        <div class="loading-title">TRADING_DESK_PRO</div>
+        <div class="loading-subtitle">INICIALIZANDO TERMINAL FINANCIERA...</div>
+      </div>
+    </div>
+    <div id="root"></div>
+    
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          const loadingElement = document.getElementById('loading-state');
+          if (loadingElement) {
+            loadingElement.style.opacity = '0';
+            loadingElement.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+              if (loadingElement.parentNode) {
+                loadingElement.parentNode.removeChild(loadingElement);
+              }
+            }, 500);
+          }
+        }, 1000);
+      });
+      
+      window.addEventListener('error', function(e) {
+        console.error('Error global capturado:', e.error);
+      });
+      
+      document.addEventListener('contextmenu', function(e) {
+        if (e.target.tagName === 'IMG') {
+          e.preventDefault();
+        }
+      });
+    </script>
+    
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Analytics (Opcional - Descomenta cuando lo necesites) -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=TU_ID_DE_SEGUIMIENTO"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'TU_ID_DE_SEGUIMIENTO');
+    </script>
+    -->
+    <script>
+      if (!window.Promise) {
+        document.write('<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js"><\/script>');
+      }
+    </script>
+  </body>
+</html>

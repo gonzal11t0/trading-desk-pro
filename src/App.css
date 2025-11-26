@@ -1,0 +1,390 @@
+/* src/App.css */
+/* ===== RESET Y BASE ===== */
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  text-align: left;
+}
+
+/* ===== LAYOUT PRINCIPAL ===== */
+/* Forzar el layout 70/30 */
+.w-7\/10 {
+  width: 70% !important;
+}
+
+.w-3\/10 {
+  width: 30% !important;
+}
+
+/* Contenedor principal */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* ===== COMPONENTES ESPECÍFICOS ===== */
+/* Aspect ratios consistentes */
+.aspect-video {
+  aspect-ratio: 16/9;
+  min-height: 120px;
+}
+
+/* Scroll personalizado */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Secciones con fondo */
+.section-bg {
+  background-color: #1A1A1A !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+/* Tarjetas terminal */
+.terminal-card {
+  background-color: #1A1A1A !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.terminal-card:hover {
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Valores terminal */
+.terminal-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/* Estados de datos */
+.data-positive {
+  color: #00FF9D;
+}
+
+.data-negative {
+  color: #FF5E5E;
+}
+
+/* ===== COMPONENTES TRADINGVIEW ===== */
+.tradingview-widget-container {
+  min-height: 400px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tradingview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Animación de carga para gráficos */
+.chart-loading {
+  background: linear-gradient(90deg, #1A1A1A 25%, #2A2A2A 50%, #1A1A1A 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ===== UTILIDADES ESPECIALES ===== */
+/* Gradientes de texto */
+.gradient-text-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-success {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Sombras premium */
+.shadow-glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+.shadow-glow-green {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+}
+
+.shadow-glow-yellow {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+}
+
+.shadow-glow-cyan {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+}
+
+/* Animaciones suaves */
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smooth-transition-slow {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Efectos de borde gradiente */
+.border-gradient-blue {
+  border: 1px solid;
+  border-image: linear-gradient(135deg, #3b82f6, #06b6d4) 1;
+}
+
+.border-gradient-green {
+  border: 1px solid;
+  border-image: linear-gradient(135deg, #10b981, #34d399) 1;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+  
+  .w-7\/10,
+  .w-3\/10 {
+    width: 100% !important;
+  }
+  
+  .tradingview-widget-container {
+    min-height: 300px;
+  }
+  
+  .grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Stack en móviles */
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+  
+  .mobile-full {
+    width: 100% !important;
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ===== ESTADOS INTERACTIVOS ===== */
+/* Botones interactivos */
+.btn-interactive {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.btn-interactive:hover {
+  transform: translateY(-1px);
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-interactive:active {
+  transform: translateY(0);
+}
+
+/* Estados de carga */
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Efectos de brillo */
+.glow-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.glow-effect:hover::before {
+  left: 100%;
+}
+
+/* ===== TIPOGRAFÍA ESPECIAL ===== */
+.text-monospace {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Límite de líneas */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== UTILIDADES DE COLOR ===== */
+/* Fondos con gradientes sutiles */
+.bg-gradient-terminal {
+  background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
+}
+
+.bg-gradient-card {
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(45, 45, 45, 0.7) 100%);
+}
+
+.bg-gradient-header {
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(30, 30, 30, 0.9) 100%);
+}
+
+/* Bordes con transparencia */
+.border-terminal {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.border-terminal-hover {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ===== ANIMACIONES ESPECÍFICAS ===== */
+/* Entrada suave */
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Latido para indicadores en vivo */
+.heartbeat {
+  animation: heartbeat 2s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Rotación continua */
+.spin-slow {
+  animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mejorar selección de texto en toda la app */
+::selection {
+  background-color: #3b82f6;
+  color: white;
+}
+
+::-moz-selection {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Para textos con gradiente que necesiten selección */
+.gradient-selectable {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-selectable::selection {
+  -webkit-text-fill-color: white;
+}
+
+.gradient-selectable::-moz-selection {
+  -webkit-text-fill-color: white;
+}

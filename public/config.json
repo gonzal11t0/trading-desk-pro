@@ -1,0 +1,81 @@
+{
+  "version": "1.0",
+  "blocks": [
+    {
+      "id": "video-bloomberg",
+      "type": "video",
+      "url": "https://www.youtube.com/embed/8c0hS-7Ktoo",
+      "title": "Bloomberg Live",
+      "component": "VideoPlayer"
+    },
+    {
+      "id": "video-cnbc",
+      "type": "video", 
+      "url": "https://www.youtube.com/embed/9M9L6a7x2aI",
+      "title": "CNBC International",
+      "component": "VideoPlayer"
+    },
+    {
+      "id": "video-yahoo",
+      "type": "video",
+      "url": "https://www.youtube.com/embed/vxKO8eUx7_c",
+      "title": "Yahoo Finance",
+      "component": "VideoPlayer"
+    },
+    {
+      "id": "crypto-btc",
+      "type": "crypto",
+      "symbol": "bitcoin", 
+      "title": "Bitcoin (BTC)",
+      "component": "CryptoCard",
+      "refreshInterval": 30000
+    },
+    {
+      "id": "crypto-eth",
+      "type": "crypto", 
+      "symbol": "ethereum",
+      "title": "Ethereum (ETH)",
+      "component": "CryptoCard",
+      "refreshInterval": 30000
+    },
+    {
+      "id": "stock-aapl",
+      "type": "stock",
+      "symbol": "AAPL",
+      "title": "Apple Inc.",
+      "component": "StockCard",
+      "refreshInterval": 30000
+    },
+    {
+      "id": "stock-msft", 
+      "type": "stock",
+      "symbol": "MSFT",
+      "title": "Microsoft",
+      "component": "StockCard",
+      "refreshInterval": 30000
+    },
+    {
+      "id": "dolar-blue",
+      "type": "forex",
+      "title": "Dólar Blue",
+      "component": "DolarCard"
+    },
+    {
+      "id": "merval-index",
+      "type": "index",
+      "title": "MERVAL",
+      "component": "MervalCard"
+    },
+    {
+      "id": "commodities",
+      "type": "commodities", 
+      "title": "Commodities",
+      "component": "CommoditiesCard"
+    }
+  ],
+  
+  "settings": {
+    "gridColumns": 3,
+    "defaultRefresh": 60000
+  }
+}
