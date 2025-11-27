@@ -71,14 +71,14 @@ export function RiskCountryModule() {
         <div className="text-center mb-6">
           {/* Título y fuente centrados */}
           <div className="flex flex-col items-center justify-center space-y-2 mb-4">
-            <div className="flex items-center space-x-3">
-              <div className={`p-2 rounded-xl bg-gradient-to-r ${riskLevel.color} shadow-lg`}>
-                <AlertTriangle className="w-5 h-5 text-white" />
-              </div>
-              <h2 className="text-white font-bold text-lg tracking-tight">
-                RIESGO PAÍS
-              </h2>
-            </div>
+<div className="flex items-center space-x-3">
+  <div className={`p-2 rounded-xl bg-gradient-to-r ${riskLevel.color} shadow-lg`}>
+    <AlertTriangle className="w-5 h-5 text-white" />
+  </div>
+  <h2 className="text-white font-bold text-lg tracking-tight" style={{ marginLeft: '1rem' }}>
+    RIESGO PAÍS
+  </h2>
+</div>
             
             <div className="flex items-center space-x-2">
               <span className={`text-xs ${sourceInfo.color}`}>
@@ -128,7 +128,8 @@ export function RiskCountryModule() {
                     width: '32px', 
                     height: '32px', 
                     color: '#ef4444',
-                    animation: 'pulse 2s infinite'
+                    animation: 'pulse 2s infinite',
+                    marginRight: '1rem'
                   }} />
                 </div>
               )}
@@ -158,7 +159,8 @@ export function RiskCountryModule() {
                     width: '32px', 
                     height: '32px', 
                     color: '#22c55e',
-                    animation: 'pulse 2s infinite'
+                    animation: 'pulse 2s infinite',
+                    marginRight: '1rem'
                   }} />
                 </div>
               )}

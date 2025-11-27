@@ -148,14 +148,14 @@ export function ExchangeBandsModule() {
         {/* HEADER CON INFORMACIÓN MENSUAL */}
         <div className="text-center mb-6">
           <div className="flex flex-col items-center justify-center space-y-2 mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg">
-                <TrendingUp className="w-5 h-5 text-white" />
-              </div>
-              <h2 className="text-white font-bold text-lg tracking-tight">
-                BANDAS CAMBIARIAS
-              </h2>
-            </div>
+<div className="flex items-center space-x-3">
+  <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg">
+    <TrendingUp className="h-5 w-5 text-white" />
+  </div>
+<h2 className="text-white font-bold text-lg tracking-tight" style={{ marginLeft: '1rem' }}>
+  BANDAS CAMBIARIAS
+</h2>
+</div>
             
             <div className="flex items-center space-x-2">
               <span className={`text-xs ${sourceInfo.color}`}>
@@ -221,9 +221,6 @@ export function ExchangeBandsModule() {
               </div>
             </div>
             <div className="text-gray-400 text-sm font-light">INFERIOR</div>
-            <div className="text-gray-500 text-xs mt-1">
-              Soporte Mensual
-            </div>
           </div>
 
           {/* Banda Superior - ROJO */}
@@ -244,9 +241,6 @@ export function ExchangeBandsModule() {
               </div>
             </div>
             <div className="text-gray-400 text-sm font-light">SUPERIOR</div>
-            <div className="text-gray-500 text-xs mt-1">
-              Resistencia Mensual
-            </div>
           </div>
         </div>
 

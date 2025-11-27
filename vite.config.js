@@ -29,7 +29,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/yahoo/, ''),
         secure: false,
-      }
+      },
+      proxy: {
+    '/api/bcra': 'https://api.estadisticasbcra.com',
+    '/api/dolarsi': 'https://www.dolarsi.com'
+  }
     }
   }
 })
