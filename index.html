@@ -32,8 +32,18 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Trading Desk">
+    <meta http-equiv="Content-Security-Policy" 
+      content="default-src 'self' 'unsafe-inline' 'unsafe-eval' *;
+               script-src 'self' 'unsafe-inline' 'unsafe-eval' * blob:;
+               style-src 'self' 'unsafe-inline' *;
+               img-src 'self' data: blob: *;
+               media-src 'self' *;
+               connect-src 'self' *;
+               frame-src 'self' https://www.youtube.com https://*.youtube.com https://*.youtube-nocookie.com https://*.tradingview.com *;
+               child-src 'self' blob: *;">
     <link rel="preload" as="script" href="/src/main.jsx">
     <script type="application/ld+json">
+      
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
@@ -172,6 +182,26 @@
       gtag('config', 'TU_ID_DE_SEGUIMIENTO');
     </script>
     -->
+        <script>
+        // Eliminar cualquier Service Worker registrado
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    registrations.forEach(function(registration) {
+                        registration.unregister();
+                        console.log('Service Worker eliminado');
+                    });
+                });
+                
+                // Limpiar cache
+                caches.keys().then(function(cacheNames) {
+                    cacheNames.forEach(function(cacheName) {
+                        caches.delete(cacheName);
+                    });
+                });
+            });
+        }
+    </script>
     <script>
       if (!window.Promise) {
         document.write('<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js"><\/script>');

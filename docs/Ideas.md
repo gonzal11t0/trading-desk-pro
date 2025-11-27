@@ -1,9 +1,3 @@
-1-eliminar:
-    SYSTEM LIVE MIÉ, 26 NOV 2025 13:53:34
-    inicio de la pagina
+1- agregar datos reales para MAPA DE MERCADOS (USA)(ARG)
 
-
-
-2- agregar datos reales para MAPA DE MERCADOS (USA)(ARG)
-
-3-agregar datos reales para TIPOS DE DÓLAR  
+2-agregar datos reales para TIPOS DE DÓLAR  

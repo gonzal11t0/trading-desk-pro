@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { ExternalLink, Maximize2, BarChart3, RefreshCw, Play, Pause } from 'lucide-react'
+import { ExternalLink, Maximize2, RefreshCw, Play, Pause } from 'lucide-react'
 
 export function TradingViewCharts() {
   const chartsInitialized = useRef(false)
@@ -100,106 +100,13 @@ export function TradingViewCharts() {
     }
   ]
 
-  // Función para inicializar un gráfico individual
-  const initializeChart = (chartConfig) => {
-    const container = document.getElementById(`tradingview_${chartConfig.id}`)
-    if (!container) return
-
-    // Limpiar contenedor primero
-    container.innerHTML = ''
-
-    const script = document.createElement('script')
-    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js'
-    script.async = true
-    script.type = 'text/javascript'
-    script.innerHTML = JSON.stringify({
-      autosize: true,
-      symbol: chartConfig.symbol,
-      interval: chartConfig.timeframe === '1D' ? 'D' : '240',
-      timezone: "America/Argentina/Buenos_Aires",
-      theme: "dark",
-      style: "1",
-      locale: "es",
-      toolbar_bg: "#1A1A1A",
-      enable_publishing: false,
-      hide_top_toolbar: false,
-      hide_legend: false,
-      save_image: true,
-      container_id: `tradingview_${chartConfig.id}`,
-      studies: [
-        "RSI@tv-basicstudies",
-        "MACD@tv-basicstudies"
-      ]
-    })
-
-    container.appendChild(script)
-  }
-
-  // Inicializar todos los gráficos
-  const initializeAllCharts = () => {
-    if (chartsInitialized.current) return
-
-    chartConfigs.forEach(chartConfig => {
-      setTimeout(() => {
-        initializeChart(chartConfig)
-      }, 200)
-    })
-
-    chartsInitialized.current = true
-  }
-
-  // Recargar un gráfico específico
-  const reloadChart = (chartId) => {
-    setIsRefreshing(prev => ({ ...prev, [chartId]: true }))
-    
-    const chartConfig = chartConfigs.find(c => c.id === chartId)
-    if (chartConfig) {
-      initializeChart(chartConfig)
-    }
-    
-    setTimeout(() => {
-      setIsRefreshing(prev => ({ ...prev, [chartId]: false }))
-    }, 1500)
-  }
-
-  // Recargar todos los gráficos
-  const reloadAllCharts = () => {
-    chartConfigs.forEach(chart => {
-      reloadChart(chart.id)
-    })
-  }
-
-  useEffect(() => {
-    const mainScript = document.createElement('script')
-    mainScript.src = 'https://s3.tradingview.com/tv.js'
-    mainScript.async = true
-    mainScript.onload = () => {
-      setTimeout(initializeAllCharts, 1000)
-    }
-    
-    document.head.appendChild(mainScript)
-
-    // Auto-refresh cada 5 minutos si está activado
-    const autoRefreshInterval = autoRefresh ? setInterval(reloadAllCharts, 300000) : null
-
-    return () => {
-      if (document.head.contains(mainScript)) {
-        document.head.removeChild(mainScript)
-      }
-      if (autoRefreshInterval) clearInterval(autoRefreshInterval)
-    }
-  }, [autoRefresh])
-
-  const openTradingView = (directLink) => {
-    window.open(directLink, '_blank', 'noopener,noreferrer')
-  }
-
-  // Dividir en filas de 3 gráficos
+  // Dividir en filas de 3 gráficos - AÑADIDA ESTA FUNCIÓN
   const rows = []
   for (let i = 0; i < chartConfigs.length; i += 3) {
     rows.push(chartConfigs.slice(i, i + 3))
   }
 
+  // Función para obtener iconos por categoría - AÑADIDA ESTA FUNCIÓN
   const getCategoryIcon = (category) => {
     const icons = {
       crypto: '₿',
@@ -213,9 +120,156 @@ export function TradingViewCharts() {
     return icons[category] || '📈'
   }
 
+  // Función para inicializar un gráfico individual - CORREGIDA
+  const initializeChart = (chartConfig) => {
+    const container = document.getElementById(`tradingview_${chartConfig.id}`)
+    if (!container) return
+
+    // Limpiar contenedor primero
+    container.innerHTML = ''
+
+    // Crear el contenedor interno que TradingView necesita
+    const widgetContainer = document.createElement('div')
+    widgetContainer.className = 'tradingview-widget-container__widget'
+    widgetContainer.style.height = '100%'
+    widgetContainer.style.width = '100%'
+    container.appendChild(widgetContainer)
+
+    const script = document.createElement('script')
+    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js'
+    script.async = true
+    script.type = 'text/javascript'
+    
+    // Configuración optimizada para evitar errores 403
+    script.innerHTML = JSON.stringify({
+      autosize: true,
+      symbol: chartConfig.symbol,
+      interval: chartConfig.timeframe === '1D' ? 'D' : '240',
+      timezone: "America/Argentina/Buenos_Aires",
+      theme: "dark",
+      style: "1",
+      locale: "es",
+      toolbar_bg: "#1A1A1A",
+      enable_publishing: false,
+      hide_top_toolbar: false,
+      hide_legend: false,
+      save_image: true,
+      hide_volume: true, // Reducir carga
+      container_id: `tradingview_${chartConfig.id}`,
+      studies: [
+        "RSI@tv-basicstudies",
+        "MACD@tv-basicstudies"
+      ],
+      show_popup_button: false,
+      popup_width: "1000",
+      popup_height: "650",
+      // Configuraciones adicionales para estabilidad
+      disabled_features: [
+        "use_localstorage_for_settings",
+        "header_widget_dom_node",
+        "popup_all_screens_tabs"
+      ],
+      enabled_features: [
+        "study_templates",
+        "hide_last_na_study_output"
+      ]
+    })
+
+    container.appendChild(script)
+  }
+
+  // Inicializar todos los gráficos - CORREGIDA
+  const initializeAllCharts = () => {
+    if (chartsInitialized.current) return
+
+    // Esperar a que TradingView esté completamente cargado
+    if (typeof window.TradingView === 'undefined') {
+      setTimeout(initializeAllCharts, 500)
+      return
+    }
+
+    chartConfigs.forEach((chartConfig, index) => {
+      setTimeout(() => {
+        initializeChart(chartConfig)
+      }, index * 800) // Mayor espaciado entre inicializaciones
+    })
+
+    chartsInitialized.current = true
+  }
+
+  // Recargar un gráfico específico - CORREGIDA
+  const reloadChart = (chartId) => {
+    setIsRefreshing(prev => ({ ...prev, [chartId]: true }))
+    
+    const chartConfig = chartConfigs.find(c => c.id === chartId)
+    if (chartConfig) {
+      // Pequeño delay antes de recargar
+      setTimeout(() => {
+        initializeChart(chartConfig)
+        setTimeout(() => {
+          setIsRefreshing(prev => ({ ...prev, [chartId]: false }))
+        }, 2000)
+      }, 300)
+    }
+  }
+
+  // Recargar todos los gráficos - CORREGIDA
+  const reloadAllCharts = () => {
+    chartConfigs.forEach((chart, index) => {
+      setTimeout(() => {
+        reloadChart(chart.id)
+      }, index * 1000) // Espaciar las recargas
+    })
+  }
+
+  useEffect(() => {
+    // Verificar si TradingView ya está cargado
+    if (window.TradingView) {
+      setTimeout(initializeAllCharts, 1000)
+      return
+    }
+
+    // Cargar TradingView solo una vez
+    const mainScript = document.createElement('script')
+    mainScript.src = 'https://s3.tradingview.com/tv.js'
+    mainScript.async = true
+    mainScript.onload = () => {
+      // Esperar a que TradingView esté completamente inicializado
+      const checkTradingView = () => {
+        if (typeof window.TradingView !== 'undefined') {
+          setTimeout(initializeAllCharts, 1500)
+        } else {
+          setTimeout(checkTradingView, 100)
+        }
+      }
+      checkTradingView()
+    }
+    
+    mainScript.onerror = () => {
+      console.error('Error cargando TradingView')
+      // Reintentar después de 5 segundos
+      setTimeout(() => {
+        document.head.appendChild(mainScript)
+      }, 5000)
+    }
+
+    document.head.appendChild(mainScript)
+
+    // Auto-refresh cada 10 minutos si está activado (más tiempo)
+    const autoRefreshInterval = autoRefresh ? setInterval(reloadAllCharts, 600000) : null
+
+    return () => {
+      if (autoRefreshInterval) clearInterval(autoRefreshInterval)
+      // No remover el script principal para evitar recargas múltiples
+    }
+  }, [autoRefresh])
+
+  const openTradingView = (directLink) => {
+    window.open(directLink, '_blank', 'noopener,noreferrer')
+  }
+
   return (
     <div className="section-bg rounded-xl p-6 mt-6 w-full border border-gray-700/50 shadow-2xl">
-
       {/* Controles Globales */}
       <div className="flex items-center justify-between mb-6 p-4 rounded-xl bg-gradient-to-r from-gray-800/40 to-gray-900/40 border border-gray-700/30">      
         <div className="flex items-center space-x-3">
@@ -256,7 +310,6 @@ export function TradingViewCharts() {
                 key={chart.id}
                 className="group relative rounded-xl overflow-hidden border border-gray-700/50 bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm transition-all duration-500 hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/10 hover:scale-[1.02]"
               >
-                
                 {/* Efecto de fondo sutil */}
                 <div className={`absolute inset-0 bg-gradient-to-r ${chart.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
                 
@@ -278,7 +331,14 @@ export function TradingViewCharts() {
                     </div>
                     
                     <div className="flex items-center space-x-2">
-
+                      <button
+                        onClick={() => reloadChart(chart.id)}
+                        disabled={isRefreshing[chart.id]}
+                        className="p-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50 hover:border-green-500/50 disabled:opacity-50 transition-all duration-300 hover:scale-110"
+                        title="Recargar gráfico"
+                      >
+                        <RefreshCw className={`w-3 h-3 text-gray-400 hover:text-green-400 ${isRefreshing[chart.id] ? 'animate-spin' : ''}`} />
+                      </button>
                       
                       <button
                         onClick={() => openTradingView(chart.directLink)}
@@ -297,18 +357,15 @@ export function TradingViewCharts() {
                       className="tradingview-widget-container w-full h-full"
                     >
                       {/* Estado de carga mejorado */}
-                      <div className="absolute inset-0 flex items-center justify-center bg-gray-900 rounded-b-lg">
-                        <div className="text-center p-6">
-                          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto mb-3"></div>
-                          <p className="text-gray-300 font-semibold text-sm mb-1">Cargando Análisis</p>
-                          <p className="text-gray-400 text-xs">{chart.symbol}</p>
-                          <div className="flex justify-center mt-3 space-x-1">
-                            {[...Array(3)].map((_, i) => (
-                              <div key={i} className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.2}s` }}></div>
-                            ))}
+                      {isRefreshing[chart.id] && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900 rounded-b-lg">
+                          <div className="text-center p-6">
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto mb-3"></div>
+                            <p className="text-gray-300 font-semibold text-sm mb-1">Actualizando...</p>
+                            <p className="text-gray-400 text-xs">{chart.symbol}</p>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                     
                     {/* Overlay de interacción premium */}
@@ -347,8 +404,6 @@ export function TradingViewCharts() {
           </div>
         ))}
       </div>
-      <div className="border-b-25 border-transparent"></div>
-
     </div>
   )
 }
