@@ -9,30 +9,36 @@ export function DollarTypesModule() {
 
 
 
-  const fetchMEPCCL = async () => {
+const fetchMEPCCL = async () => {
   try {
-    const response = await fetch('https://www.dolarsi.com/api/api.php?type=valoresprincipales');
+    const response = await fetch('https://dolarapi.com/v1/dolares');
     const data = await response.json();
     
-    // Buscar MEP (Dolar Bolsa) y CCL en la respuesta
-    const mep = data.find(d => d.casa.nombre === 'Dolar Bolsa');
-    const ccl = data.find(d => d.casa.nombre === 'Contado con liquidación');
+    // Buscar con los nombres CORRECTOS que usa DolarAPI
+    const mep = data.find(d => d.casa === 'bolsa');
+    const ccl = data.find(d => d.casa === 'contadoconliqui');
+    
+    console.log('✅ MEP encontrado:', mep);
+    console.log('✅ CCL encontrado:', ccl);
     
     if (mep && ccl) {
       return {
         mep: {
-          buy: parseFloat(mep.casa.compra.replace(',', '.')),
-          sell: parseFloat(mep.casa.venta.replace(',', '.'))
+          buy: mep.compra,
+          sell: mep.venta
         },
         ccl: {
-          buy: parseFloat(ccl.casa.compra.replace(',', '.')),
-          sell: parseFloat(ccl.casa.venta.replace(',', '.'))
+          buy: ccl.compra, 
+          sell: ccl.venta
         }
       };
     }
+    
+    console.warn('MEP o CCL no encontrados en DolarAPI');
     return null;
+    
   } catch (error) {
-    console.error('Error fetching MEP/CCL from DolarSI:', error);
+    console.error('Error fetching MEP/CCL from DolarAPI:', error);
     return null;
   }
 };
