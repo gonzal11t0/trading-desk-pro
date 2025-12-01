@@ -152,11 +152,20 @@ const parseInflationRow = (dateText, valueText) => {
   }
 };
 
-// Intentar API directa del BCRA (si existe)
+// SOLUCIÓN CON PROXY - Reemplaza tu función actual con esta:
 const fetchBCRAApi = async () => {
   try {
-    // API de estadísticas del BCRA
-    const response = await fetch('https://api.estadisticasbcra.com/api/inflacion_mensual_oficial');
+    // Usar proxy de CORS para evitar el bloqueo
+    const proxyUrl = 'https://corsproxy.io/?';
+    const targetUrl = 'https://api.estadisticasbcra.com/inflacion_mensual_oficial';
+    
+    const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'TradingDeskPro/1.0.0'
+      },
+      timeout: 10000
+    });
     
     if (response.ok) {
       const data = await response.json();

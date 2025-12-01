@@ -31,8 +31,13 @@
 **Frontend:** React 18 + Vite + Tailwind CSS  
 **Estado:** Zustand + TanStack Query  
 **Gráficos:** TradingView Widgets + Recharts  
-**APIs:** CoinGecko, Yahoo Finance, BCRA, Bluelytics
-
+**APIs:** 
+- ✅ CoinGecko (Crypto)
+- ✅ Financial Modeling Prep (Acciones USA) 
+- ✅ Bluelytics + DolarAPI (Forex ARG)
+- ✅ Múltiples fuentes MERVAL
+- Yahoo Finance (Fallback)
+- BCRA (Datos oficiales)
 ## ⚡ Instalación Rápida
 
 ```bash
