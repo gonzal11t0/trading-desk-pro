@@ -18,8 +18,7 @@ const fetchMEPCCL = async () => {
     const mep = data.find(d => d.casa === 'bolsa');
     const ccl = data.find(d => d.casa === 'contadoconliqui');
     
-    console.log('✅ MEP encontrado:', mep);
-    console.log('✅ CCL encontrado:', ccl);
+
     
     if (mep && ccl) {
       return {

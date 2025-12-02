@@ -1,5 +1,5 @@
 import React from 'react'
-import { RiskCountryModule } from './RiskCountryModule'
+import  RiskCountryModule  from './RiskCountryModule'
 import { ExchangeBandsModule } from './ExchangeBandsModule'
 
 export function FinancialDashboard() {

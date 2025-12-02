@@ -18,6 +18,11 @@ export default defineConfig({
     },
     
     proxy: {
+      '/api/argentina-datos': {
+        target: 'https://api.argentinadatos.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/argentina-datos/, '/v1')
+      },
       '/api/dolarito': {
         target: 'https://www.dolarito.ar',
         changeOrigin: true,

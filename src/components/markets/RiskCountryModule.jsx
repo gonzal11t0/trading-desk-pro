@@ -1,181 +1,552 @@
-import React, { useState, useEffect } from 'react';
-import { AlertTriangle, TrendingUp, TrendingDown, RefreshCw, ExternalLink } from 'lucide-react';
-import { fetchRiskCountryData } from '../../api/riskCountryApi';
+import React from 'react';
+import { useRiskCountry } from '../../hooks/useRiskCountry';
 
-export function RiskCountryModule() {
-  const [riskData, setRiskData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState(new Date());
-  const [error, setError] = useState(null);
+const RiskCountryModule = () => {
+  const { data, loading, error, lastUpdated, refresh } = useRiskCountry();
 
-  const loadRiskData = async () => {
-    setIsLoading(true);
-    setError(null);
+  // Formatear fecha
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     try {
-      const data = await fetchRiskCountryData();
-      setRiskData(data);
-      setLastUpdate(new Date());
-      
-      // Guardar para cache
-      localStorage.setItem('riskCountryRealData', JSON.stringify({
-        ...data,
-        timestamp: Date.now()
-      }));
-    } catch (error) {
-      console.error('Error loading risk country data:', error);
-      setError('Error cargando datos en tiempo real');
-    } finally {
-      setIsLoading(false);
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch {
+      return dateString;
     }
   };
 
-  useEffect(() => {
-    loadRiskData();
-    
-    // Auto-refresh cada 10 minutos (más largo porque es scraping)
-    const interval = setInterval(loadRiskData, 600000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const displayData = riskData || {
-    value: 1645,
-    previous: 1620,
-    trend: 'up',
-    change: 25,
-    lastUpdate: new Date().toISOString(),
-    source: 'default'
+  // Formatear hora
+  const formatTime = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString('es-AR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return '';
+    }
   };
 
-  const riskLevel = getRiskLevel(displayData.value);
-
-  const getSourceInfo = (source) => {
-    const sources = {
-      'ambito': { name: 'Ámbito.com', color: 'text-blue-400', url: 'https://www.ambito.com/contenidos/riesgo-pais.html' },
-      'market': { name: 'Datos Mercado', color: 'text-green-400' },
-      'cached': { name: 'Datos en Cache', color: 'text-yellow-400' },
-      'estimated': { name: 'Estimado', color: 'text-orange-400' },
-      'manual': { name: 'Manual', color: 'text-gray-400' },
-      'default': { name: 'Por Defecto', color: 'text-gray-400' }
-    };
-    return sources[source] || { name: source, color: 'text-gray-400' };
+  // Determinar nivel de riesgo
+  const getRiskLevel = (valor) => {
+    if (!valor) return 'unknown';
+    if (valor >= 2000) return 'critical';
+    if (valor >= 1500) return 'high';
+    if (valor >= 1000) return 'medium';
+    return 'low';
   };
 
-  const sourceInfo = getSourceInfo(displayData.source);
+  // Determinar colores según nivel
+  const getRiskColors = (level) => {
+    switch(level) {
+      case 'critical':
+        return {
+          bg: '#1f0000',
+          border: '#ff000033',
+          text: '#ff5555',
+          badgeBg: '#ff000033',
+          badgeText: '#ff9999',
+          icon: '#ff4444',
+          value: '#ff7777'
+        };
+      case 'high':
+        return {
+          bg: '#1f0f00',
+          border: '#ff880033',
+          text: '#ffaa55',
+          badgeBg: '#ff880033',
+          badgeText: '#ffcc99',
+          icon: '#ff9944',
+          value: '#ffbb77'
+        };
+      case 'medium':
+        return {
+          bg: '#1f1f00',
+          border: '#ffff0033',
+          text: '#ffff55',
+          badgeBg: '#ffff0033',
+          badgeText: '#ffff99',
+          icon: '#ffff44',
+          value: '#ffff77'
+        };
+      case 'low':
+        return {
+          bg: '#001f00',
+          border: '#00ff0033',
+          text: '#55ff55',
+          badgeBg: '#00ff0033',
+          badgeText: '#99ff99',
+          icon: '#44ff44',
+          value: '#77ff77'
+        };
+      default:
+        return {
+          bg: '#0f0f0f',
+          border: '#66666633',
+          text: '#aaaaaa',
+          badgeBg: '#66666633',
+          badgeText: '#cccccc',
+          icon: '#888888',
+          value: '#bbbbbb'
+        };
+    }
+  };
 
-  return (
-    <div className="section-bg rounded-xl p-6 border border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 group border-b-8 border-b-transparent">
-      <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${riskLevel.color} opacity-5 group-hover:opacity-10 transition-opacity duration-300`}></div>
-      
-      <div className="relative z-10">
-        {/* HEADER COMPLETAMENTE CENTRADO */}
-        <div className="text-center mb-6">
-          {/* Título y fuente centrados */}
-          <div className="flex flex-col items-center justify-center space-y-2 mb-4">
-<div className="flex items-center space-x-3">
-  <div className={`p-2 rounded-xl bg-gradient-to-r ${riskLevel.color} shadow-lg`}>
-    <AlertTriangle className="w-5 h-5 text-white" />
-  </div>
-  <h2 className="text-white font-bold text-lg tracking-tight" style={{ marginLeft: '1rem' }}>
-    RIESGO PAÍS
-  </h2>
-</div>
-            
-            <div className="flex items-center space-x-2">
-              <span className={`text-xs ${sourceInfo.color}`}>
-                {sourceInfo.name}
-              </span>
-              {displayData.source === 'ambito' && (
-                <a 
-                  href={sourceInfo.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-blue-400 transition-colors"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
+  const riskLevel = getRiskLevel(data?.valor);
+  const colors = getRiskColors(riskLevel);
+  const riskLabels = {
+    critical: 'CRÍTICO',
+    high: 'ALTO',
+    medium: 'MEDIO',
+    low: 'BAJO',
+    unknown: 'DESCONOCIDO'
+  };
+
+  // Estilos base
+  const styles = {
+    container: {
+      background: 'linear-gradient(135deg, rgba(10, 10, 10, 0.9), rgba(30, 30, 30, 0.7))',
+      backdropFilter: 'blur(10px)',
+      borderRadius: '12px',
+      border: `1px solid ${colors.border}`,
+      padding: '20px',
+      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
+      transition: 'all 0.3s ease',
+      fontFamily: "'Inter', 'Segoe UI', sans-serif"
+    },
+    header: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: '24px'
+    },
+    titleContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px'
+    },
+    iconWrapper: {
+      background: `${colors.bg}`,
+      padding: '10px',
+      borderRadius: '10px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    titleText: {
+      color: '#ffffff',
+      fontSize: '18px',
+      fontWeight: '600',
+      margin: 0,
+      lineHeight: '1.2'
+    },
+    subtitle: {
+      color: '#888888',
+      fontSize: '14px',
+      margin: '4px 0 0 0'
+    },
+    badge: {
+      background: colors.badgeBg,
+      color: colors.badgeText,
+      padding: '4px 10px',
+      borderRadius: '20px',
+      fontSize: '11px',
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: '0.5px'
+    },
+    statusBadge: {
+      padding: '4px 10px',
+      borderRadius: '20px',
+      fontSize: '11px',
+      fontWeight: '600',
+      textTransform: 'uppercase'
+    },
+    valueContainer: {
+      marginBottom: '24px'
+    },
+    valueRow: {
+      display: 'flex',
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+      marginBottom: '4px'
+    },
+    value: {
+      color: colors.value,
+      fontSize: '42px',
+      fontWeight: '700',
+      lineHeight: '1'
+    },
+    unit: {
+      color: '#888888',
+      fontSize: '18px',
+      marginLeft: '8px'
+    },
+    valueLabel: {
+      color: '#666666',
+      fontSize: '14px',
+      marginTop: '4px'
+    },
+    infoRow: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      fontSize: '14px',
+      marginBottom: '12px'
+    },
+    infoLabel: {
+      color: '#888888',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px'
+    },
+    infoValue: {
+      color: '#ffffff',
+      fontWeight: '500',
+      textAlign: 'right'
+    },
+    timeValue: {
+      color: '#aaaaaa',
+      fontSize: '12px',
+      display: 'block'
+    },
+    separator: {
+      borderTop: '1px solid rgba(100, 100, 100, 0.3)',
+      paddingTop: '12px',
+      marginTop: '12px'
+    },
+    sourceRow: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      fontSize: '12px'
+    },
+    sourceLabel: {
+      color: '#666666'
+    },
+    sourceLink: {
+      color: '#4dabf7',
+      textDecoration: 'none',
+      fontWeight: '500'
+    },
+    statusRow: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: '16px',
+      paddingTop: '12px',
+      borderTop: '1px solid rgba(100, 100, 100, 0.3)'
+    },
+    statusIndicator: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      fontSize: '12px'
+    },
+    statusDot: {
+      width: '8px',
+      height: '8px',
+      borderRadius: '50%'
+    },
+    statusText: {
+      color: '#888888'
+    },
+    refreshButton: {
+      background: 'rgba(100, 100, 100, 0.2)',
+      color: '#cccccc',
+      border: 'none',
+      padding: '6px 12px',
+      borderRadius: '6px',
+      fontSize: '12px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease'
+    },
+    controlButtons: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px'
+    },
+    smallButton: {
+      background: 'transparent',
+      border: 'none',
+      padding: '6px',
+      borderRadius: '6px',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    loadingContainer: {
+      textAlign: 'center',
+      padding: '24px 0'
+    },
+    loadingText: {
+      color: '#888888',
+      fontSize: '14px',
+      marginTop: '8px'
+    },
+    errorContainer: {
+      textAlign: 'center',
+      padding: '16px 0'
+    },
+    errorText: {
+      color: '#ff5555',
+      fontSize: '14px',
+      fontWeight: '500',
+      marginBottom: '12px'
+    },
+    retryButton: {
+      background: 'rgba(255, 85, 85, 0.1)',
+      color: '#ff9999',
+      border: '1px solid rgba(255, 85, 85, 0.3)',
+      padding: '8px 16px',
+      borderRadius: '6px',
+      fontSize: '13px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      transition: 'all 0.2s ease'
+    }
+  };
+
+  // Estado de la fuente
+  const getSourceConfig = (source) => {
+    switch(source) {
+      case 'argentinaDatos':
+        return {
+          color: '#00ff0033',
+          text: '#00ff00',
+          label: 'LIVE',
+          dotColor: '#00ff00'
+        };
+      case 'cache':
+        return {
+          color: '#0088ff33',
+          text: '#88bbff',
+          label: 'CACHÉ',
+          dotColor: '#0088ff'
+        };
+      default:
+        return {
+          color: '#66666633',
+          text: '#aaaaaa',
+          label: 'MOCK',
+          dotColor: '#888888'
+        };
+    }
+  };
+
+  const sourceConfig = getSourceConfig(data?.source);
+
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.header}>
+          <div style={styles.titleContainer}>
+            <div style={{...styles.iconWrapper, background: 'rgba(255, 85, 85, 0.1)'}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff5555" strokeWidth="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <div>
+              <h3 style={styles.titleText}>Riesgo País</h3>
+              <p style={styles.subtitle}>EMBI+ Argentina</p>
             </div>
           </div>
-
-          {/* Botón de refresh centrado debajo del título */}
-          <div className="flex justify-center">
-            <button
-              onClick={loadRiskData}
-              disabled={isLoading}
-              className="p-2 rounded-lg bg-gray-800/50 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 text-gray-400 ${isLoading ? 'animate-spin' : ''}`} />
-            </button>
+          <div style={{animation: 'spin 1s linear infinite'}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888888" strokeWidth="2">
+              <path d="M21 12a9 9 0 11-6.219-8.56"/>
+            </svg>
           </div>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
-            <p className="text-red-400 text-sm">{error}</p>
-            <p className="text-red-400/70 text-xs mt-1">Usando datos de respaldo</p>
-          </div>
-        )}
-
-        {/* VALOR PRINCIPAL EMBI+ CON FLECHAS DE TENDENCIA */}
-        <div className="text-center mb-6">
-          <div className="inline-flex flex-col items-center space-y-4 p-6 rounded-2xl bg-gradient-to-br from-gray-800/40 to-gray-900/60 backdrop-blur-sm">
-            <div className="flex items-center justify-center space-x-4">
-              {/* Flecha de tendencia - SUBE */}
-              {displayData.trend === 'up' && (
-                <div className="flex flex-col items-center">
-                  <TrendingUp style={{ 
-                    width: '32px', 
-                    height: '32px', 
-                    color: '#ef4444',
-                    animation: 'pulse 2s infinite',
-                    marginRight: '1rem'
-                  }} />
-                </div>
-              )}
-              
-              {/* Valor principal */}
-              <div className="flex flex-col items-center">
-                <div className="flex items-baseline space-x-2">
-                  <span 
-                    style={{ color: '#fbbf24', fontSize: '2.0rem' }}
-                    className="font-black font-mono tracking-tight select-all cursor-text"
-                  >
-                    {displayData.value}
-                  </span>
-                  <span 
-                    style={{ color: '#fbbf24', fontSize: '1.2rem' }}
-                    className="text-gray-400 font-normal"
-                  >
-                    puntos
-                  </span>
-                </div>
-              </div>
-
-              {/* Flecha de tendencia - BAJA */}
-              {displayData.trend === 'down' && (
-                <div className="flex flex-col items-center">
-                  <TrendingDown style={{ 
-                    width: '32px', 
-                    height: '32px', 
-                    color: '#22c55e',
-                    animation: 'pulse 2s infinite',
-                    marginRight: '1rem'
-                  }} />
-                </div>
-              )}
-            </div>
-          </div>
+        <div style={styles.loadingContainer}>
+          <div style={{
+            display: 'inline-block',
+            background: 'rgba(100, 100, 100, 0.3)',
+            height: '40px',
+            width: '120px',
+            borderRadius: '8px',
+            animation: 'pulse 1.5s ease-in-out infinite',
+            marginBottom: '8px'
+          }}></div>
+          <p style={styles.loadingText}>Cargando datos...</p>
         </div>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{...styles.container, borderColor: '#ff000033'}}>
+        <div style={styles.header}>
+          <div style={styles.titleContainer}>
+            <div style={{...styles.iconWrapper, background: 'rgba(255, 85, 85, 0.1)'}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff5555" strokeWidth="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <div>
+              <h3 style={styles.titleText}>Riesgo País</h3>
+              <p style={styles.subtitle}>EMBI+ Argentina</p>
+            </div>
+          </div>
+        </div>
+        <div style={styles.errorContainer}>
+          <p style={styles.errorText}>Error cargando datos</p>
+          <button 
+            onClick={refresh}
+            style={styles.retryButton}
+            onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 85, 85, 0.2)'}
+            onMouseOut={e => e.currentTarget.style.background = 'rgba(255, 85, 85, 0.1)'}
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      style={styles.container}
+      onMouseOver={e => {
+        e.currentTarget.style.borderColor = colors.border.replace('33', '66');
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.6)';
+      }}
+      onMouseOut={e => {
+        e.currentTarget.style.borderColor = colors.border;
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.5)';
+      }}
+    >
+      {/* Header */}
+      <div style={styles.header}>
+        <div style={styles.titleContainer}>
+          <div style={styles.iconWrapper}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={colors.icon} strokeWidth="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <div>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <h3 style={styles.titleText}>Riesgo País</h3>
+              <span style={styles.badge}>{riskLabels[riskLevel]}</span>
+            </div>
+            <p style={styles.subtitle}>EMBI+ Argentina</p>
+          </div>
+        </div>
+        
+        <div style={styles.controlButtons}>
+          <span style={{...styles.statusBadge, background: sourceConfig.color, color: sourceConfig.text}}>
+            {sourceConfig.label}
+          </span>
+          <button 
+            style={{...styles.smallButton, background: colors.bg}}
+            onClick={refresh}
+            title="Actualizar"
+            onMouseOver={e => e.currentTarget.style.background = colors.bg.replace('1f', '2f')}
+            onMouseOut={e => e.currentTarget.style.background = colors.bg}
+          >
+            <svg 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke={colors.text} 
+              strokeWidth="2"
+              style={{transition: 'transform 0.3s ease'}}
+              onMouseOver={e => e.currentTarget.style.transform = 'rotate(180deg)'}
+              onMouseOut={e => e.currentTarget.style.transform = 'rotate(0deg)'}
+            >
+              <path d="M23 4v6h-6"/>
+              <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Valor Principal */}
+      <div style={styles.valueContainer}>
+        <div style={styles.valueRow}>
+          <div>
+            <span style={styles.value}>
+              {data?.valor?.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) || 'N/A'}
+            </span>
+            <span style={styles.unit}>puntos</span>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888888" strokeWidth="2">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+          </svg>
+        </div>
+        <p style={styles.valueLabel}>Valor EMBI+</p>
+      </div>
+
+      {/* Información adicional */}
+      <div>
+
+
+        <div style={styles.separator}>
+          <div style={styles.sourceRow}>
+            <span style={styles.sourceLabel}>Fuente oficial</span>
+            <a 
+              href="https://argentinadatos.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={styles.sourceLink}
+              onMouseOver={e => e.currentTarget.style.color = '#6bc5ff'}
+              onMouseOut={e => e.currentTarget.style.color = '#4dabf7'}
+            >
+              ArgentinaDatos.com
+            </a>
+          </div>
+        </div>
+
+        {/* Indicador de estado */}
+        <div style={styles.statusRow}>
+          <div style={styles.statusIndicator}>
+          
+          </div>
+          {data?.source !== 'argentinaDatos' && (
+            <button
+              onClick={refresh}
+              style={styles.refreshButton}
+              onMouseOver={e => e.currentTarget.style.background = 'rgba(100, 100, 100, 0.3)'}
+              onMouseOut={e => e.currentTarget.style.background = 'rgba(100, 100, 100, 0.2)'}
+            >
+              Forzar actualización
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Animaciones CSS inline */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
     </div>
   );
-}
+};
 
-// Helper function para niveles de riesgo
-const getRiskLevel = (value) => {
-  if (value > 2000) return { level: 'EXTREMO', color: 'from-red-500 to-rose-500', bg: 'bg-red-500/10', borderColor: 'border-red-500/30' };
-  if (value > 1700) return { level: 'ALTO', color: 'from-orange-500 to-amber-500', bg: 'bg-orange-500/10', borderColor: 'border-orange-500/30' };
-  if (value > 1400) return { level: 'MEDIO', color: 'from-yellow-500 to-yellow-400', bg: 'bg-yellow-500/10', borderColor: 'border-yellow-500/30' };
-  return { level: 'MODERADO', color: 'from-green-500 to-emerald-500', bg: 'bg-green-500/10', borderColor: 'border-green-500/30' };
-}; 
+export default RiskCountryModule;
