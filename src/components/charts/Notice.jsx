@@ -23,9 +23,7 @@ export function Notice() {
 
   useEffect(() => {
     loadNews()
-    
-    // Auto-refresh cada 5 minutos
-    const interval = setInterval(loadNews, 900000)
+    const interval = setInterval(loadNews, 1300000)
     return () => clearInterval(interval)
   }, [])
 
@@ -40,7 +38,6 @@ export function Notice() {
     return colors[source] || { dot: '#6b7280', gradient: 'linear-gradient(135deg, #6b7280, #4b5563)' }
   }
 
-  // Mientras carga, mostrar skeleton
   if (isLoading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>

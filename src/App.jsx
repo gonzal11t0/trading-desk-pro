@@ -30,17 +30,11 @@ export default function App() {
           </div>
           <div className="w-3/10 ml-12 pl-12 border-b-25 border-transparent">
             <TabSwitcher activeTab={activeTab} onTabChange={setActiveTab}>
-              {activeTab === 'mapas' ? (
-                <MarketMaps /> 
-              ) : (
                 <Notice  /> 
-                
-              )}
               <TreemapDashboard />
             </TabSwitcher>
           </div>
         </div>
-        
         <TradingViewCharts />
       </div>
     </div>
