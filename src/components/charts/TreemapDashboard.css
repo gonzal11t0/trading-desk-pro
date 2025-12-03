@@ -1,0 +1,215 @@
+/* src/components/charts/TreemapDashboard.css */
+.treemap-dashboard {
+  width: 100%;
+  padding: 20px;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.dashboard-header h1 {
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.dashboard-subtitle {
+  color: #888;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.treemap-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.treemap-panel {
+  transition: transform 0.3s ease;
+}
+
+.treemap-panel:hover {
+  transform: translateY(-5px);
+}
+
+@media (min-width: 1200px) {
+  .treemap-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .treemap-panel:nth-child(3) {
+    grid-column: span 2;
+  }
+}
+.bonds-panel {
+  margin-top: 10px;
+}
+
+.bonds-panel .financial-treemap {
+  padding: 12px 15px !important;
+}
+
+.bonds-panel .treemap-header {
+  margin-bottom: 12px !important;
+  padding-bottom: 8px !important;
+}
+
+.bonds-panel .treemap-title {
+  font-size: 16px !important;
+}
+
+.bonds-panel .treemap-datetime {
+  font-size: 12px !important;
+}
+
+.bonds-panel .treemap-grid {
+  height: 180px !important; 
+}
+
+.bonds-panel .treemap-block {
+  min-height: 25px !important;
+  padding: 1px 6px !important;
+}
+
+.bonds-panel .block-ticker {
+  font-size: 12px !important;
+  margin-right: 5px !important;
+}
+
+.bonds-panel .block-variation {
+  font-size: 10px !important;
+  padding: 1px 4px !important;
+}
+.treemap-dashboard {
+  width: 100%;
+  padding: 20px;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.dashboard-header h1 {
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.dashboard-subtitle {
+  color: #888;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.main-treemap-container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: auto;
+  margin: 0 auto;
+}
+
+/* FILA SUPERIOR: Panel Líder y CEDEARS lado a lado */
+.top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  width: 100%;
+}
+
+.bottom-row {
+  width: 100%;
+}
+
+.treemap-panel {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.treemap-panel:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.bonds-panel {
+  margin-top: 10px;
+}
+
+.bonds-panel .financial-treemap {
+  padding: 15px 20px !important;
+}
+
+@media (max-width: 1200px) {
+  .top-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .main-treemap-container {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+  
+  .dashboard-subtitle {
+    font-size: 14px;
+  }
+  
+  .treemap-dashboard {
+    padding: 15px;
+  }
+  
+  .top-row,
+  .bottom-row {
+    gap: 15px;
+  }
+}
+.treemap-dashboard-simple {
+  width: 100%;
+  padding: 15px;
+  background: #0a0a0a;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.treemap-panel-full {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .treemap-dashboard-simple {
+    padding: 10px;
+    gap: 10px;
+  }
+}

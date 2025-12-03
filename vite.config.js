@@ -58,9 +58,32 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/youtube-proxy/, '')
       },
-      
+      '/api/markets': {
+        target: 'https://api.coingecko.com/api/v3',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/markets/, '')
+      },
+      // Proxy para datos argentinos
+      '/api/argentina': {
+        target: 'https://api.bluelytics.com.ar/v2',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/argentina/, '')
+      },
+      // Proxy para CEDEARS
+      '/api/cedears': {
+        target: 'https://api.financialmodelingprep.com/v3',
+        changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            // Agregar API key si es necesario
+            if (req.url.includes('financialmodelingprep')) {
+              const url = new URL(proxyReq.path, 'https://api.financialmodelingprep.com');
+              url.searchParams.set('apikey', import.meta.env.VITE_FMP_KEY || 'demo');
+              proxyReq.path = url.pathname + url.search;
+            }
+          });
     }
-    
   }
-  
+}
+  }
 })

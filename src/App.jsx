@@ -9,6 +9,8 @@ import { FinancialDashboard } from './components/markets/FinancialDashboard'
 import { Notice } from './components/charts/Notice'
 import { TabSwitcher } from './components/layout/abSwitcher'
 import { TradingViewCharts } from './components/charts/TradingViewCharts'
+import TreemapDashboard from './components/charts/TreemapDashboard'
+
 import './App.css'
 
 export default function App() {
@@ -32,7 +34,9 @@ export default function App() {
                 <MarketMaps /> 
               ) : (
                 <Notice  /> 
+                
               )}
+              <TreemapDashboard />
             </TabSwitcher>
           </div>
         </div>

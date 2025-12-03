@@ -1,0 +1,131 @@
+/* src/components/charts/CompleteTreemap.css */
+.complete-treemap-dashboard {
+  padding: 20px;
+  background: #0f0f0f;
+  min-height: 100vh;
+}
+
+.dashboard-title {
+  color: #fff;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+.treemap-panel.complete {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #333;
+}
+
+.panel-title {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.panel-date {
+  color: #888;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.treemap-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 10px;
+  height: 400px;
+  grid-template-areas: 
+    "area1 area2 area3 area4"
+    "area5 area6 area7 area8"
+    "area9 area10 area11 area12";
+}
+
+.treemap-block {
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  border: 2px solid #222;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-align: center;
+}
+
+.treemap-block:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.block-ticker {
+  font-weight: 800;
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.block-variation {
+  font-weight: 700;
+  font-size: 0.9em;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.block-variation.positive {
+  color: #00ff00;
+}
+
+.block-variation.negative {
+  color: #ff4444;
+}
+
+.block-size {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 5px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .treemap-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .treemap-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    height: 600px;
+  }
+  
+  .panel-title {
+    font-size: 16px;
+  }
+  
+  .panel-date {
+    font-size: 14px;
+  }
+}

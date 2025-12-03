@@ -1,0 +1,415 @@
+/* src/components/charts/FinancialTreemap.css (VERSIÓN MODIFICADA) */
+.financial-treemap {
+  background-color: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.treemap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #333;
+}
+
+.treemap-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.treemap-datetime {
+  font-size: 16px;
+  color: #888;
+  font-weight: 500;
+}
+
+.treemap-grid {
+  display: grid;
+  gap: 8px; 
+  transition: all 0.3s ease;
+}
+
+.treemap-block {
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #222;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-align: center;
+  min-height: 60px;
+}
+
+.treemap-block:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.treemap-block.small {
+  min-height: 50px;
+  border-width: 1px;
+}
+
+.treemap-block.small .block-ticker {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.treemap-block.small .block-variation {
+  font-size: 12px;
+  padding: 2px 6px;
+}
+
+.block-ticker {
+  font-weight: 800;
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.block-variation {
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.block-variation.positive {
+  color: #00ff00;
+}
+
+.block-variation.negative {
+  color: #ff4444;
+}
+
+@media (max-width: 1200px) {
+  .treemap-title {
+    font-size: 18px;
+  }
+  
+  .treemap-datetime {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .treemap-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: repeat(6, 1fr) !important;
+  }
+  
+  .treemap-title {
+    font-size: 16px;
+  }
+}
+.bonds-panel .financial-treemap {
+  padding: 15px 20px; 
+}
+
+.bonds-panel .treemap-header {
+  margin-bottom: 15px; 
+  padding-bottom: 10px;
+}
+
+.bonds-panel .treemap-title {
+  font-size: 18px;
+}
+
+.bonds-panel .treemap-datetime {
+  font-size: 14px;
+}
+
+.treemap-panel.bonds-panel {
+  margin-top: -10px;
+}
+
+.treemap-grid {
+  display: grid;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.financial-treemap .treemap-grid[style*="gridTemplateColumns: repeat(2"] {
+  gap: 4px !important;
+}
+
+.treemap-block.compact {
+  min-height: 30px !important;
+  border-width: 1px !important;
+  display: flex;
+  flex-direction: row !important; 
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 8px !important;
+}
+
+.treemap-block.compact .block-ticker {
+  font-size: 13px !important;
+  margin-bottom: 0 !important;
+  margin-right: 8px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.treemap-block.compact .block-variation {
+  font-size: 11px !important;
+  padding: 2px 5px !important;
+  flex-shrink: 0;
+}
+
+/* Responsive para bonos */
+@media (max-width: 768px) {
+  .financial-treemap .treemap-grid[style*="gridTemplateColumns: repeat(2"] {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: repeat(12, 1fr) !important;
+    height: 400px !important;
+  }
+}
+
+.financial-treemap {
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.treemap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #333;
+}
+
+.treemap-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.treemap-datetime {
+  font-size: 16px;
+  color: #888;
+  font-weight: 500;
+}
+
+.treemap-grid {
+  display: grid;
+  flex: 1;
+  transition: all 0.3s ease;
+}
+
+.treemap-block {
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #222;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-align: center;
+  min-height: 60px;
+}
+
+.treemap-block:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.treemap-block.compact {
+  min-height: 40px !important;
+  border-width: 1px !important;
+  padding: 4px !important;
+}
+
+.treemap-block.compact .block-ticker {
+  font-size: 12px !important;
+  margin-bottom: 2px !important;
+  font-weight: 700;
+}
+
+.treemap-block.compact .block-variation {
+  font-size: 10px !important;
+  padding: 2px 4px !important;
+}
+
+.block-ticker {
+  font-weight: 800;
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.block-variation {
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.block-variation.positive {
+  color: #00ff00;
+}
+
+.block-variation.negative {
+  color: #ff4444;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .financial-treemap .treemap-grid[style*="gridTemplateColumns: repeat(6"] {
+    grid-template-columns: repeat(4, 1fr) !important;
+    grid-template-rows: repeat(3, 1fr) !important;
+    height: 250px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .financial-treemap .treemap-grid[style*="gridTemplateColumns: repeat(6"],
+  .financial-treemap .treemap-grid[style*="gridTemplateColumns: repeat(4"],
+  .financial-treemap .treemap-grid[style*="gridTemplateColumns: repeat(3"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-rows: repeat(6, 1fr) !important;
+    height: 350px !important;
+  }
+  
+  .treemap-title {
+    font-size: 16px;
+  }
+  
+  .treemap-datetime {
+    font-size: 12px;
+  }
+}
+
+.financial-treemap-compact {
+  background-color: #1a1a1a;
+  padding: 12px 15px;
+  height: 100%;
+}
+
+.treemap-header-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #333;
+}
+
+.treemap-title-compact {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.treemap-datetime-compact {
+  font-size: 12px;
+  color: #888;
+  font-weight: 500;
+}
+
+.treemap-grid-compact {
+  display: grid;
+  width: 100%;
+}
+
+.treemap-block-compact {
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #222;
+  cursor: pointer;
+  text-align: center;
+  padding: 4px;
+  transition: all 0.2s ease;
+  min-height: 40px;
+}
+
+.treemap-block-compact:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+  z-index: 10;
+}
+
+.block-ticker-compact {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 2px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.block-variation-compact {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.block-variation-compact.positive {
+  color: #00ff00;
+}
+
+.block-variation-compact.negative {
+  color: #ff4444;
+}
+
+@media (max-width: 1200px) {
+  .treemap-grid-compact {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .treemap-grid-compact {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  
+  .treemap-title-compact {
+    font-size: 14px;
+  }
+  
+  .treemap-datetime-compact {
+    font-size: 11px;
+  }
+  
+  .block-ticker-compact {
+    font-size: 12px;
+  }
+  
+  .block-variation-compact {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .treemap-grid-compact {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
