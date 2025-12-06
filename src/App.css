@@ -388,3 +388,13 @@
 .gradient-selectable::-moz-selection {
   -webkit-text-fill-color: white;
 }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Para compatibilidad con pseudo-clases en React inline styles */
+tr:hover {
+  background: linear-gradient(90deg, rgba(31, 41, 55, 0.3), rgba(17, 24, 39, 0.3)) !important;
+}

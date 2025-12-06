@@ -3,13 +3,13 @@ import React from 'react'
 import { TradingHeader } from './components/layout/TradingHeader'
 import { QuotesCarousel } from './components/markets/QuotesCarousel'
 import { LiveStreamsGrid } from './components/video/LiveStreamsGrid'
-import { MarketMaps } from './components/charts/MarketMaps'
 import { EconomicIndicators } from './components/markets/EconomicIndicators'
 import { FinancialDashboard } from './components/markets/FinancialDashboard'
 import { Notice } from './components/charts/Notice'
 import { TabSwitcher } from './components/layout/abSwitcher'
 import { TradingViewCharts } from './components/charts/TradingViewCharts'
 import TreemapDashboard from './components/charts/TreemapDashboard'
+import EconomicDataBlock from './components/markets/EconomicDataBlock';
 
 import './App.css'
 
@@ -27,12 +27,14 @@ export default function App() {
             <LiveStreamsGrid />
             <EconomicIndicators />
             <FinancialDashboard/>
+            <EconomicDataBlock/>
           </div>
           <div className="w-3/10 ml-12 pl-12 border-b-25 border-transparent">
             <TabSwitcher activeTab={activeTab} onTabChange={setActiveTab}>
                 <Notice  /> 
               <TreemapDashboard />
             </TabSwitcher>
+            
           </div>
         </div>
         <TradingViewCharts />
