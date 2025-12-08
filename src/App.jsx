@@ -27,6 +27,7 @@ export default function App() {
             <LiveStreamsGrid />
             <EconomicIndicators />
             <FinancialDashboard/>
+            <div className="w-3/10 ml-12 pl-12 border-b-25 border-transparent"></div>
             <EconomicDataBlock/>
           </div>
           <div className="w-3/10 ml-12 pl-12 border-b-25 border-transparent">

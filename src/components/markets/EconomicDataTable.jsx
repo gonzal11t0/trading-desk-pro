@@ -1,17 +1,90 @@
 // src/components/markets/EconomicDataTable.jsx
-import React from 'react';
+import React, { useState } from 'react';
 
 const EconomicDataTable = ({ data }) => {
+  const [tooltipVisible, setTooltipVisible] = useState(null);
+
   const indicators = [
-    { id: 'emae', label: 'EMAE', description: 'Estimador Mensual de Actividad Económica', icon: '📈', color: 'linear-gradient(135deg, #06b6d4, #3b82f6)' },
-    { id: 'gdp', label: 'PBI Trimestral', description: 'Producto Bruto Interno', icon: '💰', color: 'linear-gradient(135deg, #10b981, #059669)' },
-    { id: 'construction', label: 'Construcción (ISAC)', description: 'Índice de la Construcción', icon: '🏗️', color: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-    { id: 'unemployment', label: 'Desempleo Trimestral', description: 'Tasa de desocupación', icon: '📉', color: 'linear-gradient(135deg, #f43f5e, #e11d48)' },
-    { id: 'employment', label: 'Tasa de Empleo', description: 'Porcentaje de población ocupada', icon: '👥', color: 'linear-gradient(135deg, #84cc16, #16a34a)' },
-    { id: 'wages', label: 'Informe de Salarios', description: 'Índice de Salarios', icon: '💵', color: 'linear-gradient(135deg, #eab308, #ca8a04)' },
-    { id: 'tradeBalance', label: 'Balanza Comercial', description: 'Exportaciones - Importaciones', icon: '⚖️', color: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' },
-    { id: 'exports', label: 'Exportaciones', description: 'Mensual', icon: '📤', color: 'linear-gradient(135deg, #3b82f6, #06b6d4)' },
-    { id: 'imports', label: 'Importaciones', description: 'Mensual', icon: '📥', color: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' },
+    { 
+      id: 'emae', 
+      label: 'EMAE', 
+      description: 'Estimador Mensual de Actividad Económica', 
+      icon: '📈', 
+      color: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+      tooltip: 'Índice mensual que estima la evolución de la actividad económica. Valores >100 indican crecimiento respecto al año base 2004.'
+    },
+    { 
+      id: 'gdp', 
+      label: 'PBI Trimestral', 
+      description: 'Producto Bruto Interno', 
+      icon: '💰', 
+      color: 'linear-gradient(135deg, #10b981, #059669)',
+      tooltip: 'Valor total de bienes y servicios producidos en un trimestre. Indicador principal del tamaño de la economía.'
+    },
+    { 
+      id: 'construction', 
+      label: 'Construcción (ISAC)', 
+      description: 'Índice de la Construcción', 
+      icon: '🏗️', 
+      color: 'linear-gradient(135deg, #f59e0b, #d97706)',
+      tooltip: 'Mide la actividad del sector construcción. Incluye obras públicas y privadas, cemento, hierro y mano de obra.'
+    },
+    { 
+      id: 'automotive', 
+      label: 'Producción Automotriz', 
+      description: 'ADEFA', 
+      icon: '🚗', 
+      color: 'linear-gradient(135deg, #ef4444, #dc2626)',
+      tooltip: 'Unidades de vehículos producidas mensualmente. Sector clave para exportaciones y empleo industrial.'
+    },
+    { 
+      id: 'unemployment', 
+      label: 'Desempleo Trimestral', 
+      description: 'Tasa de desocupación', 
+      icon: '📉', 
+      color: 'linear-gradient(135deg, #f43f5e, #e11d48)',
+      tooltip: 'Porcentaje de población económicamente activa que busca trabajo y no lo encuentra. Encuesta Permanente de Hogares (EPH).'
+    },
+    { 
+      id: 'employment', 
+      label: 'Tasa de Empleo', 
+      description: 'Porcentaje de población ocupada', 
+      icon: '👥', 
+      color: 'linear-gradient(135deg, #84cc16, #16a34a)',
+      tooltip: 'Porcentaje de población total que tiene trabajo. Incluye empleo formal, informal y cuentapropistas.'
+    },
+    { 
+      id: 'wages', 
+      label: 'Informe de Salarios', 
+      description: 'Índice de Salarios', 
+      icon: '💵', 
+      color: 'linear-gradient(135deg, #eab308, #ca8a04)',
+      tooltip: 'Variación mensual de salarios registrados. Mide el poder adquisitivo y presión inflacionaria por costos.'
+    },
+    { 
+      id: 'tradeBalance', 
+      label: 'Balanza Comercial', 
+      description: 'Exportaciones - Importaciones', 
+      icon: '⚖️', 
+      color: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+      tooltip: 'Diferencia entre exportaciones e importaciones. Superávit (+) genera dólares, déficit (-) consume reservas.'
+    },
+    { 
+      id: 'exports', 
+      label: 'Exportaciones', 
+      description: 'Mensual', 
+      icon: '📤', 
+      color: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+      tooltip: 'Valor FOB de bienes vendidos al exterior. Principal fuente de ingreso de divisas para el país.'
+    },
+    { 
+      id: 'imports', 
+      label: 'Importaciones', 
+      description: 'Mensual', 
+      icon: '📥', 
+      color: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+      tooltip: 'Valor CIF de bienes comprados del exterior. Incluye insumos, bienes de capital y consumo.'
+    },
   ];
 
   const containerStyle = {
@@ -106,11 +179,135 @@ const EconomicDataTable = ({ data }) => {
                 : 'linear-gradient(135deg, #eab308, #ca8a04)';
             
             return (
-              <tr key={indicator.id} style={{
-                borderBottom: '1px solid rgba(75, 85, 99, 0.15)',
-                ':hover': trHoverStyle
-              }}>
-                <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+              <tr 
+                key={indicator.id} 
+                style={{
+                  borderBottom: '1px solid rgba(75, 85, 99, 0.15)',
+                  ':hover': trHoverStyle
+                }}
+                onMouseEnter={() => setTooltipVisible(indicator.id)}
+                onMouseLeave={() => setTooltipVisible(null)}
+              >
+                <td style={{ padding: '16px 20px', verticalAlign: 'middle', position: 'relative' }}>
+                  {/* Tooltip para el indicador */}
+                  {tooltipVisible === indicator.id && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: 'calc(100% + 15px)',
+                      transform: 'translateY(-50%)',
+                      width: '220px',
+                      background: '#0f172a',
+                      color: '#ffffff',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      lineHeight: '1.4',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
+                      zIndex: '1000',
+                      pointerEvents: 'none'
+                    }}>
+                      <div style={{
+                        fontWeight: '600',
+                        color: indicator.color.split(' ')[1].replace(',', ''),
+                        marginBottom: '6px',
+                        fontSize: '13px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span>{indicator.icon}</span>
+                        <span>{indicator.label}</span>
+                      </div>
+                      <div style={{
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        marginBottom: '8px'
+                      }}>
+                        {indicator.tooltip}
+                      </div>
+                      
+                      {/* Información adicional específica */}
+                      {indicator.id === 'emae' && (
+                        <div style={{
+                          fontSize: '11px',
+                          color: 'rgba(156, 163, 175, 0.8)',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                          paddingTop: '8px',
+                          marginTop: '8px'
+                        }}>
+                          <div>📊 <strong>Base:</strong> Año 2004 = 100</div>
+                          <div>📈 <strong>Meta:</strong> Valores por encima de 100</div>
+                        </div>
+                      )}
+                      
+                      {indicator.id === 'gdp' && (
+                        <div style={{
+                          fontSize: '11px',
+                          color: 'rgba(156, 163, 175, 0.8)',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                          paddingTop: '8px',
+                          marginTop: '8px'
+                        }}>
+                          <div>🌍 <strong>Comparación:</strong> PBI per cápita</div>
+                          <div>📅 <strong>Frecuencia:</strong> Datos trimestrales</div>
+                        </div>
+                      )}
+                      
+                      {indicator.id === 'construction' && (
+                        <div style={{
+                          fontSize: '11px',
+                          color: 'rgba(156, 163, 175, 0.8)',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                          paddingTop: '8px',
+                          marginTop: '8px'
+                        }}>
+                          <div>🏠 <strong>Componentes:</strong> Obras públicas y privadas</div>
+                          <div>👷 <strong>Empleo:</strong> Alto impacto laboral</div>
+                        </div>
+                      )}
+                      
+                      {indicator.id === 'unemployment' && (
+                        <div style={{
+                          fontSize: '11px',
+                          color: 'rgba(156, 163, 175, 0.8)',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                          paddingTop: '8px',
+                          marginTop: '8px'
+                        }}>
+                          <div>📋 <strong>Metodología:</strong> Encuesta Permanente de Hogares</div>
+                          <div>🎯 <strong>Meta:</strong> Menor al 5% (pleno empleo)</div>
+                        </div>
+                      )}
+                      
+                      {indicator.id === 'tradeBalance' && (
+                        <div style={{
+                          fontSize: '11px',
+                          color: 'rgba(156, 163, 175, 0.8)',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                          paddingTop: '8px',
+                          marginTop: '8px'
+                        }}>
+                          <div>💵 <strong>Divisas:</strong> Superávit = ingreso de dólares</div>
+                          <div>📉 <strong>Riesgo:</strong> Déficit crónico agota reservas</div>
+                        </div>
+                      )}
+                      
+                      {/* Triángulo del tooltip */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '-6px',
+                        transform: 'translateY(-50%) rotate(45deg)',
+                        width: '12px',
+                        height: '12px',
+                        background: '#0f172a',
+                        borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}></div>
+                    </div>
+                  )}
+                  
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{
                       padding: '8px',
@@ -122,7 +319,8 @@ const EconomicDataTable = ({ data }) => {
                       height: '40px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      cursor: 'help'
                     }}>
                       <span style={{ fontSize: '20px' }}>{indicator.icon}</span>
                     </div>

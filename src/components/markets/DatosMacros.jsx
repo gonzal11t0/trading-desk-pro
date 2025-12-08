@@ -1,7 +1,9 @@
 // src/components/markets/DatosMacros.jsx
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
+  const [tooltipVisible, setTooltipVisible] = useState(null);
+
   // Función para formatear números con decimales completos
   const formatNumber = (num, decimals = 2) => {
     if (!num && num !== 0) return '--';
@@ -23,6 +25,7 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
       change: reserves?.change,
       icon: '🏦',
       description: reserves?.label || 'Reservas Internacionales',
+      tooltip: 'Valor en millones de dólares. Representa las reservas internacionales brutas del Banco Central.',
       color: reserves?.change >= 0 
         ? 'linear-gradient(135deg, #06b6d4, #0891b2)' 
         : 'linear-gradient(135deg, #ef4444, #dc2626)',
@@ -36,6 +39,7 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
       change: monetaryBase?.change,
       icon: '💵',
       description: monetaryBase?.label || 'Circulación Monetaria',
+      tooltip: 'Valor en millones de pesos. Dinero en circulación más reservas bancarias en el BCRA.',
       color: monetaryBase?.change >= 0 
         ? 'linear-gradient(135deg, #10b981, #059669)' 
         : 'linear-gradient(135deg, #ef4444, #dc2626)',
@@ -50,6 +54,7 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
       change: 0,
       icon: '📊',
       description: moneySupply?.label || 'Agregados Monetarios',
+      tooltip: 'M2: Efectivo + depósitos. M3: M2 + instrumentos de inversión líquidos.',
       color: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
       borderColor: '#8b5cf6',
       format: (val) => `${formatNumber(val, 8)}M`
@@ -73,10 +78,9 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
             background: `linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(3, 7, 18, 0.8))`,
             borderRadius: '12px',
             padding: '20px',
-            backdropFilter: 'blur(10px)',
             boxShadow: `0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 1px ${indicator.borderColor}20`,
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'visible'
           }}
         >
           {/* Efecto de brillo */}
@@ -196,24 +200,114 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
             )}
           </div>
           
-          {/* Tooltip con valor completo */}
+          {/* Tooltip con icono 💡 y texto explicativo */}
           {(indicator.value || indicator.m3) && (
-            <div style={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
-              background: 'rgba(0, 0, 0, 0.7)',
-              color: 'rgba(255, 255, 255, 0.9)',
-              padding: '4px 8px',
-              borderRadius: '6px',
-              fontSize: '11px',
-              opacity: '0.7',
-              cursor: 'help',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
-            }}
-            title={`Valor completo: ${indicator.value?.toLocaleString('es-AR') || ''}`}
+           <div style={{
+  position: 'absolute',
+  top: '10px',
+  right: '10px',
+  background: '#0f172a',
+  color: '#ffffff',  // Cambiado a blanco sólido
+  padding: '4px 8px',
+  borderRadius: '6px',
+  fontSize: '11px',
+  opacity: '1',  // Cambiado a 1 (100% opaco)
+  cursor: 'help',
+  border: '1px solid #374151',  // gris sólido en lugar de rgba
+  zIndex: '10'
+}}
+            onMouseEnter={() => setTooltipVisible(indicator.id)}
+            onMouseLeave={() => setTooltipVisible(null)}
             >
               💡
+              
+              {/* Tooltip flotante */}
+              {tooltipVisible === indicator.id && (
+               <div style={{
+              position: 'absolute',
+              top: '100%',
+              right: '0',
+              marginTop: '8px',
+              width: '240px',
+              background: '#0f172a',                  
+              color: '#ffffff',
+              padding: '12px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              lineHeight: '1.4',
+              border: '1px solid #374151',  // Cambiado a sólido
+              boxShadow: '0 8px 24px #000000',  // Negro sólido
+              zIndex: '1000',
+            }}>
+                  <div style={{
+                    fontWeight: '600',
+                    color: indicator.borderColor,
+                    marginBottom: '6px',
+                    fontSize: '13px'
+                  }}>
+                    📊 {indicator.label}
+                  </div>
+                  <div style={{
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    marginBottom: '8px'
+                  }}>
+                    {indicator.tooltip}
+                  </div>
+                  
+                  {/* Información adicional específica */}
+                  {indicator.id === 'reserves' && (
+                    <div style={{
+                      fontSize: '11px',
+                      color: 'rgba(156, 163, 175, 0.8)',
+                      borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                      paddingTop: '8px',
+                      marginTop: '8px'
+                    }}>
+                      <div>🏦 <strong>Importancia:</strong> Indicador clave de solvencia externa</div>
+                      <div>📈 <strong>Meta:</strong> Reservas positivas y estables</div>
+                    </div>
+                  )}
+                  
+                  {indicator.id === 'monetaryBase' && (
+                    <div style={{
+                      fontSize: '11px',
+                      color: 'rgba(156, 163, 175, 0.8)',
+                      borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                      paddingTop: '8px',
+                      marginTop: '8px'
+                    }}>
+                      <div>💰 <strong>Componentes:</strong> Efectivo + reservas bancarias</div>
+                      <div>⚖️ <strong>Control:</strong> Herramienta clave de política monetaria</div>
+                    </div>
+                  )}
+                  
+                  {indicator.id === 'm2' && (
+                    <div style={{
+                      fontSize: '11px',
+                      color: 'rgba(156, 163, 175, 0.8)',
+                      borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                      paddingTop: '8px',
+                      marginTop: '8px'
+                    }}>
+                      <div>📈 <strong>M2:</strong> Liquidez inmediata del sistema</div>
+                      <div>📊 <strong>M3:</strong> Liquidez ampliada + inversiones</div>
+                    </div>
+                  )}
+                  
+                  {/* Triángulo del tooltip */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '-6px',
+                    right: '12px',
+                    width: '12px',
+                    height: '12px',
+                    background: '#0f172a',
+                    transform: 'rotate(45deg)',
+                    borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}></div>
+                </div>
+              )}
             </div>
           )}
         </div>
