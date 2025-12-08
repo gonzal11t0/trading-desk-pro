@@ -2,14 +2,17 @@
 import React from 'react';
 
 export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
-  const formatNumber = (num) => {
-    if (!num) return '--';
+  // Función para formatear números con decimales completos
+  const formatNumber = (num, decimals = 2) => {
+    if (!num && num !== 0) return '--';
+    
+    // Formatear en millones
+    const valueInMillions = num / 1;
+    
     return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(num);
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    }).format(valueInMillions);
   };
 
   const indicators = [
@@ -19,11 +22,12 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
       value: reserves?.value,
       change: reserves?.change,
       icon: '🏦',
-      description: 'Reservas Internacionales',
+      description: reserves?.label || 'Reservas Internacionales',
       color: reserves?.change >= 0 
         ? 'linear-gradient(135deg, #06b6d4, #0891b2)' 
         : 'linear-gradient(135deg, #ef4444, #dc2626)',
-      borderColor: reserves?.change >= 0 ? '#06b6d4' : '#ef4444'
+      borderColor: reserves?.change >= 0 ? '#06b6d4' : '#ef4444',
+      format: (val) => `${formatNumber(val, 3)}M`
     },
     {
       id: 'monetaryBase',
@@ -31,11 +35,12 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
       value: monetaryBase?.value,
       change: monetaryBase?.change,
       icon: '💵',
-      description: 'Circulación Monetaria',
+      description: monetaryBase?.label || 'Circulación Monetaria',
       color: monetaryBase?.change >= 0 
         ? 'linear-gradient(135deg, #10b981, #059669)' 
         : 'linear-gradient(135deg, #ef4444, #dc2626)',
-      borderColor: monetaryBase?.change >= 0 ? '#10b981' : '#ef4444'
+      borderColor: monetaryBase?.change >= 0 ? '#10b981' : '#ef4444',
+      format: (val) => `${formatNumber(val, 6)}M`
     },
     {
       id: 'm2',
@@ -44,9 +49,10 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
       m3: moneySupply?.m3,
       change: 0,
       icon: '📊',
-      description: 'Agregados Monetarios',
+      description: moneySupply?.label || 'Agregados Monetarios',
       color: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-      borderColor: '#8b5cf6'
+      borderColor: '#8b5cf6',
+      format: (val) => `${formatNumber(val, 8)}M`
     }
   ];
 
@@ -125,9 +131,12 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
               color: '#ffffff',
               fontFamily: 'monospace',
               marginBottom: '12px',
-              textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}>
-              {formatNumber(indicator.value)}
+              {indicator.value ? indicator.format(indicator.value) : '--'}
             </div>
             
             {indicator.change !== undefined && (
@@ -176,13 +185,37 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
                   fontSize: '18px',
                   fontWeight: '600',
                   color: '#ffffff',
-                  fontFamily: 'monospace'
+                  fontFamily: 'monospace',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
                 }}>
-                  {formatNumber(indicator.m3)}
+                  {formatNumber(indicator.m3, 8)}M
                 </div>
               </div>
             )}
           </div>
+          
+          {/* Tooltip con valor completo */}
+          {(indicator.value || indicator.m3) && (
+            <div style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              background: 'rgba(0, 0, 0, 0.7)',
+              color: 'rgba(255, 255, 255, 0.9)',
+              padding: '4px 8px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              opacity: '0.7',
+              cursor: 'help',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}
+            title={`Valor completo: ${indicator.value?.toLocaleString('es-AR') || ''}`}
+            >
+              💡
+            </div>
+          )}
         </div>
       ))}
     </div>

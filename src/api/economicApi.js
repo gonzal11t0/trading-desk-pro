@@ -54,16 +54,22 @@ const fetchMockData = async () => {
       { id: 'imports', label: 'Importaciones', value: '5,597M', period: 'Oct 2024', yoy: 8.7, trend: 'up', unit: 'USD' }
     ],
     reserves: {
+           label:"En millones",
+      
       value: 41.756,
       change: -2.3,
       description: 'Reservas Internacionales Netas'
     },
     monetaryBase: {
+           label:"En millones",
+      
       value: 40.264655,
       change: 4.2,
       description: 'Base Monetaria'
     },
     moneySupply: {
+           label:"En millones",
+      
       m2: 79.26470763,
       m3: 150.72028426,
       description: 'Agregados Monetarios'
@@ -72,23 +78,3 @@ const fetchMockData = async () => {
   
   return mockData;
 };
-
-// Funciones para APIs futuras (comentadas por ahora)
-/*
-const fetchINDECData = async () => {
-  const responses = await Promise.all([
-    axios.get(API_ENDPOINTS.INDEC.emae),
-    axios.get(API_ENDPOINTS.INDEC.gdp),
-    // ... otras APIs
-  ]);
-  return responses.map(r => r.data);
-};
-
-const fetchBCRAData = async () => {
-  const responses = await Promise.all([
-    axios.get(API_ENDPOINTS.BCRA.reserves),
-    axios.get(API_ENDPOINTS.BCRA.monetary),
-  ]);
-  return responses.map(r => r.data);
-};
-*/
