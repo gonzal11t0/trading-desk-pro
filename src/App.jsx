@@ -6,7 +6,6 @@ import { LiveStreamsGrid } from './components/video/LiveStreamsGrid'
 import { EconomicIndicators } from './components/markets/EconomicIndicators'
 import { FinancialDashboard } from './components/markets/FinancialDashboard'
 import { Notice } from './components/charts/Notice'
-import { TabSwitcher } from './components/layout/abSwitcher'
 import { TradingViewCharts } from './components/charts/TradingViewCharts'
 import TreemapDashboard from './components/charts/TreemapDashboard'
 import EconomicDataBlock from './components/markets/EconomicDataBlock';
@@ -14,7 +13,6 @@ import EconomicDataBlock from './components/markets/EconomicDataBlock';
 import './App.css'
 
 export default function App() {
-    const [activeTab, setActiveTab] = React.useState('mapas')
   return (
     <div className="min-h-screen bg-black text-white font-mono">
       <TradingHeader />
@@ -31,10 +29,8 @@ export default function App() {
             <EconomicDataBlock/>
           </div>
           <div className="w-3/10 ml-12 pl-12 border-b-25 border-transparent">
-            <TabSwitcher activeTab={activeTab} onTabChange={setActiveTab}>
                 <Notice  /> 
               <TreemapDashboard />
-            </TabSwitcher>
             
           </div>
         </div>
