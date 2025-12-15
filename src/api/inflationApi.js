@@ -217,6 +217,7 @@ const processBCRAApiData = (data) => {
 // Datos de respaldo confiables
 const getReliableInflationData = () => {
     return [
+    { month: 'Noviembre 2025', inflation: 2.5, trend: 'Equal', source: 'bcra_estimated' },
     { month: 'Septiembre 2025', inflation: 2.3, trend: 'up', source: 'bcra_estimated' },
     { month: 'Octubre 2025', inflation: 2.2, trend: 'up', source: 'bcra_estimated' },
     { month: 'Agosto 2025', inflation: 1.9, trend: 'Equal', source: 'bcra_estimated' },
@@ -225,6 +226,5 @@ const getReliableInflationData = () => {
     { month: 'Mayo 2025', inflation: 1.5, trend: 'Equal', source: 'bcra_estimated' },
     { month: 'Abril 2025', inflation: 2.8, trend: 'Equal', source: 'bcra_estimated' },
     { month: 'Marzo 2025', inflation: 3.7, trend: 'Equal', source: 'bcra_estimated' },
-    { month: 'Febrero 2025', inflation: 2.4, trend: 'Equal', source: 'bcra_estimated' }
     ];
 };

@@ -19,12 +19,9 @@ export const fetchLatestNews = async () => {
       return rssNews.slice(0, 8);
     }
     
-    console.log('⚠️ Usando datos de fallback realistas');
-    return getRealisticFallbackNews();
-    
+
   } catch (error) {
     console.error('Error:', error);
-    return getRealisticFallbackNews();
   }
 };
 
@@ -97,7 +94,6 @@ const scrapeWithAPI = async (source) => {
 const parseSpecificSource = (html, sourceName) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
-  const articles = [];
 
   try {
     switch (sourceName) {
@@ -347,23 +343,13 @@ const fetchRSSFeed = async (feed) => {
         type: 'rss'
       })) || [];
     }
-  } catch (error) {
+  } catch (Error ) {
     console.log(`❌ RSS falló para ${feed.name}`);
   }
   return [];
 };
 
-const removeDuplicates = (newsArray) => {
-  const seen = new Set();
-  return newsArray.filter(news => {
-    const key = news.title.substring(0, 60).toLowerCase();
-    if (seen.has(key)) {
-      return false;
-    }
-    seen.add(key);
-    return true;
-  });
-};
+
 
 const generateSummary = (text) => {
   if (!text) return 'Última actualización de mercados';
@@ -375,51 +361,4 @@ const generateSummary = (text) => {
   return lastSpace > 80 
     ? truncated.substring(0, lastSpace) + '...'
     : truncated + '...';
-};
-
-const getRealisticFallbackNews = () => {
-  const currentTime = new Date();
-  
-  return [
-    {
-      title: "Mercados globales muestran fortaleza tras datos económicos en EE.UU.",
-      source: "Bloomberg",
-      url: "https://www.bloomberg.com/markets",
-      timestamp: new Date(currentTime - 10 * 60000),
-      category: "mercados",
-      type: "fallback"
-    },
-    {
-      title: "Dólar blue registra nueva suba y alcanza máximos históricos en el mercado",
-      source: "Infobae Economía", 
-      url: "https://www.infobae.com/economia/",
-      timestamp: new Date(currentTime - 25 * 60000),
-      category: "economía",
-      type: "fallback"
-    },
-    {
-      title: "Bitcoin se mantiene estable tras superar resistencia clave en los gráficos",
-      source: "Yahoo Finance",
-      url: "https://finance.yahoo.com/news/",
-      timestamp: new Date(currentTime - 40 * 60000),
-      category: "cripto",
-      type: "fallback"
-    },
-    {
-      title: "Petróleo WTI opera con tendencia mixta ante datos de inventarios",
-      source: "Reuters",
-      url: "https://www.reuters.com/business/",
-      timestamp: new Date(currentTime - 55 * 60000),
-      category: "commodities", 
-      type: "fallback"
-    },
-    {
-      title: "MERVAL cierra con ganancias liderado por sectores financiero y energético",
-      source: "TN Economía",
-      url: "https://tn.com.ar/economia/",
-      timestamp: new Date(currentTime - 70 * 60000),
-      category: "economía",
-      type: "fallback"
-    }
-  ];
 };

@@ -27,7 +27,7 @@ const getMockEconomicData = () => ({
   ],
   reserves: {
      label:"En millones",
-    value: 41.756,
+    value: 42.234,
     change: -2.3,
   },
   monetaryBase: {
