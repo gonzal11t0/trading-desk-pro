@@ -5,7 +5,15 @@ import DatosMacros from './DatosMacros';
 import { useEconomicData } from '../../hooks/useEconomicData';
 
 const EconomicDataBlock = () => {
-  const { data, isLoading, error } = useEconomicData();
+  const { 
+    indicators, 
+    reserves, 
+    monetaryBase, 
+    moneySupply, 
+    loading, 
+    error, 
+    refresh 
+  } = useEconomicData();
 
   const containerStyle = {
     background: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)',
@@ -90,7 +98,7 @@ const EconomicDataBlock = () => {
         </div>
       </div>
 
-      {isLoading ? (
+      {loading ? (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
           <div style={loadingSpinnerStyle}></div>
           <p style={{
@@ -128,19 +136,35 @@ const EconomicDataBlock = () => {
                 fontSize: '14px',
                 marginTop: '4px'
               }}>
-                Reintentando...
+                {error}
               </p>
+              <button
+                onClick={refresh}
+                style={{
+                  marginTop: '8px',
+                  padding: '8px 16px',
+                  background: 'linear-gradient(90deg, #06b6d4, #3b82f6)',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Reintentar
+              </button>
             </div>
           </div>
         </div>
       ) : (
         <>
-          <EconomicDataTable data={data?.indicators || []} />
-          <DatosMacros 
-            reserves={data?.reserves}
-            monetaryBase={data?.monetaryBase}
-            moneySupply={data?.moneySupply}
-          />
+          <EconomicDataTable data={indicators || []} />
+
+<DatosMacros
+  reserves={reserves}
+  monetaryBase={monetaryBase}
+  moneySupply={moneySupply}
+/>
         </>
       )}
     </div>

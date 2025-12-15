@@ -430,7 +430,7 @@ Gráficos por TradingView
 
 Datos financieros por múltiples proveedores
 
-© 2024 Trading Desk Pro. Todos los derechos reservados.
+© 2025 Trading Desk Pro. Todos los derechos reservados.
 
-Última actualización: Diciembre 2024
-Versión de Documentación: 1.0.0
+Última actualización: Diciembre 2025
+Versión de Documentación: 1.0.1

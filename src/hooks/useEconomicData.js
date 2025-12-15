@@ -1,43 +1,102 @@
-// src/hooks/useEconomicData.js
-import { useQuery } from '@tanstack/react-query';
-import { fetchEconomicData } from '../api/economicApi';
+// src/hooks/useEconomicData.js - VERSIÓN CORREGIDA
+import { useState, useEffect } from 'react';
+import { fetchEconomicData, getBcraMonetaryData } from '../api/economicApi';
 
 export const useEconomicData = () => {
-  return useQuery({
-    queryKey: ['economicData'],
-    queryFn: fetchEconomicData,
-    refetchInterval: 5 * 60 * 1000, 
-    staleTime: 2 * 60 * 1000, 
-    retry: 2,
-    placeholderData: () => getMockEconomicData(),
+  const [data, setData] = useState({
+    bcra: [],
+    indicators: [],
+    reserves: null,
+    monetaryBase: null,
+    moneySupply: null,
+    loading: true,
+    error: null,
+    lastUpdate: null
   });
-};
 
-const getMockEconomicData = () => ({
-  indicators: [
-    { id: 'emae', value: '5%', period: 'Sep 2025', yoy: -2.3, trend: 'down' },
-    { id: 'gdp', value: '6.3%', period: 'Q2 2025', yoy: -5.1, trend: 'down' },
-    { id: 'construction', value: '6.8', period: 'Oct 2054', yoy: -15.2, trend: 'down' },
-    { id: 'unemployment', value: '7.1%', period: 'Q3 2025', yoy: 0.4, trend: 'up' },
-    { id: 'employment', value: '43.8%', period: 'Q3 2054', yoy: 0.2, trend: 'up' },
-    { id: 'wages', value: '+2.3%', period: 'Oct 2054', yoy: 152.4, trend: 'up' },
-    { id: 'tradeBalance', value: '+1,245M', period: 'Oct 2025', yoy: 85.3, trend: 'up' },
-    { id: 'exports', value: '7.954USD', period: 'Oct 2025', yoy: 12.4, trend: 'up' },
-    { id: 'imports', value: '7.154USD', period: 'Oct 2025', yoy: 8.7, trend: 'up' },
-  ],
-  reserves: {
-     label:"En millones",
-    value: 42.234,
-    change: -2.3,
-  },
-  monetaryBase: {
-     label:"En millones",
-    value: 40.264655 ,
-    change: 4.2,
-  },
-  moneySupply: {
-     label:"En millones",
-    m2: 79.26470763,
-    m3: 150.72028426 ,
-  }
-});
+  const fetchAllData = async () => {
+    try {
+      setData(prev => ({ ...prev, loading: true, error: null }));
+      
+      // 1. Obtener datos económicos completos (incluye BCRA en formato estructurado)
+      const economicData = await fetchEconomicData();
+      
+      // 2. Obtener datos BCRA en formato de array para otros usos
+      const bcraData = await getBcraMonetaryData();
+      
+      setData({
+        bcra: bcraData || [],
+        indicators: economicData?.indicators || [],
+        reserves: economicData?.reserves || null,
+        monetaryBase: economicData?.monetaryBase || null,
+        moneySupply: economicData?.moneySupply || null,
+        loading: false,
+        error: null,
+        lastUpdate: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('Error fetching economic data:', error);
+      setData(prev => ({ 
+        ...prev, 
+        loading: false, 
+        error: error.message 
+      }));
+    }
+  };
+
+  useEffect(() => {
+    fetchAllData();
+    
+    // Refrescar cada 20 minutos
+    const interval = setInterval(fetchAllData, 20 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Función para obtener solo datos BCRA
+  const getBcraData = () => data.bcra;
+
+  // Función para obtener datos por categoría
+  const getDataByCategory = (category) => {
+    if (category === 'monetary') return data.bcra;
+    if (category === 'inflation') {
+      return data.indicators.filter(item => 
+        item.label?.toLowerCase().includes('inflación')
+      );
+    }
+    if (category === 'risk') {
+      return data.indicators.filter(item => 
+        item.label?.toLowerCase().includes('riesgo') || 
+        item.label?.toLowerCase().includes('embi')
+      );
+    }
+    return [];
+  };
+
+  return {
+    // Datos completos
+    allData: [...data.bcra, ...data.indicators],
+    
+    // Datos segmentados
+    bcraData: data.bcra,
+    indicators: data.indicators,
+    reserves: data.reserves,
+    monetaryBase: data.monetaryBase,
+    moneySupply: data.moneySupply,
+    
+    // Estado
+    loading: data.loading,
+    error: data.error,
+    lastUpdate: data.lastUpdate,
+    
+    // Métodos
+    refresh: fetchAllData,
+    getBcraData,
+    getDataByCategory,
+    
+    // Utilidades
+    hasBcraData: data.bcra.length > 0,
+    hasEconomicData: data.indicators.length > 0,
+    bcraCount: data.bcra.length
+  };
+};

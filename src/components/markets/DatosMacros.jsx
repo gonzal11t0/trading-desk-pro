@@ -5,16 +5,20 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
   const [tooltipVisible, setTooltipVisible] = useState(null);
 
   // Función para formatear números con decimales completos
-  const formatNumber = (num, decimals = 2) => {
-    if (!num && num !== 0) return '--';
+  const formatNumber = (value, isUSD = false) => {
+     if (!value || value === 0) return '--';
     
-    // Formatear en millones
-    const valueInMillions = num / 1;
+    // Convertir de millones a billones
+    const valueInBillions = value / 1000;
+    const symbol = isUSD ? 'USD' : 'ARS';
     
-    return new Intl.NumberFormat('es-AR', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    }).format(valueInMillions);
+    // Formatear con 1 decimal máximo
+    const formatted = valueInBillions.toLocaleString('es-AR', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    });
+    
+    return `${symbol} ${formatted}B`;
   };
 
   const indicators = [
@@ -48,7 +52,7 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
     },
     {
       id: 'm2',
-      label: 'M2 / M3',
+      label: 'Oferta Monetaria(M2)',
       value: moneySupply?.m2,
       m3: moneySupply?.m3,
       change: 0,
@@ -194,7 +198,7 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
                 }}>
-                  {formatNumber(indicator.m3, 8)}M
+                  {formatNumber(indicator.m3, 4)}M
                 </div>
               </div>
             )}
