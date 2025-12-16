@@ -1,364 +1,273 @@
-// src/api/newsApi.js - VERSIÓN CON FUENTES ESPECÍFICAS REALES
-export const fetchLatestNews = async () => {
-  try {
-    console.log('🚀 Buscando noticias de fuentes específicas...');
-    
-    // Usar una API de scraping profesional (gratuita)
-    const scrapedNews = await fetchFromScrapingAPI();
-    
-    if (scrapedNews.length > 0) {
-      console.log(`✅ ${scrapedNews.length} noticias reales obtenidas`);
-      return scrapedNews.slice(0, 8);
-    }
-    
-    // Fallback: RSS específico de cada fuente
-    const rssNews = await fetchSpecificRSS();
-    
-    if (rssNews.length > 0) {
-      console.log(`✅ ${rssNews.length} noticias de RSS específico`);
-      return rssNews.slice(0, 8);
-    }
-    
+// src/api/newsApi.js - SISTEMA HÍBRIDO DE EMERGENCIA
+const CACHE_DURATION = 45 * 60 * 1000; // 45 minutos
+const CACHE_KEY = 'news_cache_hybrid';
+const NOTICIAS_A_MOSTRAR = 10;
 
-  } catch (error) {
-    console.error('Error:', error);
-  }
-};
+// Configuración (AJUSTA ESTAS KEYS)
+const ALPHA_VANTAGE_KEY = '9f749093f5d78a1546678f8f00c9bc8b';
 
-// Scraping real usando ScraperAPI (gratis - 1000 requests/mes)
-const fetchFromScrapingAPI = async () => {
-  const sources = [
-    {
-      name: 'Bloomberg',
-      url: 'https://www.bloomberg.com/markets',
-      scraperUrl: 'https://api.scraperapi.com/?api_key=TU_API_KEY&url=https://www.bloomberg.com/markets'
-    },
-    {
-      name: 'Infobae Economía',
-      url: 'https://www.infobae.com/economia/',
-      scraperUrl: 'https://api.scraperapi.com/?api_key=TU_API_KEY&url=https://www.infobae.com/economia/'
-    },
-    {
-      name: 'TN Economía', 
-      url: 'https://tn.com.ar/economia/',
-      scraperUrl: 'https://api.scraperapi.com/?api_key=TU_API_KEY&url=https://tn.com.ar/economia/'
-    },
-    {
-      name: 'Yahoo Finance',
-      url: 'https://finance.yahoo.com/news/',
-      scraperUrl: 'https://api.scraperapi.com/?api_key=TU_API_KEY&url=https://finance.yahoo.com/news/'
-    },
-    {
-      name: 'Reuters',
-      url: 'https://www.reuters.com/business/',
-      scraperUrl: 'https://api.scraperapi.com/?api_key=TU_API_KEY&url=https://www.reuters.com/business/'
-    }
-  ];
+let ultimaLlamadaAlphaVantage = 0;
+const INTERVALO_MINIMO_MS = 1500; // 1.5 segundos entre llamadas
 
-  const newsPromises = sources.map(source => scrapeWithAPI(source));
-  const results = await Promise.allSettled(newsPromises);
+const puedeLlamarAlphaVantage = () => {
+  const ahora = Date.now();
+  const tiempoDesdeUltimaLlamada = ahora - ultimaLlamadaAlphaVantage;
   
-  return results
-    .filter(result => result.status === 'fulfilled' && result.value)
-    .map(result => result.value)
-    .flat();
-};
-
-// Scraping profesional con ScraperAPI
-const scrapeWithAPI = async (source) => {
-  try {
-    const API_KEY = '9f749093f5d78a1546678f8f00c9bc8b'; // Asegurate que esté bien pegada
-    const scraperUrl = `https://api.scraperapi.com/?api_key=${API_KEY}&url=${encodeURIComponent(source.url)}&render=true`;
-    
-    console.log(`🔍 Scrapeando ${source.name}...`);
-    const response = await fetch(scraperUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
-    
-    if (response.ok) {
-      const html = await response.text();
-      const news = parseSpecificSource(html, source.name);
-      console.log(`✅ ${source.name}: ${news.length} noticias`);
-      return news;
-    } else {
-      console.log(`❌ ${source.name}: HTTP ${response.status}`);
-    }
-  } catch (error) {
-    console.log(`❌ ${source.name}: Error -`, error.message);
+  if (tiempoDesdeUltimaLlamada < INTERVALO_MINIMO_MS) {
+    console.log(`⏳ Esperando para llamar a Alpha Vantage... (faltan ${INTERVALO_MINIMO_MS - tiempoDesdeUltimaLlamada}ms)`);
+    return false;
   }
-  return [];
+  
+  ultimaLlamadaAlphaVantage = ahora;
+  return true;
 };
-// Parsers específicos y actualizados para CADA fuente
-const parseSpecificSource = (html, sourceName) => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
+
+// Función principal
+export const fetchLatestNews = async () => {
+  console.log('🚀 Iniciando sistema híbrido de noticias...');
+  
+  // 1. Caché primero (si es válido)
+  const cached = getValidCache();
+  if (cached.length >= 5) {
+    console.log(`📦 Cache válido: ${cached.length} noticias`);
+    return cached.slice(0, NOTICIAS_A_MOSTRAR);
+  }
+  
+  // 2. ESTRATEGIA EN CASCADA
+  let noticias = [];
+  
+  // INTENTO 1: Alpha Vantage (rápido)
+  try {
+    console.log('🔄 Intento 1: Alpha Vantage...');
+    noticias = await intentarAlphaVantage();
+  } catch (error) {
+  console.error(`❌ FALLA CRÍTICA Alpha Vantage:`, error);
+  console.error(`   - Tipo de error: ${error.name}`);
+  console.error(`   - Mensaje: ${error.message}`);  }
+  
+  // INTENTO 2: RSS de emergencia (si Alpha Vantage devuelve < 5)
+  if (noticias.length < 5) {
+    console.log(`📡 Intento 2: RSS de respaldo (solo ${noticias.length} noticias)...`);
+    const noticiasRSS = await obtenerRSSDeRespaldo();
+    noticias = [...noticias, ...noticiasRSS];
+  }
+  
+  // INTENTO 3: Noticias estáticas (último recurso)
+  if (noticias.length < 3) {
+    console.log('🛡️ Intento 3: Noticias estáticas de emergencia...');
+    noticias = [...noticias, ...obtenerNoticiasEstaticas()];
+  }
+  
+  // 3. Procesar y formatear
+  const noticiasFormateadas = formatearNoticias(noticias);
+  
+  // 4. Guardar en caché
+  if (noticiasFormateadas.length >= 3) {
+    saveToCache(noticiasFormateadas);
+  }
+  
+  console.log(`✅ Listo: ${noticiasFormateadas.length} noticias para mostrar`);
+  return noticiasFormateadas.slice(0, NOTICIAS_A_MOSTRAR);
+};
+
+// ========== INTENTO 1: ALPHA VANTAGE ==========
+const intentarAlphaVantage = async () => {
+    if (!puedeLlamarAlphaVantage()) {
+    console.log('🔄 Saltando llamada a Alpha Vantage (rate limit local).');
+    return []; // Devuelve array vacío en lugar de fallar
+  }
+const apiUrl = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=financial_markets&apikey=${ALPHA_VANTAGE_KEY}&limit=15`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
-    switch (sourceName) {
-      case 'Bloomberg':
-        return parseBloombergReal(doc);
-      case 'Infobae Economía':
-        return parseInfobaeReal(doc);
-      case 'TN Economía':
-        return parseTNReal(doc);
-      case 'Yahoo Finance':
-        return parseYahooReal(doc);
-      case 'Reuters':
-        return parseReutersReal(doc);
-      default:
-        return [];
+    console.log('🌐 Llamando a Alpha Vantage...');
+    const response = await fetch(apiUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      console.error(`❌ Error HTTP: ${response.status}`);
+      throw new Error(`HTTP ${response.status}`);
     }
+
+    const data = await response.json();
+    console.log('📦 Respuesta cruda de Alpha Vantage:', data); // LOG CLAVE
+
+    // --- ¡ESTA ES LA PARTE MÁS IMPORTANTE! ---
+    // 1. Verifica si la API devolvió un error en el JSON
+    if (data['Error Message'] || data['Information']) {
+  const mensajeError = data['Error Message'] || data['Information'];
+  console.warn('⚠️ Alpha Vantage rate limit o error:', mensajeError);
+  
+  // Si es un error de rate limit, NO lanzo error, devuelvo array vacío
+  // El sistema híbrido usará el caché o fuentes secundarias
+  if (mensajeError.includes('rate limit') || mensajeError.includes('sparingly')) {
+    return [];
+  }
+  // Solo lanzo error para otros problemas graves
+  throw new Error('Error en la respuesta de la API: ' + mensajeError);
+}
+
+    // 2. Verifica si existe la propiedad 'feed'
+    if (!data.hasOwnProperty('feed')) {
+      console.error('❌ La respuesta no tiene propiedad "feed":', data);
+      throw new Error('Estructura de respuesta inesperada');
+    }
+
+    // 3. Si 'feed' existe pero es un array vacío, NO es un error.
+    //    Simplemente devolvemos el array vacío.
+    console.log(`✅ Alpha Vantage OK. feed es un array de longitud: ${data.feed.length}`);
+    return data.feed; // <-- Esto devuelve las 50 noticias (o un array vacío)
+
   } catch (error) {
-    console.warn(`Error parsing ${sourceName}:`, error);
+    clearTimeout(timeout);
+    console.error('❌ Error en intentarAlphaVantage:', error.name, '-', error.message);
+    // Relanza solo errores de red o de estructura grave
+    if (error.name === 'AbortError' || error.message.includes('HTTP') || error.message.includes('Estructura')) {
+      throw error;
+    }
+    // Si fue solo un feed vacío, devolvemos array vacío sin romper el flujo
     return [];
   }
 };
 
-// Bloomberg - Parser real
-const parseBloombergReal = (doc) => {
-  const articles = [];
-  
-  // Selectores REALES de Bloomberg
-  const selectors = [
-    'a[data-component="headline"]',
-    '.story-list-story__info__headline-link',
-    '[data-component-type="headline"]',
-    'h1 a, h2 a, h3 a'
-  ];
-
-  selectors.forEach(selector => {
-    const elements = doc.querySelectorAll(selector);
-    elements.forEach(element => {
-      const title = element.textContent?.trim();
-      const url = element.href;
-      
-      if (title && url && title.length > 20 && 
-          !title.includes('Subscribe') && 
-          !title.includes('Newsletter')) {
-        
-        articles.push({
-          title: generateSummary(title),
-          source: 'Bloomberg',
-          url: url.startsWith('http') ? url : `https://www.bloomberg.com${url}`,
-          timestamp: new Date(),
-          category: 'mercados',
-          type: 'scraped'
-        });
-      }
-    });
-  });
-
-  return articles.slice(0, 2);
-};
-
-// Infobae Economía - Parser real
-const parseInfobaeReal = (doc) => {
-  const articles = [];
-  
-  // Selectores REALES de Infobae
-  const selectors = [
-    '.headline a',
-    '.news-story-headline a',
-    'h2 a, h3 a',
-    '[data-type="title"] a'
-  ];
-
-  selectors.forEach(selector => {
-    const elements = doc.querySelectorAll(selector);
-    elements.forEach(element => {
-      const title = element.textContent?.trim();
-      const url = element.href;
-      
-      if (title && url && title.length > 15 && !title.includes('Foto')) {
-        articles.push({
-          title: generateSummary(title),
-          source: 'Infobae Economía',
-          url: url.startsWith('http') ? url : `https://www.infobae.com${url}`,
-          timestamp: new Date(),
-          category: 'economía',
-          type: 'scraped'
-        });
-      }
-    });
-  });
-
-  return articles.slice(0, 2);
-};
-
-// TN Economía - Parser real (ya funciona)
-const parseTNReal = (doc) => {
-  const articles = [];
-  
-  const selectors = [
-    '.news-title a',
-    'h2 a, h3 a',
-    '.title a'
-  ];
-
-  selectors.forEach(selector => {
-    const elements = doc.querySelectorAll(selector);
-    elements.forEach(element => {
-      const title = element.textContent?.trim();
-      const url = element.href;
-      
-      if (title && url && title.length > 15) {
-        articles.push({
-          title: generateSummary(title),
-          source: 'TN Economía',
-          url: url.startsWith('http') ? url : `https://tn.com.ar${url}`,
-          timestamp: new Date(),
-          category: 'economía',
-          type: 'scraped'
-        });
-      }
-    });
-  });
-
-  return articles.slice(0, 2);
-};
-
-// Yahoo Finance - Parser real
-const parseYahooReal = (doc) => {
-  const articles = [];
-  
-  // Selectores REALES de Yahoo Finance
-  const selectors = [
-    'h3 a',
-    '[data-test-locator="headline"] a',
-    '.stream-item h3 a',
-    'a[referrerpolicy="origin"]'
-  ];
-
-  selectors.forEach(selector => {
-    const elements = doc.querySelectorAll(selector);
-    elements.forEach(element => {
-      const title = element.textContent?.trim();
-      const url = element.href;
-      
-      if (title && url && title.length > 15 && 
-          !url.includes('/video/') && 
-          !url.includes('/quote/')) {
-        
-        articles.push({
-          title: generateSummary(title),
-          source: 'Yahoo Finance',
-          url: url.startsWith('http') ? url : `https://finance.yahoo.com${url}`,
-          timestamp: new Date(),
-          category: 'finanzas',
-          type: 'scraped'
-        });
-      }
-    });
-  });
-
-  return articles.slice(0, 2);
-};
-
-// Reuters - Parser real
-const parseReutersReal = (doc) => {
-  const articles = [];
-  
-  // Selectores REALES de Reuters
-  const selectors = [
-    'a[data-testid="Heading"]',
-    'a[class*="media-story-card__heading"]',
-    'h3 a, h2 a'
-  ];
-
-  selectors.forEach(selector => {
-    const elements = doc.querySelectorAll(selector);
-    elements.forEach(element => {
-      const title = element.textContent?.trim();
-      const url = element.href;
-      
-      if (title && url && title.length > 15) {
-        articles.push({
-          title: generateSummary(title),
-          source: 'Reuters',
-          url: url.startsWith('http') ? url : `https://www.reuters.com${url}`,
-          timestamp: new Date(),
-          category: 'negocios',
-          type: 'scraped'
-        });
-      }
-    });
-  });
-
-  return articles.slice(0, 2);
-};
-
-// RSS específico de cada fuente
-const fetchSpecificRSS = async () => {
-  const rssFeeds = [
+// ========== INTENTO 2: RSS DE RESPALDO ==========
+const obtenerRSSDeRespaldo = async () => {
+  const fuentesRSS = [
     {
-      name: 'Bloomberg',
-      url: 'https://rss2json.com/api.json?rss_url=https://feeds.bloomberg.com/markets/news',
-      category: 'mercados'
-    },
-    {
-      name: 'Infobae Economía',
-      url: 'https://rss2json.com/api.json?rss_url=https://www.infobae.com/feeds/rss/economia/',
-      category: 'economía'
-    },
-    {
-      name: 'TN Economía',
-      url: 'https://rss2json.com/api.json?rss_url=https://tn.com.ar/feed/economia/',
-      category: 'economía'
-    },
-    {
-      name: 'Yahoo Finance', 
-      url: 'https://rss2json.com/api.json?rss_url=https://finance.yahoo.com/news/rss',
-      category: 'finanzas'
-    },
-    {
-      name: 'Reuters',
-      url: 'https://rss2json.com/api.json?rss_url=https://www.reutersagency.com/feed/?best-topics=business-finance',
+      name: 'Reuters Business',
+      url: 'http://feeds.reuters.com/reuters/businessNews',
       category: 'negocios'
+    },
+    {
+      name: 'BBC Business',
+      url: 'http://feeds.bbci.co.uk/news/business/rss.xml',
+      category: 'negocios'
+    },
+    {
+      name: 'Financial Times',
+      url: 'https://www.ft.com/rss/home',
+      category: 'finanzas'
     }
   ];
-
-  const newsPromises = rssFeeds.map(feed => fetchRSSFeed(feed));
-  const results = await Promise.allSettled(newsPromises);
   
-  return results
-    .filter(result => result.status === 'fulfilled' && result.value)
-    .map(result => result.value)
+  const promesas = fuentesRSS.map(fuente => obtenerUnRSS(fuente));
+  const resultados = await Promise.allSettled(promesas);
+  
+  return resultados
+    .filter(r => r.status === 'fulfilled' && r.value.length > 0)
+    .map(r => r.value)
     .flat();
 };
 
-const fetchRSSFeed = async (feed) => {
+const obtenerUnRSS = async (fuente) => {
   try {
-    const response = await fetch(feed.url);
+    // Usar proxy CORS público
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(fuente.url)}&callback=?`;
     
-    if (response.ok) {
-      const data = await response.json();
-      return data.items?.map(item => ({
-        title: generateSummary(item.title),
-        source: feed.name,
-        url: item.link,
-        timestamp: new Date(item.pubDate || Date.now()),
-        category: feed.category,
-        type: 'rss'
-      })) || [];
-    }
-  } catch (Error ) {
-    console.log(`❌ RSS falló para ${feed.name}`);
+    const response = await fetch(proxyUrl, { timeout: 8000 });
+    if (!response.ok) return [];
+    
+    const data = await response.json();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(data.contents, 'text/xml');
+    const items = xml.querySelectorAll('item');
+    
+    return Array.from(items).slice(0, 3).map(item => ({
+      title: item.querySelector('title')?.textContent || `Noticia de ${fuente.name}`,
+      source: fuente.name,
+      url: item.querySelector('link')?.textContent || fuente.url,
+      time_published: new Date(item.querySelector('pubDate')?.textContent || Date.now()).toISOString(),
+      summary: item.querySelector('description')?.textContent || '',
+      banner_image: null,
+      // Flag para identificar que es RSS
+      esRSS: true
+    }));
+    
+  } catch (error) {
+    console.warn(`⚠️ RSS ${fuente.name} falló:`, error.message);
+    return [];
   }
-  return [];
 };
 
+// ========== INTENTO 3: NOTICIAS ESTÁTICAS ==========
+const obtenerNoticiasEstaticas = () => {
+  const ahora = new Date();
+  return [
+    {
+      title: 'Mercados argentinos: MERVAL muestra volatilidad en sesión clave',
+      source: 'Análisis Local',
+      url: '#',
+      time_published: ahora.toISOString(),
+      summary: 'El índice porteño registra movimientos ante expectativas económicas.',
+      banner_image: null
+    },
+    {
+      title: 'BCRA analiza medidas para la estabilidad cambiaria',
+      source: 'Informe Oficial',
+      url: '#',
+      time_published: new Date(ahora - 3600000).toISOString(),
+      summary: 'El Banco Central evalúa herramientas para el mercado de divisas.',
+      banner_image: null
+    },
+    {
+      title: 'Empresas líderes: YPF y Galicia presentan perspectivas 2026',
+      source: 'Reporte Corporativo',
+      url: '#',
+      time_published: new Date(ahora - 7200000).toISOString(),
+      summary: 'Compañías argentinas actualizan sus proyecciones para el próximo año.',
+      banner_image: null
+    },
+    {
+      title: 'Wall Street: Tecnológicas lideran avance del S&P 500',
+      source: 'Mercados Globales',
+      url: '#',
+      time_published: new Date(ahora - 10800000).toISOString(),
+      summary: 'Apple, Microsoft y Nvidia impulsan ganancias en los principales índices.',
+      banner_image: null
+    },
+    {
+      title: 'Análisis: Materias primas y su impacto en economías emergentes',
+      source: 'Perspectivas',
+      url: '#',
+      time_published: new Date(ahora - 14400000).toISOString(),
+      summary: 'Expertos evalúan el comportamiento del petróleo y commodities.',
+      banner_image: null
+    }
+  ];
+};
 
+// ========== FUNCIONES AUXILIARES ==========
+const formatearNoticias = (noticias) => {
+  return noticias.map(noticia => ({
+    // Mantener compatibilidad con tu componente Notice.jsx
+    ...noticia,
+    // Asegurar timestamp para formatTimeAgo
+    timestamp: new Date(noticia.time_published)
+  }));
+};
 
-const generateSummary = (text) => {
-  if (!text) return 'Última actualización de mercados';
-  if (text.length <= 120) return text;
-  
-  const truncated = text.substring(0, 120);
-  const lastSpace = truncated.lastIndexOf(' ');
-  
-  return lastSpace > 80 
-    ? truncated.substring(0, lastSpace) + '...'
-    : truncated + '...';
+const getValidCache = () => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return [];
+    
+    const { data, timestamp } = JSON.parse(cached);
+    const isFresh = Date.now() - timestamp < CACHE_DURATION;
+    
+    return isFresh ? data : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveToCache = (noticias) => {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      data: noticias.slice(0, 12),
+      timestamp: Date.now()
+    }));
+  } catch (error) {
+    console.warn('No se pudo guardar cache:', error);
+  }
 };

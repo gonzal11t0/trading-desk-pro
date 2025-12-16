@@ -69,6 +69,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/argentina/, '')
       },
+       '/api/rss-proxy': {
+        target: 'https://api.allorigins.win',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/rss-proxy/, '/get')
+      },
       // Proxy para CEDEARS
       '/api/cedears': {
         target: 'https://api.financialmodelingprep.com/v3',

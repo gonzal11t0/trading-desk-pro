@@ -23,7 +23,7 @@ export function Notice() {
 
   useEffect(() => {
     loadNews()
-    const interval = setInterval(loadNews, 1300000)
+    const interval = setInterval(loadNews, 300000) // 5 minutos = 300000 ms
     return () => clearInterval(interval)
   }, [])
 
@@ -210,7 +210,7 @@ export function Notice() {
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                      {formatTimeAgo(news.timestamp)}
+                      {formatTimeAgo(news.time_published)}
                     </span>
                     <ExternalLink style={{ 
                       width: '12px', 
@@ -283,15 +283,67 @@ export function Notice() {
   )
 }
 
-// Función auxiliar para formatear tiempo relativo
+// Notice.jsx - REEMPLAZA la función formatTimeAgo con este código
 const formatTimeAgo = (timestamp) => {
-  const now = new Date();
-  const diffMs = now - new Date(timestamp);
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
+  // Si timestamp es undefined/null, devolver vacío
+  if (!timestamp) return '';
   
-  if (diffMins < 1) return 'Ahora';
-  if (diffMins < 60) return `Hace ${diffMins}m`;
-  if (diffHours < 24) return `Hace ${diffHours}h`;
-  return `Hace ${Math.floor(diffHours / 24)}d`;
+  let fecha;
+  
+  try {
+    // INTENTO 1: Si timestamp es un objeto Date o un string ISO estándar
+    if (timestamp instanceof Date && !isNaN(timestamp)) {
+      fecha = timestamp;
+    } else if (typeof timestamp === 'string') {
+      // INTENTO 2: Si es el formato de Alpha Vantage: "20251216T210943"
+      if (/^\d{8}T\d{6}$/.test(timestamp)) {
+        const year = timestamp.substring(0, 4);
+        const month = timestamp.substring(4, 6);
+        const day = timestamp.substring(6, 8);
+        const hour = timestamp.substring(9, 11);
+        const minute = timestamp.substring(11, 13);
+        const second = timestamp.substring(13, 15);
+        fecha = new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}`);
+      } 
+      // INTENTO 3: Si es un string ISO normal (ej: "2025-12-16T21:09:43Z")
+      else {
+        fecha = new Date(timestamp);
+      }
+    } 
+    // INTENTO 4: Si es un número (timestamp en ms)
+    else if (typeof timestamp === 'number') {
+      fecha = new Date(timestamp);
+    } else {
+      console.warn('Formato de timestamp no reconocido:', timestamp);
+      return 'Reciente';
+    }
+    
+    // Verificar que la fecha sea válida
+    if (isNaN(fecha.getTime())) {
+      console.warn('Fecha inválida generada desde:', timestamp);
+      return 'Reciente';
+    }
+    
+    // Calcular diferencia
+    const ahora = new Date();
+    const diffMs = ahora - fecha;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffHours / 24);
+    
+    // Formatear
+    if (diffMins < 1) return 'Ahora';
+    if (diffMins < 60) return `Hace ${diffMins}m`;
+    if (diffHours < 24) return `Hace ${diffHours}h`;
+    if (diffDays < 30) return `Hace ${diffDays}d`;
+    
+    return fecha.toLocaleDateString('es-AR', { 
+      day: '2-digit', 
+      month: 'short' 
+    }).replace('.', '');
+    
+  } catch (error) {
+    console.error('Error formateando fecha:', error, 'timestamp:', timestamp);
+    return 'Reciente';
+  }
 };
