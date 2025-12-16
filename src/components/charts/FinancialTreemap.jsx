@@ -1,4 +1,4 @@
-// src/components/charts/FinancialTreemap.jsx - VERSIÓN COMPACTA
+// src/components/charts/FinancialTreemap.jsx - VERSIÓN MEJORADA
 import React from 'react';
 import './FinancialTreemap.css';
 
@@ -6,7 +6,7 @@ const FinancialTreemap = ({
   data = [], 
   title = "PANEL", 
   dateTime = "",
-  columns = 2, 
+  columns = 2,
 }) => {
   
   const getColor = (variation) => {
@@ -29,6 +29,21 @@ const FinancialTreemap = ({
     };
   };
 
+  // Si no hay datos, mostrar mensaje
+  if (data.length === 0) {
+    return (
+      <div className="financial-treemap-compact">
+        <div className="treemap-header-compact">
+          <div className="treemap-title-compact">{title}</div>
+          <div className="treemap-datetime-compact">{dateTime}</div>
+        </div>
+        <div className="text-center py-8 text-gray-500">
+          No hay datos disponibles
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="financial-treemap-compact">
       <div className="treemap-header-compact">
@@ -42,15 +57,17 @@ const FinancialTreemap = ({
       >
         {data.map((item, index) => (
           <div
-            key={index}
+            key={`${title}-${item.ticker}-${index}`}
             className="treemap-block-compact"
             style={{
-              backgroundColor: getColor(item.variation)
+              backgroundColor: getColor(item.variation),
+              cursor: 'pointer'
             }}
+            title={`${item.ticker}: ${item.variation > 0 ? '+' : ''}${item.variation}%`}
           >
             <div className="block-ticker-compact">{item.ticker}</div>
             <div className={`block-variation-compact ${item.variation >= 0 ? 'positive' : 'negative'}`}>
-              {item.variation > 0 ? '+' : ''}{item.variation}%
+              {item.variation > 0 ? '+' : ''}{item.variation.toFixed(2)}%
             </div>
           </div>
         ))}

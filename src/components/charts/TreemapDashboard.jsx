@@ -1,93 +1,113 @@
-// src/components/charts/TreemapDashboard.jsx - VERSIÓN SIMPLIFICADA
+// src/components/charts/TreemapDashboard.jsx - VERSIÓN ACTUALIZADA CON DATOS REALES
 import React from 'react';
 import FinancialTreemap from './FinancialTreemap';
+import { useTreemapData } from '../../hooks/useTreemapData';
+import { RefreshCw, AlertCircle } from 'lucide-react';
 import './TreemapDashboard.css';
 
 const TreemapDashboard = () => {
-  // Datos mock
-  const leaderData = [
-    { ticker: 'GGAL', variation: 2.15 },
-    { ticker: 'YPFD', variation: -0.71 },
-    { ticker: 'PAMP', variation: 1.45 },
-    { ticker: 'CEPU', variation: 4.77 },
-    { ticker: 'SUPV', variation: 1.20 },
-    { ticker: 'BMA', variation: 0.85 },
-    { ticker: 'LOMA', variation: -1.25 },
-    { ticker: 'TXAR', variation: 0.30 },
-    { ticker: 'COME', variation: 2.80 },
-    { ticker: 'METR', variation: -0.90 },
-    { ticker: 'CRES', variation: 0.15 },
-    { ticker: 'EDN', variation: 1.75 }
-  ];
+  const { 
+    leaderPanel, 
+    cedears, 
+    bonds, 
+    loading, 
+    error, 
+    lastUpdate, 
+    refresh 
+  } = useTreemapData(220000); // Actualizar cada 60 segundos
 
-  const cedearsData = [
-    { ticker: 'IBIT', variation: -6.92 },
-    { ticker: 'ETHA', variation: -9.53 },
-    { ticker: 'SPY', variation: -1.25 },
-    { ticker: 'MSTR', variation: -2.80 },
-    { ticker: 'NVDA', variation: -4.15 },
-    { ticker: 'VIST', variation: -0.85 },
-    { ticker: 'META', variation: 0.45 },
-    { ticker: 'MELI', variation: 1.52 },
-    { ticker: 'PLTR', variation: -3.20 },
-    { ticker: 'MSFT', variation: 0.25 },
-    { ticker: 'AAPL', variation: -0.75 },
-    { ticker: 'GOOGL', variation: -1.15 }
-  ];
+  const currentDateTime = lastUpdate 
+    ? new Date(lastUpdate).toLocaleString('es-AR', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    : 'Cargando...';
 
-  const bondsData = [
-    { ticker: 'AL30', variation: -0.51 },
-    { ticker: 'GD30', variation: -0.55 },
-    { ticker: 'GD35', variation: -0.60 },
-    { ticker: 'TX26', variation: -0.45 },
-    { ticker: 'TXZD5', variation: 0.06 },
-    { ticker: 'GD38', variation: -0.35 },
-    { ticker: 'AE38', variation: -0.40 },
-    { ticker: 'GD41', variation: -0.25 },
-    { ticker: 'GD46', variation: -0.30 },
-    { ticker: 'AL35', variation: -0.20 },
-    { ticker: 'GD29', variation: -0.15 },
-    { ticker: 'AL41', variation: -0.10 }
-  ];
-
-  const currentDateTime = new Date().toLocaleString('es-AR', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  // Mostrar skeleton mientras carga
+  if (loading && leaderPanel.length === 0) {
+    return (
+      <div className="treemap-dashboard-simple">
+        {[1, 2, 3].map((section, idx) => (
+          <div key={idx} className="treemap-panel-full">
+            <div className="financial-treemap-compact">
+              <div className="treemap-header-compact">
+                <div className="treemap-title-compact">
+                  {idx === 0 ? 'PANEL LÍDER' : idx === 1 ? 'CEDEARS' : 'BONOS ($)'}
+                </div>
+                <div className="treemap-datetime-compact">Cargando...</div>
+              </div>
+              <div className="grid grid-cols-5 gap-2">
+                {[...Array(12)].map((_, i) => (
+                  <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="treemap-dashboard-simple">
+      {/* Botón de actualización y estado */}
+      <div className="flex justify-between items-center mb-4 p-2 bg-gray-50 rounded-lg">
+        <div className="flex items-center space-x-2">
+          {error && (
+            <div className="flex items-center text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4 mr-1" />
+              <span>Error: Mostrando datos de respaldo</span>
+            </div>
+          )}
+          <span className="text-sm text-gray-600">
+            Última actualización: {currentDateTime}
+          </span>
+        </div>
+        <button
+          onClick={refresh}
+          disabled={loading}
+          className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <span>{loading ? 'Actualizando...' : 'Actualizar'}</span>
+        </button>
+      </div>
+
+      {/* Panel Líder */}
       <div className="treemap-panel-full">
         <FinancialTreemap 
-          data={leaderData}
+          data={leaderPanel}
           title="PANEL LÍDER"
           dateTime={currentDateTime}
-          columns={5}  
+          columns={5}
           blockSize="compact"
         />
       </div>
       
+      {/* CEDEARs */}
       <div className="treemap-panel-full">
         <FinancialTreemap 
-          data={cedearsData}
+          data={cedears}
           title="CEDEARS"
           dateTime={currentDateTime}
-          columns={5} 
+          columns={5}
           blockSize="compact"
         />
       </div>
       
+      {/* Bonos */}
       <div className="treemap-panel-full">
-        <FinancialTreemap 
-          data={bondsData}
-          title="BONOS ($)"
-          dateTime={currentDateTime}
-          columns={6} 
-          blockSize="compact"
-        />
-      </div>
+  <FinancialTreemap 
+    data={bonds}
+    title="BONOS ($)"
+    dateTime={currentDateTime}
+    columns={6}
+    blockSize="compact"
+    showSimulatedWarning={bonds.some(b => b.isSimulated)}
+  />
+</div>
     </div>
   );
 };
