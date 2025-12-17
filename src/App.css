@@ -1,14 +1,20 @@
-/* src/App.css */
-/* ===== RESET Y BASE ===== */
-#root {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 0;
-  text-align: left;
-}
+/* src/App.css - VERSIÓN OPTIMIZADA */
+/* ===== NOTAS IMPORTANTES ===== */
+/* 1. Muchas clases pueden reemplazarse con utilidades de Tailwind */
+/* 2. Índice de clases únicas que SÍ vale la pena mantener: */
+/*    - .gradient-text-* (sombra de texto personalizada) */
+/*    - .shadow-glow-* (sombras personalizadas) */
+/*    - .border-gradient-* (bordes con gradiente) */
+/*    - .chart-loading (animación de carga única) */
+/*    - .glow-effect (efecto hover especial) */
+/*    - .bg-gradient-* (fondos personalizados) */
+/*    - .btn-terminal, .badge-* (componentes específicos) */
+
+/* ===== RESET Y BASE (ya en index.css) ===== */
+/* #root está en index.css - REMOVER */
 
 /* ===== LAYOUT PRINCIPAL ===== */
-/* Forzar el layout 70/30 */
+/* CONSIDERAR: Usar w-[70%] y w-[30%] en Tailwind en lugar de estas clases */
 .w-7\/10 {
   width: 70% !important;
 }
@@ -17,7 +23,7 @@
   width: 30% !important;
 }
 
-/* Contenedor principal */
+/* CONSIDERAR: Usar container de Tailwind o max-w-7xl mx-auto px-4 */
 .container {
   max-width: 1400px;
   margin: 0 auto;
@@ -25,13 +31,13 @@
 }
 
 /* ===== COMPONENTES ESPECÍFICOS ===== */
-/* Aspect ratios consistentes */
+/* CONSIDERAR: Usar aspect-video de Tailwind (tailwind.config.js necesita extensión) */
 .aspect-video {
   aspect-ratio: 16/9;
   min-height: 120px;
 }
 
-/* Scroll personalizado */
+/* ÚNICO: Scroll personalizado para cuando Tailwind no basta */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -41,7 +47,7 @@
   display: none;
 }
 
-/* Secciones con fondo */
+/* ÚNICO: Efecto glass con backdrop-filter */
 .section-bg {
   background-color: #1A1A1A !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -49,7 +55,7 @@
   backdrop-filter: blur(10px);
 }
 
-/* Tarjetas terminal */
+/* ÚNICO: Card terminal con hover personalizado */
 .terminal-card {
   background-color: #1A1A1A !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -63,14 +69,14 @@
   transform: translateY(-2px);
 }
 
-/* Valores terminal */
+/* ÚNICO: Valores con fuente monoespaciada y peso específico */
 .terminal-value {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
   letter-spacing: -0.025em;
 }
 
-/* Estados de datos */
+/* ÚNICO: Colores personalizados para datos */
 .data-positive {
   color: #00FF9D;
 }
@@ -91,7 +97,7 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-/* Animación de carga para gráficos */
+/* ÚNICO: Animación de carga para gráficos */
 .chart-loading {
   background: linear-gradient(90deg, #1A1A1A 25%, #2A2A2A 50%, #1A1A1A 75%);
   background-size: 200% 100%;
@@ -108,7 +114,7 @@
 }
 
 /* ===== UTILIDADES ESPECIALES ===== */
-/* Gradientes de texto */
+/* ÚNICO: Gradientes de texto personalizados */
 .gradient-text-primary {
   background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
   -webkit-background-clip: text;
@@ -137,7 +143,7 @@
   background-clip: text;
 }
 
-/* Sombras premium */
+/* ÚNICO: Sombras con colores personalizados */
 .shadow-glow-blue {
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
 }
@@ -154,7 +160,7 @@
   box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
 }
 
-/* Animaciones suaves */
+/* CONSIDERAR: Usar transition-* de Tailwind */
 .smooth-transition {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -163,7 +169,7 @@
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Efectos de borde gradiente */
+/* ÚNICO: Bordes con gradiente */
 .border-gradient-blue {
   border: 1px solid;
   border-image: linear-gradient(135deg, #3b82f6, #06b6d4) 1;
@@ -189,11 +195,11 @@
     min-height: 300px;
   }
   
+  /* CONSIDERAR: Usar grid-cols-1 en Tailwind */
   .grid-cols-3 {
     grid-template-columns: 1fr !important;
   }
   
-  /* Stack en móviles */
   .mobile-stack {
     flex-direction: column !important;
   }
@@ -210,8 +216,8 @@
   }
 }
 
-/* ===== ESTADOS INTERACTIVOS ===== */
-/* Botones interactivos */
+/* ===== COMPONENTES INTERACTIVOS ===== */
+/* ÚNICO: Botón con efectos específicos */
 .btn-interactive {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -229,7 +235,7 @@
   transform: translateY(0);
 }
 
-/* Estados de carga */
+/* ÚNICO: Animación de pulso */
 .loading-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -243,7 +249,7 @@
   }
 }
 
-/* Efectos de brillo */
+/* ÚNICO: Efecto de brillo al pasar mouse */
 .glow-effect {
   position: relative;
   overflow: hidden;
@@ -269,34 +275,7 @@
   left: 100%;
 }
 
-/* ===== TIPOGRAFÍA ESPECIAL ===== */
-.text-monospace {
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.text-gradient {
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Límite de líneas */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* ===== UTILIDADES DE COLOR ===== */
-/* Fondos con gradientes sutiles */
+/* ===== FONDOS GRADIENTE ÚNICOS ===== */
 .bg-gradient-terminal {
   background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
 }
@@ -309,7 +288,7 @@
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(30, 30, 30, 0.9) 100%);
 }
 
-/* Bordes con transparencia */
+/* ÚNICO: Bordes con opacidad específica */
 .border-terminal {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -318,8 +297,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* ===== ANIMACIONES ESPECÍFICAS ===== */
-/* Entrada suave */
+/* ===== ANIMACIONES ÚNICAS ===== */
 .fade-in-up {
   animation: fadeInUp 0.6s ease-out;
 }
@@ -335,7 +313,6 @@
   }
 }
 
-/* Latido para indicadores en vivo */
 .heartbeat {
   animation: heartbeat 2s ease-in-out infinite;
 }
@@ -349,21 +326,13 @@
   }
 }
 
-/* Rotación continua */
 .spin-slow {
   animation: spin 3s linear infinite;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+/* KEYFRAMES spin ELIMINADO (estaba duplicado) */
 
-/* Mejorar selección de texto en toda la app */
+/* ===== SELECCIÓN DE TEXTO ===== */
 ::selection {
   background-color: #3b82f6;
   color: white;
@@ -374,7 +343,7 @@
   color: white;
 }
 
-/* Para textos con gradiente que necesiten selección */
+/* ÚNICO: Para textos con gradiente seleccionables */
 .gradient-selectable {
   background-clip: text;
   -webkit-background-clip: text;
@@ -389,12 +358,8 @@
   -webkit-text-fill-color: white;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Para compatibilidad con pseudo-clases en React inline styles */
+/* ===== ADVERTENCIA: Selector global peligroso ===== */
+/* ¡CUIDADO! Esto afecta TODAS las tablas. Considerar hacerlo más específico */
 tr:hover {
   background: linear-gradient(90deg, rgba(31, 41, 55, 0.3), rgba(17, 24, 39, 0.3)) !important;
 }
