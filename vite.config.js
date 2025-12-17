@@ -74,6 +74,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/rss-proxy/, '/get')
       },
+       '/api/newsapi': {
+      target: 'https://newsapi.org',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api\/newsapi/, '/v2')
+    },
       // Proxy para CEDEARS
       '/api/cedears': {
         target: 'https://api.financialmodelingprep.com/v3',

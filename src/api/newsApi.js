@@ -1,13 +1,16 @@
 // src/api/newsApi.js - SISTEMA HÍBRIDO DE EMERGENCIA
+
 const CACHE_DURATION = 45 * 60 * 1000; // 45 minutos
 const CACHE_KEY = 'news_cache_hybrid';
 const NOTICIAS_A_MOSTRAR = 10;
 
 // Configuración (AJUSTA ESTAS KEYS)
-const ALPHA_VANTAGE_KEY = '9f749093f5d78a1546678f8f00c9bc8b';
+const ALPHA_VANTAGE_KEY = import.meta.env.VITE_ALPHA_VANTAGE_KEY;;
+
+
 
 let ultimaLlamadaAlphaVantage = 0;
-const INTERVALO_MINIMO_MS = 1500; // 1.5 segundos entre llamadas
+const INTERVALO_MINIMO_MS = 100; // 1.5 segundos entre llamadas
 
 const puedeLlamarAlphaVantage = () => {
   const ahora = Date.now();
@@ -23,51 +26,99 @@ const puedeLlamarAlphaVantage = () => {
 };
 
 // Función principal
+// ========== AGREGAR AL INICIO DE newsApi.js ==========
+let llamadaEnCurso = null;
+let ultimoResultado = null;
+const CACHE_DURACION_RESULTADO = 10000; // 10 segundos
+
+// ========== MODIFICAR fetchLatestNews ==========
 export const fetchLatestNews = async () => {
   console.log('🚀 Iniciando sistema híbrido de noticias...');
   
-  // 1. Caché primero (si es válido)
-  const cached = getValidCache();
-  if (cached.length >= 5) {
-    console.log(`📦 Cache válido: ${cached.length} noticias`);
-    return cached.slice(0, NOTICIAS_A_MOSTRAR);
+  // 1. Si hay una llamada en curso, devuelve esa promesa
+  if (llamadaEnCurso) {
+    console.log('⏳ Ya hay una llamada en curso, reutilizando...');
+    return llamadaEnCurso;
   }
   
-  // 2. ESTRATEGIA EN CASCADA
-  let noticias = [];
-  
-  // INTENTO 1: Alpha Vantage (rápido)
-  try {
-    console.log('🔄 Intento 1: Alpha Vantage...');
-    noticias = await intentarAlphaVantage();
-  } catch (error) {
-  console.error(`❌ FALLA CRÍTICA Alpha Vantage:`, error);
-  console.error(`   - Tipo de error: ${error.name}`);
-  console.error(`   - Mensaje: ${error.message}`);  }
-  
-  // INTENTO 2: RSS de emergencia (si Alpha Vantage devuelve < 5)
-  if (noticias.length < 5) {
-    console.log(`📡 Intento 2: RSS de respaldo (solo ${noticias.length} noticias)...`);
-    const noticiasRSS = await obtenerRSSDeRespaldo();
-    noticias = [...noticias, ...noticiasRSS];
+  // 2. Si tenemos un resultado reciente (menos de 10 segundos), úsalo
+  if (ultimoResultado && (Date.now() - ultimoResultado.timestamp) < CACHE_DURACION_RESULTADO) {
+    console.log('📦 Usando resultado reciente (cache de 10s)');
+    return ultimoResultado.data;
   }
   
-  // INTENTO 3: Noticias estáticas (último recurso)
-  if (noticias.length < 3) {
-    console.log('🛡️ Intento 3: Noticias estáticas de emergencia...');
-    noticias = [...noticias, ...obtenerNoticiasEstaticas()];
-  }
+  // 3. Marcar que hay una llamada en curso
+  llamadaEnCurso = (async () => {
+    try {
+      // ========== TU CÓDIGO ORIGINAL (pero SIN las primeras líneas) ==========
+      
+      // 1. Caché primero (si es válido)
+      const cached = getValidCache();
+      if (cached.length >= 5) {
+        console.log(`📦 Cache válido: ${cached.length} noticias`);
+        
+        // Guardar como último resultado
+        ultimoResultado = {
+          data: cached.slice(0, NOTICIAS_A_MOSTRAR),
+          timestamp: Date.now()
+        };
+        
+        return cached.slice(0, NOTICIAS_A_MOSTRAR);
+      }
+      
+      // 2. ESTRATEGIA EN CASCADA
+      let noticias = [];
+      
+      // INTENTO 1: Alpha Vantage (rápido)
+      try {
+        console.log('🔄 Intento 1: Alpha Vantage...');
+        noticias = await intentarAlphaVantage();
+      } catch (error) {
+        console.error(`❌ FALLA CRÍTICA Alpha Vantage:`, error);
+        console.error(`   - Tipo de error: ${error.name}`);
+        console.error(`   - Mensaje: ${error.message}`);
+      }
+      
+      // INTENTO 2: RSS de emergencia (si Alpha Vantage devuelve < 5)
+      if (noticias.length < 5) {
+        console.log(`📡 Intento 2: RSS de respaldo (solo ${noticias.length} noticias)...`);
+        const noticiasRSS = await obtenerRSSDeRespaldo();
+        noticias = [...noticias, ...noticiasRSS];
+      }
+      
+      // INTENTO 3: Noticias estáticas (último recurso)
+      if (noticias.length < 3) {
+        console.log('🛡️ Intento 3: Noticias estáticas de emergencia...');
+        noticias = [...noticias, ...obtenerNoticiasEstaticas()];
+      }
+      
+      // 3. Procesar y formatear
+      const noticiasFormateadas = formatearNoticias(noticias);
+      
+      // 4. Guardar en caché
+      if (noticiasFormateadas.length >= 3) {
+        saveToCache(noticiasFormateadas);
+      }
+      
+      console.log(`✅ Listo: ${noticiasFormateadas.length} noticias para mostrar`);
+      
+      const resultadoFinal = noticiasFormateadas.slice(0, NOTICIAS_A_MOSTRAR);
+      
+      // Guardar como último resultado
+      ultimoResultado = {
+        data: resultadoFinal,
+        timestamp: Date.now()
+      };
+      
+      return resultadoFinal;
+      
+    } finally {
+      // Siempre liberar la llamada en curso
+      llamadaEnCurso = null;
+    }
+  })();
   
-  // 3. Procesar y formatear
-  const noticiasFormateadas = formatearNoticias(noticias);
-  
-  // 4. Guardar en caché
-  if (noticiasFormateadas.length >= 3) {
-    saveToCache(noticiasFormateadas);
-  }
-  
-  console.log(`✅ Listo: ${noticiasFormateadas.length} noticias para mostrar`);
-  return noticiasFormateadas.slice(0, NOTICIAS_A_MOSTRAR);
+  return llamadaEnCurso;
 };
 
 // ========== INTENTO 1: ALPHA VANTAGE ==========
@@ -76,7 +127,7 @@ const intentarAlphaVantage = async () => {
     console.log('🔄 Saltando llamada a Alpha Vantage (rate limit local).');
     return []; // Devuelve array vacío en lugar de fallar
   }
-const apiUrl = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=financial_markets&apikey=${ALPHA_VANTAGE_KEY}&limit=15`;
+const apiUrl = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=YPF,GGAL,BMA,TEO&apikey=${ALPHA_VANTAGE_KEY}&limit=50`;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
 
