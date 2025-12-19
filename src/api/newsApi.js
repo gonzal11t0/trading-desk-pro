@@ -94,11 +94,31 @@ export const fetchLatestNews = async () => {
       
       // 3. Procesar y formatear
       const noticiasFormateadas = formatearNoticias(noticias);
-      
-      // 4. Guardar en caché
-      if (noticiasFormateadas.length >= 3) {
-        saveToCache(noticiasFormateadas);
-      }
+      const esNoticiaEstatica = (noticia) => {
+    const fuentesEstaticas = [
+      'Análisis Local',
+      'Informe Oficial', 
+      'Reporte Corporativo',
+      'Mercados Globales',
+      'Perspectivas'
+    ];
+    return fuentesEstaticas.includes(noticia.source);
+  };
+  // ========== MODIFICAR: Guardar en caché (SOLO si hay noticias REALES) ==========
+// 4. Decidir si guardar en caché (SOLO noticias reales)
+const tieneNoticiasReales = noticiasFormateadas.some(noticia => !esNoticiaEstatica(noticia));
+
+if (tieneNoticiasReales && noticiasFormateadas.length >= 3) {
+  console.log(`💾 Guardando ${noticiasFormateadas.length} noticias (${noticiasFormateadas.filter(n => !esNoticiaEstatica(n)).length} reales) en caché`);
+  saveToCache(noticiasFormateadas);
+} else if (noticiasFormateadas.length > 0) {
+  console.log(`⚠️ ${noticiasFormateadas.length} noticias, pero son estáticas. No cacheando.`);
+  // Limpiar caché existente si solo tiene estáticas
+  localStorage.removeItem(CACHE_KEY);
+}
+
+console.log(`✅ Listo: ${noticiasFormateadas.length} noticias para mostrar`);
+
       
       console.log(`✅ Listo: ${noticiasFormateadas.length} noticias para mostrar`);
       
@@ -127,8 +147,8 @@ const intentarAlphaVantage = async () => {
     console.log('🔄 Saltando llamada a Alpha Vantage (rate limit local).');
     return []; // Devuelve array vacío en lugar de fallar
   }
-const apiUrl = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=YPF,GGAL,BMA,TEO&apikey=${ALPHA_VANTAGE_KEY}&limit=50`;
-  const controller = new AbortController();
+// Cambia en intentarAlphaVantage():
+const apiUrl = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics=financial_markets,economy_macro&apikey=${ALPHA_VANTAGE_KEY}&limit=50`;  const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
