@@ -23,6 +23,25 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/argentina-datos/, '/v1')
       },
+ '/api/argenstats': {
+        target: 'https://argenstats.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/argenstats/, '/api/v1'),
+        secure: false,
+        headers: {
+          // Añade tu API Key aquí
+          'Authorization': 'Bearer as_prod_2LPhBgR8GnCZv6SAuH9fosOLJcMNoqjF',
+          'X-API-Key': 'as_prod_2LPhBgR8GnCZv6SAuH9fosOLJcMNoqjF'
+        },
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            // Añadir parámetro de API key también como query param
+            const url = new URL(req.url, 'http://localhost');
+            url.searchParams.append('apikey', 'as_prod_2LPhBgR8GnCZv6SAuH9fosOLJcMNoqjF');
+            proxyReq.path = url.pathname + url.search;
+          });
+        }
+      },
       '/api/dolarito': {
         target: 'https://www.dolarito.ar',
         changeOrigin: true,

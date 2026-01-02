@@ -1,6 +1,7 @@
 import React from 'react'
 import InflationModule from './InflationModule'
 import { DollarTypesModule } from './DollarTypesModule'
+import InflationHistory from '../markets/InflationHistory';
 
 export function EconomicIndicators() {
   return (
@@ -18,7 +19,7 @@ export function EconomicIndicators() {
       </div>
 
       <div className="grid grid-cols-2 gap-6">
-        <InflationModule />
+        <InflationHistory />
         <DollarTypesModule />
       </div>
     </div>

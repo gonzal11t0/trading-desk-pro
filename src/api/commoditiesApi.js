@@ -27,7 +27,6 @@ export const fetchCommoditiesData = async () => {
       }
     };
   } catch {
-    console.warn('Commodities APIs failed, using reliable fallback');
     return fetchReliableCommodities();
   }
 };
@@ -116,7 +115,6 @@ const fetchReliableCommodities = async () => {
     }
     throw new Error('Commodities fallback API failed');
   } catch {
-    console.warn('All commodities APIs failed, using mock data');
     // Datos mock directos sin función extra
     return {
       gold: {

@@ -14,7 +14,6 @@ export const fetchCryptoPrice = async (symbol) => {
     };
   } catch {
     // Sin parámetro 'error' para evitar warning
-    console.warn('CoinGecko API failed, using fallback');
     return fetchCryptoFallback(symbol);
   }
 };
@@ -33,7 +32,6 @@ const fetchCryptoFallback = async (symbol) => {
     }
     throw new Error('CoinCap API failed');
   } catch {
-    console.warn('All crypto APIs failed, using mock data');
     return getMockCryptoData(symbol);
   }
 };

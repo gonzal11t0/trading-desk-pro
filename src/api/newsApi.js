@@ -17,7 +17,6 @@ const puedeLlamarAlphaVantage = () => {
   const tiempoDesdeUltimaLlamada = ahora - ultimaLlamadaAlphaVantage;
   
   if (tiempoDesdeUltimaLlamada < INTERVALO_MINIMO_MS) {
-    console.log(`⏳ Esperando para llamar a Alpha Vantage... (faltan ${INTERVALO_MINIMO_MS - tiempoDesdeUltimaLlamada}ms)`);
     return false;
   }
   
@@ -33,29 +32,22 @@ const CACHE_DURACION_RESULTADO = 10000; // 10 segundos
 
 // ========== MODIFICAR fetchLatestNews ==========
 export const fetchLatestNews = async () => {
-  console.log('🚀 Iniciando sistema híbrido de noticias...');
   
   // 1. Si hay una llamada en curso, devuelve esa promesa
   if (llamadaEnCurso) {
-    console.log('⏳ Ya hay una llamada en curso, reutilizando...');
     return llamadaEnCurso;
   }
   
   // 2. Si tenemos un resultado reciente (menos de 10 segundos), úsalo
   if (ultimoResultado && (Date.now() - ultimoResultado.timestamp) < CACHE_DURACION_RESULTADO) {
-    console.log('📦 Usando resultado reciente (cache de 10s)');
     return ultimoResultado.data;
   }
   
   // 3. Marcar que hay una llamada en curso
   llamadaEnCurso = (async () => {
     try {
-      // ========== TU CÓDIGO ORIGINAL (pero SIN las primeras líneas) ==========
-      
-      // 1. Caché primero (si es válido)
       const cached = getValidCache();
       if (cached.length >= 5) {
-        console.log(`📦 Cache válido: ${cached.length} noticias`);
         
         // Guardar como último resultado
         ultimoResultado = {
@@ -71,24 +63,19 @@ export const fetchLatestNews = async () => {
       
       // INTENTO 1: Alpha Vantage (rápido)
       try {
-        console.log('🔄 Intento 1: Alpha Vantage...');
         noticias = await intentarAlphaVantage();
       } catch (error) {
-        console.error(`❌ FALLA CRÍTICA Alpha Vantage:`, error);
-        console.error(`   - Tipo de error: ${error.name}`);
-        console.error(`   - Mensaje: ${error.message}`);
+
       }
       
       // INTENTO 2: RSS de emergencia (si Alpha Vantage devuelve < 5)
       if (noticias.length < 5) {
-        console.log(`📡 Intento 2: RSS de respaldo (solo ${noticias.length} noticias)...`);
         const noticiasRSS = await obtenerRSSDeRespaldo();
         noticias = [...noticias, ...noticiasRSS];
       }
       
       // INTENTO 3: Noticias estáticas (último recurso)
       if (noticias.length < 3) {
-        console.log('🛡️ Intento 3: Noticias estáticas de emergencia...');
         noticias = [...noticias, ...obtenerNoticiasEstaticas()];
       }
       
@@ -109,19 +96,12 @@ export const fetchLatestNews = async () => {
 const tieneNoticiasReales = noticiasFormateadas.some(noticia => !esNoticiaEstatica(noticia));
 
 if (tieneNoticiasReales && noticiasFormateadas.length >= 3) {
-  console.log(`💾 Guardando ${noticiasFormateadas.length} noticias (${noticiasFormateadas.filter(n => !esNoticiaEstatica(n)).length} reales) en caché`);
   saveToCache(noticiasFormateadas);
 } else if (noticiasFormateadas.length > 0) {
-  console.log(`⚠️ ${noticiasFormateadas.length} noticias, pero son estáticas. No cacheando.`);
   // Limpiar caché existente si solo tiene estáticas
   localStorage.removeItem(CACHE_KEY);
 }
 
-console.log(`✅ Listo: ${noticiasFormateadas.length} noticias para mostrar`);
-
-      
-      console.log(`✅ Listo: ${noticiasFormateadas.length} noticias para mostrar`);
-      
       const resultadoFinal = noticiasFormateadas.slice(0, NOTICIAS_A_MOSTRAR);
       
       // Guardar como último resultado
@@ -144,7 +124,6 @@ console.log(`✅ Listo: ${noticiasFormateadas.length} noticias para mostrar`);
 // ========== INTENTO 1: ALPHA VANTAGE ==========
 const intentarAlphaVantage = async () => {
     if (!puedeLlamarAlphaVantage()) {
-    console.log('🔄 Saltando llamada a Alpha Vantage (rate limit local).');
     return []; // Devuelve array vacío en lugar de fallar
   }
 // Cambia en intentarAlphaVantage():
@@ -152,23 +131,19 @@ const apiUrl = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics
   const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
-    console.log('🌐 Llamando a Alpha Vantage...');
     const response = await fetch(apiUrl, { signal: controller.signal });
     clearTimeout(timeout);
 
     if (!response.ok) {
-      console.error(`❌ Error HTTP: ${response.status}`);
       throw new Error(`HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('📦 Respuesta cruda de Alpha Vantage:', data); // LOG CLAVE
 
     // --- ¡ESTA ES LA PARTE MÁS IMPORTANTE! ---
     // 1. Verifica si la API devolvió un error en el JSON
     if (data['Error Message'] || data['Information']) {
   const mensajeError = data['Error Message'] || data['Information'];
-  console.warn('⚠️ Alpha Vantage rate limit o error:', mensajeError);
   
   // Si es un error de rate limit, NO lanzo error, devuelvo array vacío
   // El sistema híbrido usará el caché o fuentes secundarias
@@ -181,18 +156,15 @@ const apiUrl = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&topics
 
     // 2. Verifica si existe la propiedad 'feed'
     if (!data.hasOwnProperty('feed')) {
-      console.error('❌ La respuesta no tiene propiedad "feed":', data);
       throw new Error('Estructura de respuesta inesperada');
     }
 
     // 3. Si 'feed' existe pero es un array vacío, NO es un error.
     //    Simplemente devolvemos el array vacío.
-    console.log(`✅ Alpha Vantage OK. feed es un array de longitud: ${data.feed.length}`);
     return data.feed; // <-- Esto devuelve las 50 noticias (o un array vacío)
 
   } catch (error) {
     clearTimeout(timeout);
-    console.error('❌ Error en intentarAlphaVantage:', error.name, '-', error.message);
     // Relanza solo errores de red o de estructura grave
     if (error.name === 'AbortError' || error.message.includes('HTTP') || error.message.includes('Estructura')) {
       throw error;
@@ -256,7 +228,6 @@ const obtenerUnRSS = async (fuente) => {
     }));
     
   } catch (error) {
-    console.warn(`⚠️ RSS ${fuente.name} falló:`, error.message);
     return [];
   }
 };
@@ -339,6 +310,5 @@ const saveToCache = (noticias) => {
       timestamp: Date.now()
     }));
   } catch (error) {
-    console.warn('No se pudo guardar cache:', error);
   }
 };

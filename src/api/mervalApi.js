@@ -18,7 +18,6 @@ export const fetchMervalData = async () => {
       timestamp: latest.d
     };
   } catch {
-    console.warn('MERVAL API failed, using fallback');
     return fetchMervalFallback();
   }
 };
@@ -43,7 +42,6 @@ const fetchMervalFallback = async () => {
     }
     throw new Error('Fallback MERVAL API failed');
   } catch {
-    console.warn('All MERVAL APIs failed, using mock data');
     // Datos mock directos sin función extra
     return {
       price: 1250450,

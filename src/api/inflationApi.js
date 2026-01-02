@@ -1,230 +1,271 @@
-// src/api/inflationApi.js
+// src/api/inflationApi.js - VERSIÓN FINAL CORREGIDA
+const ARGENSTATS_API_KEY = 'as_prod_2LPhBgR8GnCZv6SAuH9fosOLJcMNoqjF';
 
-// Web scraping del BCRA para datos oficiales
-export const error = (message, details = null) => {
-  const err = new Error(message);
-  err.details = details;
-  throw err;
-};
-
-export const fetchInflationData = async () => {
-  try {
-    const bcraData = await fetchBCRAInflationData();
-    if (bcraData?.length > 0) return bcraData;
-
-    const bcraApiData = await fetchBCRAApi();
-    if (bcraApiData?.length > 0) return bcraApiData;
-
-    error('BCRA data sources failed');
-  } catch (err) {
-    console.warn('BCRA scraping failed, using reliable estimates', err);
-    return getReliableInflationData();
-  }
-};
-
-
-
-// Web scraping de la página del BCRA
-const fetchBCRAInflationData = async () => {
-  try {
-    // Usar CORS proxy para evitar bloqueos
-    const proxyUrl = 'https://api.allorigins.win/get?url=';
-    const targetUrl = encodeURIComponent('https://www.bcra.gob.ar/PublicacionesEstadisticas/Principales_variables_datos.asp');
-    
-    const response = await fetch(proxyUrl + targetUrl);
-    
-    if (response.ok) {
-      const result = await response.json();
-      const html = result.contents;
-      return parseBCRAHTML(html);
-    }
-    return null;
-  } catch (error) {
-    console.warn('BCRA scraping failed:', error);
-    return null;
-  }
-};
-
-// Parsear el HTML del BCRA para extraer datos de inflación
-const parseBCRAHTML = (html) => {
-  try {
-    // Crear un parser de HTML
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    
-    // Buscar la tabla de inflación (ajustar selectores según la estructura real)
-    const tables = doc.querySelectorAll('table');
-    let inflationData = [];
-    
-    // Iterar sobre tablas para encontrar la de inflación
-    for (let table of tables) {
-      const rows = table.querySelectorAll('tr');
+export const inflationApi = {
+  /**
+   * Obtiene los últimos datos de inflación disponibles
+   * @returns {Promise<Object>} Datos formateados de inflación
+   */
+  getCurrentInflation: async () => {
+    try {
       
-      for (let row of rows) {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 2) {
-          const dateText = cells[0].textContent.trim();
-          const valueText = cells[1].textContent.trim();
-          
-          // Verificar si es una fila de datos de inflación
-          if (isValidInflationData(dateText, valueText)) {
-            const inflationItem = parseInflationRow(dateText, valueText);
-            if (inflationItem) {
-              inflationData.push(inflationItem);
-            }
+      const response = await fetch(
+        `/api/argenstats/inflation?view=current`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'X-API-Key': ARGENSTATS_API_KEY
           }
         }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+
+      const result = await response.json();
+      
+      if (!result.success || !result.data) {
+        return getMockInflationData();
+      }
+
+      const { data } = result;
+      
+      // FORMATO CORRECTO según estructura real
+      return {
+        // Valores principales (¡ESTOS SON LOS CORRECTOS!)
+        monthly: data.values?.monthly || 0,      // 2.5%
+        annual: data.values?.yearly || 0,        // 31.4% (IPC anual)
+        accumulated: data.values?.accumulated || 0, // 27.9%
+        index: data.index || 0,                  // 9841.3581
+        
+        // Metadatos
+        date: data.date ? new Date(data.date).toISOString().split('T')[0] : '',
+        lastUpdate: data.lastUpdate || '',
+        component: data.component?.name || 'Nivel general',
+        region: data.region || 'Nacional',
+        
+        // Datos completos
+        raw: data,
+        metadata: result.metadata,
+        source: 'argenstats'
+      };
+    } catch (error) {
+      console.error('❌ Error obteniendo inflación:', error);
+      return getMockInflationData();
     }
-    
-    // Ordenar por fecha y tomar últimos 4 meses
-    inflationData.sort((a, b) => new Date(b.date) - new Date(a.date));
-    return inflationData.slice(0, 4);
-    
-  } catch (error) {
-    console.warn('HTML parsing failed:', error);
-    return null;
+  },
+
+  /**
+   * Obtiene serie histórica del IPC
+   */
+  getHistoricalInflation: async (from = '2024-01-01', to = '2024-12-01') => {
+    try {
+      const response = await fetch(
+        `/api/argenstats/inflation?view=historical&from=${from}&to=${to}`,
+        {
+          headers: { 'X-API-Key': ARGENSTATS_API_KEY }
+        }
+      );
+      
+      const result = await response.json();
+      
+      if (result.success && Array.isArray(result.data)) {
+        return result.data.map(item => ({
+          date: item.date,
+          monthly: item.values?.monthly,
+          annual: item.values?.yearly,
+          accumulated: item.values?.accumulated,
+          index: item.index,
+          component: item.component
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('❌ Error histórico:', error);
+      return getMockHistoricalData();
+    }
+  },
+
+  /**
+   * Obtiene desglose por componentes
+   */
+  getInflationComponents: async (date = null) => {
+    try {
+      const targetDate = date || getCurrentMonthString();
+      const response = await fetch(
+        `/api/argenstats/inflation?view=components&date=${targetDate}`,
+        {
+          headers: { 'X-API-Key': ARGENSTATS_API_KEY }
+        }
+      );
+      
+      const result = await response.json();
+      return result.success ? result.data : null;
+    } catch (error) {
+      console.error('❌ Error componentes:', error);
+      return null;
+    }
+  },
+
+  /**
+   * Obtiene inflación por región
+   */
+  getRegionalInflation: async (region = 'GBA') => {
+    try {
+      const response = await fetch(
+        `/api/argenstats/inflation?view=current&region=${region}`,
+        {
+          headers: { 'X-API-Key': ARGENSTATS_API_KEY }
+        }
+      );
+      
+      const result = await response.json();
+      return result.success ? result.data : null;
+    } catch (error) {
+      console.error('❌ Error regional:', error);
+      return null;
+    }
+  },
+
+  /**
+   * Obtiene los últimos N meses de inflación con cambios calculados
+   * @param {number} months - Cantidad de meses a obtener (default: 4)
+   * @returns {Promise<Array>} Datos de los últimos meses con cambios
+   */
+  getLastMonthsInflation: async (months = 4) => {
+    try {
+      // Calcular fechas para los últimos N meses
+      const toDate = new Date();
+      const fromDate = new Date();
+      fromDate.setMonth(fromDate.getMonth() - months);
+      
+      const from = fromDate.toISOString().split('T')[0];
+      const to = toDate.toISOString().split('T')[0];
+      
+      console.log(`📊 Obteniendo últimos ${months} meses (${from} a ${to})...`);
+      
+      const response = await fetch(
+        `/api/argenstats/inflation?view=historical&from=${from}&to=${to}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'X-API-Key': ARGENSTATS_API_KEY
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success || !Array.isArray(result.data)) {
+        console.warn('⚠️ No se obtuvieron datos históricos:', result.error);
+        return getMockHistoricalDataWithChanges(months);
+      }
+
+      // Ordenar por fecha (más reciente primero)
+      const sortedData = result.data
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, months);
+      
+      // Calcular cambios vs mes anterior
+      const dataWithChanges = sortedData.map((currentMonth, index) => {
+        const previousMonth = sortedData[index + 1];
+        
+        if (!previousMonth) {
+          return {
+            ...currentMonth,
+            change: { monthly: null, yearly: null, accumulated: null }
+          };
+        }
+        
+        // Calcular cambios
+        const monthlyChange = currentMonth.values?.monthly - previousMonth.values?.monthly;
+        const yearlyChange = currentMonth.values?.yearly - previousMonth.values?.yearly;
+        const accumulatedChange = currentMonth.values?.accumulated - previousMonth.values?.accumulated;
+        
+        // Función helper para formatear con signo
+        const formatChange = (value) => {
+          if (value > 0) return `+${value.toFixed(1)}`;
+          if (value < 0) return value.toFixed(1);
+          return "0.0";
+        };
+        
+        return {
+          ...currentMonth,
+          change: {
+            monthly: formatChange(monthlyChange),
+            yearly: formatChange(yearlyChange),
+            accumulated: formatChange(accumulatedChange)
+          }
+        };
+      });
+      
+      console.log(`✅ ${dataWithChanges.length} meses con cambios calculados:`, dataWithChanges);
+      return dataWithChanges;
+      
+    } catch (error) {
+      console.error('❌ Error obteniendo últimos meses:', error);
+      return getMockHistoricalDataWithChanges(months);
+    }
   }
 };
 
-// Verificar si una fila contiene datos válidos de inflación
-const isValidInflationData = (dateText, valueText) => {
-  // Patrones de fecha del BCRA
-  const datePatterns = [
-    /^\d{2}\/\d{4}$/, // MM/YYYY
-    /^\d{2}-\d{4}$/,  // MM-YYYY
-    /^\d{4}-\d{2}$/,  // YYYY-MM
-    /^\d{1,2}\/\d{1,2}\/\d{4}$/ // DD/MM/YYYY
+// Helper functions
+function getCurrentMonthString() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getMockInflationData() {
+  return {
+    monthly: 13.2,
+    annual: 289.4,
+    accumulated: 287.9,
+    index: 9841.36,
+    date: new Date().toISOString().split('T')[0],
+    component: 'Nivel general',
+    region: 'Nacional',
+    source: 'mock'
+  };
+}
+
+function getMockHistoricalData() {
+  return [
+    { date: '2024-01-01', monthly: 20.6, annual: 254.2, accumulated: 20.6 },
+    { date: '2024-02-01', monthly: 13.2, annual: 276.2, accumulated: 35.8 },
+    { date: '2024-03-01', monthly: 11.0, annual: 287.9, accumulated: 50.8 }
+  ];
+}
+
+function getMockHistoricalDataWithChanges(months = 4) {
+  const mockData = [
+    {
+      date: "2025-11-30T00:00:00.000Z",
+      values: { monthly: 2.5, yearly: 31.4, accumulated: 27.9 },
+      change: { monthly: "+0.7", yearly: "+1.2", accumulated: "+2.5" }
+    },
+    {
+      date: "2025-10-31T00:00:00.000Z",
+      values: { monthly: 3.2, yearly: 30.2, accumulated: 25.4 },
+      change: { monthly: "+0.9", yearly: "+2.1", accumulated: "+3.4" }
+    },
+    {
+      date: "2025-09-30T00:00:00.000Z",
+      values: { monthly: 4.1, yearly: 28.1, accumulated: 22.0 },
+      change: { monthly: "-0.3", yearly: "+0.8", accumulated: "+4.2" }
+    },
+    {
+      date: "2025-08-31T00:00:00.000Z",
+      values: { monthly: 3.8, yearly: 27.3, accumulated: 17.8 },
+      change: { monthly: "+0.5", yearly: "+1.5", accumulated: "+3.8" }
+    }
   ];
   
-  // Patrones de porcentaje
-  const valuePattern = /^-?\d+[,.]?\d*%?$/;
-  
-  return datePatterns.some(pattern => pattern.test(dateText)) && 
-         valuePattern.test(valueText.replace(',', '.'));
-};
+  return mockData.slice(0, months);
+}
 
-// Parsear una fila de datos de inflación
-const parseInflationRow = (dateText, valueText) => {
-  try {
-    // Convertir fecha
-    let date;
-    if (dateText.includes('/')) {
-      const [month, year] = dateText.split('/');
-      date = new Date(parseInt(year), parseInt(month) - 1, 1);
-    } else if (dateText.includes('-')) {
-      const [part1, part2] = dateText.split('-');
-      if (part1.length === 4) {
-        // Formato YYYY-MM
-        date = new Date(parseInt(part1), parseInt(part2) - 1, 1);
-      } else {
-        // Formato MM-YYYY
-        date = new Date(parseInt(part2), parseInt(part1) - 1, 1);
-      }
-    }
-    
-    if (!date || isNaN(date.getTime())) return null;
-    
-    // Convertir valor
-    const value = parseFloat(valueText.replace(',', '.').replace('%', ''));
-    if (isNaN(value)) return null;
-    
-    // Formatear mes
-    const monthNames = [
-      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-    ];
-    
-    const monthName = monthNames[date.getMonth()];
-    const year = date.getFullYear();
-    
-    return {
-      month: `${monthName} ${year}`,
-      inflation: Math.round(value * 10) / 10, // 1 decimal
-      trend: 'equal', // Se calculará después
-      date: date,
-      source: 'bcra'
-    };
-    
-  } catch (error) {
-    console.warn('Error parsing row:', error);
-    return null;
-  }
-};
-
-// SOLUCIÓN CON PROXY - Reemplaza tu función actual con esta:
-const fetchBCRAApi = async () => {
-  try {
-    // Usar proxy de CORS para evitar el bloqueo
-    const proxyUrl = 'https://corsproxy.io/?';
-    const targetUrl = 'https://api.estadisticasbcra.com/inflacion_mensual_oficial';
-    
-    const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'TradingDeskPro/1.0.0'
-      },
-      timeout: 10000
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      return processBCRAApiData(data);
-    }
-    return null;
-  } catch (error) {
-    console.warn('BCRA API failed:', error);
-    return null;
-  }
-};
-
-// Procesar datos de la API del BCRA
-const processBCRAApiData = (data) => {
-  if (!data || data.length === 0) return null;
-  
-  const inflationData = [];
-  const recentData = data.slice(-4).reverse(); // Últimos 4 meses
-  
-  recentData.forEach((item, index) => {
-    const date = new Date(item.d);
-    const monthNames = [
-      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-    ];
-    
-    const monthName = monthNames[date.getMonth()];
-    const year = date.getFullYear();
-    
-    // Calcular tendencia
-    let trend = 'equal';
-    if (index > 0) {
-      const previousValue = recentData[index - 1].v;
-      trend = item.v > previousValue ? 'up' : item.v < previousValue ? 'down' : 'equal';
-    }
-    
-    inflationData.push({
-      month: `${monthName} ${year}`,
-      inflation: Math.round(item.v * 10) / 10,
-      trend: trend,
-      date: date,
-      source: 'bcra_api'
-    });
-  });
-  
-  return inflationData;
-};
-
-// Datos de respaldo confiables
-const getReliableInflationData = () => {
-    return [
-    { month: 'Noviembre 2025', inflation: 2.5, trend: 'Equal', source: 'bcra_estimated' },
-    { month: 'Septiembre 2025', inflation: 2.3, trend: 'up', source: 'bcra_estimated' },
-    { month: 'Octubre 2025', inflation: 2.2, trend: 'up', source: 'bcra_estimated' },
-    { month: 'Agosto 2025', inflation: 1.9, trend: 'Equal', source: 'bcra_estimated' },
-    { month: 'Julio 2025', inflation: 1.9, trend: 'Equal', source: 'bcra_estimated' },
-    { month: 'Junio 2025', inflation: 1.6, trend: 'Equal', source: 'bcra_estimated' },
-    { month: 'Mayo 2025', inflation: 1.5, trend: 'Equal', source: 'bcra_estimated' },
-    { month: 'Abril 2025', inflation: 2.8, trend: 'Equal', source: 'bcra_estimated' },
-    { month: 'Marzo 2025', inflation: 3.7, trend: 'Equal', source: 'bcra_estimated' },
-    ];
-};
+export default inflationApi;

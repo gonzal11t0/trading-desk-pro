@@ -16,7 +16,6 @@ export const fetchExchangeBandsData = async () => {
     return adjustedBands;
     
   } catch (error) {
-    console.error('❌ Error en fetchExchangeBandsData:', error);
     return getMonthlyAdjustedBands(); // Fallback con ajuste
   }
 };

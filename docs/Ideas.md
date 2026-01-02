@@ -1,7 +1,8 @@
 
 
-1-conseguir api para las ultimas inflaciones.
-
+2-recalcular las bandas cambiarias.
+3-revisar la api de resrvas de bcra y  base monetaria para eliminar el bloque actual de  indicadores economicos argentinos
+y reemplazar con datos que tengamos de esa api
 3-hacer el login para que solo entre quienes tengan las credenciales
 4-pensar si una persona x que no sea yo puede usar la pagina.
 5-pensar si esta lista para subirla y vender la pagina a particulares.
