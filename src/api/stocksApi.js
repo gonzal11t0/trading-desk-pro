@@ -1,6 +1,15 @@
 // src/api/stocksApi.js
+import { isDemoMode, getDemoData } from '../utils/demoMode';
+
 export const fetchStockPrice = async (symbol) => {
+  
   try {
+      if (isDemoMode()) {
+    console.log(`📈 Modo demo: ${symbol}`);
+    return getDemoData('stocks')[symbol] || { 
+      price: 100, change: 0, changePercent: 0 
+    };
+  }
     // Financial Modeling Prep - CORS habilitado
     const API_KEY = import.meta.env.VITE_FMP_KEY || 'demo';
     const response = await fetch(
