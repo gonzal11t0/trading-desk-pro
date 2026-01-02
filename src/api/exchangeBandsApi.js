@@ -1,155 +1,157 @@
-// src/api/exchangeBandsApi.js
+// exchangeBandsApi.js - VERSIÓN ACTUALIZADA 2026
 
-// VALORES BASE CON PRIMER AJUSTE DEL 1% YA APLICADO
-const BASE_BANDS = {
-  lower: 936.66,    // $936,66 (927.39 + 1%)
-  upper: 1523.56,   // $1.523,56 (1508.48 + 1%)
-};
-
-// Función principal que exportas
-export const fetchExchangeBandsData = async () => {
-  try {
-    
-    // Obtener bandas con ajuste mensual aplicado
-    const adjustedBands = getMonthlyAdjustedBands();
-    
-    return adjustedBands;
-    
-  } catch (error) {
-    return getMonthlyAdjustedBands(); // Fallback con ajuste
-  }
-};
-
-// Calcular bandas con ajuste mensual del 1%
-const getMonthlyAdjustedBands = () => {
-  // Verificar si ya tenemos datos ajustados guardados
-  const savedData = localStorage.getItem('exchangeBandsAdjustedData');
+/**
+ * MODELO 2025 - Ajuste fijo mensual
+ * Piso: -1% mensual, Techo: +1% mensual
+ */
+const calculateBands2025 = (initialPiso, initialTecho, months) => {
+  const bands = [];
+  let piso = initialPiso;
+  let techo = initialTecho;
   
-  if (savedData) {
-    const parsed = JSON.parse(savedData);
-    const dataAge = Date.now() - new Date(parsed.timestamp).getTime();
-    const monthlyAge = 30 * 24 * 60 * 60 * 1000; // 30 días
+  for (let i = 0; i < months; i++) {
+    piso = piso * 0.99;      // -1%
+    techo = techo * 1.01;    // +1%
     
-    // Si los datos tienen menos de 30 días, usarlos
-    if (dataAge < monthlyAge) {
-      return { 
-        ...parsed, 
-        source: 'monthly_adjusted',
-        lastUpdate: new Date().toISOString()
-      };
-    } else {
-      // Calcular nuevo ajuste basado en los últimos valores
-      return calculateNewMonthlyAdjustment(parsed);
+    const anchoAbsoluto = techo - piso;
+    const anchoRelativo = (techo / piso - 1) * 100;
+    
+    bands.push({
+      month: `M${i + 1}`,
+      periodo: `2025-${String(i + 1).padStart(2, '0')}`,
+      piso: parseFloat(piso.toFixed(2)),
+      techo: parseFloat(techo.toFixed(2)),
+      anchoAbsoluto: parseFloat(anchoAbsoluto.toFixed(2)),
+      anchoRelativo: parseFloat(anchoRelativo.toFixed(1)),
+      ajustePiso: -1.0,
+      ajusteTecho: 1.0,
+      modelo: '2025',
+      descripcion: `Ajuste fijo: piso -1%, techo +1%`
+    });
+  }
+  
+  return bands;
+};
+
+/**
+ * MODELO 2026 - Indexado a inflación (IPC[t-2])
+ * Ambas bandas se ajustan según la inflación del mes t-2
+ */
+export const calculateBands2026 = (initialPiso, initialTecho, ipcSeries, months) => {
+  const bands = [];
+  let piso = initialPiso;
+  let techo = initialTecho;
+  
+  // IPC mensual default si no hay datos (ej: 3% mensual)
+  const defaultIPC = 0.03;
+  
+  for (let i = 0; i < months; i++) {
+    // Obtener IPC[t-2] - rezago de 2 meses
+    let ipcUtilizado = defaultIPC;
+    let ipcMesReferencia = 'inicial';
+    
+    if (i >= 2) {
+      // A partir del mes 3, usamos IPC real con rezago
+      const ipcIndex = i - 2;
+      if (ipcSeries && ipcSeries[ipcIndex]) {
+        ipcUtilizado = ipcSeries[ipcIndex].value / 100; // Convertir % a decimal
+        ipcMesReferencia = ipcSeries[ipcIndex].month;
+      }
+    } else if (i === 0 && ipcSeries && ipcSeries.length > 0) {
+      // Para primeros meses, usar último IPC disponible
+      ipcUtilizado = ipcSeries[ipcSeries.length - 1].value / 100;
+      ipcMesReferencia = ipcSeries[ipcSeries.length - 1].month;
     }
+    
+    // Aplicar ajuste indexado (mismo % para ambas bandas)
+    piso = piso * (1 + ipcUtilizado);
+    techo = techo * (1 + ipcUtilizado);
+    
+    const anchoAbsoluto = techo - piso;
+    const anchoInicial = initialTecho - initialPiso;
+    const anchoRelativo = (anchoAbsoluto / piso) * 100;
+    const variacionAncho = ((anchoAbsoluto / anchoInicial) - 1) * 100;
+    
+    bands.push({
+      month: `M${i + 1}`,
+      periodo: `2026-${String(i + 1).padStart(2, '0')}`,
+      piso: parseFloat(piso.toFixed(2)),
+      techo: parseFloat(techo.toFixed(2)),
+      anchoAbsoluto: parseFloat(anchoAbsoluto.toFixed(2)),
+      anchoRelativo: parseFloat(anchoRelativo.toFixed(1)),
+      ajustePiso: parseFloat((ipcUtilizado * 100).toFixed(2)),
+      ajusteTecho: parseFloat((ipcUtilizado * 100).toFixed(2)),
+      ipcUtilizado: parseFloat((ipcUtilizado * 100).toFixed(2)),
+      ipcMesReferencia: ipcMesReferencia,
+      variacionAncho: parseFloat(variacionAncho.toFixed(2)),
+      modelo: '2026',
+      descripcion: `Indexado a IPC[${ipcMesReferencia}]: ${(ipcUtilizado * 100).toFixed(2)}%`
+    });
   }
   
-  // Si no hay datos guardados, usar los valores base con primer ajuste ya aplicado
-  const initialBands = {
-    ...BASE_BANDS,
-    spread: BASE_BANDS.upper - BASE_BANDS.lower,
-    lastUpdate: new Date().toISOString(),
-    adjustmentCount: 1, // Ya tiene el primer ajuste aplicado
-    source: 'initial_adjusted'
-  };
-  
-  // Guardar los datos iniciales
-  localStorage.setItem('exchangeBandsAdjustedData', JSON.stringify({
-    ...initialBands,
-    timestamp: Date.now(),
-    adjustmentDate: new Date().toISOString()
-  }));
-  
-  return initialBands;
+  return bands;
 };
 
-// Calcular nuevo ajuste mensual basado en valores anteriores
-const calculateNewMonthlyAdjustment = (previousData) => {
-  const lastLower = previousData.lower;
-  const lastUpper = previousData.upper;
-  const previousAdjustmentCount = previousData.adjustmentCount || 1;
-  
-  // Aplicar ajuste del 1%
-  const adjustmentRate = 1.01; // 1% de aumento
-  const newLower = Math.round((lastLower * adjustmentRate) * 100) / 100;
-  const newUpper = Math.round((lastUpper * adjustmentRate) * 100) / 100;
-  
-  
-  const adjustedBands = {
-    lower: newLower,
-    upper: newUpper,
-    spread: newUpper - newLower,
-    lastUpdate: new Date().toISOString(),
-    adjustmentCount: previousAdjustmentCount + 1,
-    source: 'monthly_adjustment'
-  };
-  
-  // Guardar los nuevos datos ajustados
-  localStorage.setItem('exchangeBandsAdjustedData', JSON.stringify({
-    ...adjustedBands,
-    timestamp: Date.now(),
-    adjustmentDate: new Date().toISOString()
-  }));
-  
-  return adjustedBands;
+/**
+ * Datos de IPC mock para desarrollo
+ * En producción, esto vendría de INDEC API
+ */
+export const getMockIPCSeries = () => {
+  return [
+    { month: '2025-10', value: 3.2 }, // Oct 2025
+    { month: '2025-11', value: 3.5 }, // Nov 2025
+    { month: '2025-12', value: 3.8 }, // Dic 2025
+    { month: '2026-01', value: 4.0 }, // Ene 2026
+    { month: '2026-02', value: 3.9 }, // Feb 2026
+    { month: '2026-03', value: 3.7 }, // Mar 2026
+    { month: '2026-04', value: 3.5 }, // Abr 2026
+    { month: '2026-05', value: 3.3 }, // May 2026
+    { month: '2026-06', value: 3.1 }, // Jun 2026
+    { month: '2026-07', value: 2.9 }, // Jul 2026
+    { month: '2026-08', value: 2.7 }, // Ago 2026
+    { month: '2026-09', value: 2.5 }  // Sep 2026
+  ];
 };
 
-// Función para ver información de ajustes
-export const getBandsAdjustmentInfo = () => {
-  const savedData = localStorage.getItem('exchangeBandsAdjustedData');
+/**
+ * Función principal - Decide qué modelo usar
+ */
+export const calculateExchangeBands = (modelo, initialValues, months, ipcData = null) => {
+  const { pisoInicial, techoInicial } = initialValues;
   
-  // Valores originales sin ajuste (para referencia)
-  const originalValues = {
-    lower: 927.39,
-    upper: 1508.48
-  };
+  if (modelo === '2026') {
+    const ipcSeries = ipcData || getMockIPCSeries();
+    return calculateBands2026(pisoInicial, techoInicial, ipcSeries, months);
+  }
   
-  if (savedData) {
-    const parsed = JSON.parse(savedData);
-    const currentSpread = parsed.upper - parsed.lower;
-    const originalSpread = originalValues.upper - originalValues.lower;
-    
-    // Calcular el ajuste total desde los valores originales
-    const totalAdjustmentFromOriginal = ((parsed.lower / originalValues.lower - 1) * 100).toFixed(2);
+  // Default: modelo 2025
+  return calculateBands2025(pisoInicial, techoInicial, months);
+};
+
+/**
+ * Calcular métricas comparativas entre modelos
+ */
+export const compareModels = (pisoInicial, techoInicial, months, ipcData = null) => {
+  const bands2025 = calculateBands2025(pisoInicial, techoInicial, months);
+  const bands2026 = calculateBands2026(pisoInicial, techoInicial, ipcData || getMockIPCSeries(), months);
+  
+  const comparacion = bands2025.map((band2025, index) => {
+    const band2026 = bands2026[index];
     
     return {
-      originalValues: originalValues,
-      currentValues: { lower: parsed.lower, upper: parsed.upper },
-      adjustmentsApplied: parsed.adjustmentCount || 1,
-      originalSpread: originalSpread,
-      currentSpread: currentSpread,
-      totalAdjustment: `${totalAdjustmentFromOriginal}%`,
-      lastAdjustment: parsed.adjustmentDate || new Date().toISOString(),
-      nextAdjustment: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      month: band2025.month,
+      piso2025: band2025.piso,
+      techo2025: band2025.techo,
+      piso2026: band2026.piso,
+      techo2026: band2026.techo,
+      diferenciaPiso: band2026.piso - band2025.piso,
+      diferenciaTecho: band2026.techo - band2025.techo,
+      ancho2025: band2025.anchoAbsoluto,
+      ancho2026: band2026.anchoAbsoluto,
+      variacionAncho: band2026.variacionAncho || 0
     };
-  }
+  });
   
-  return {
-    originalValues: originalValues,
-    currentValues: BASE_BANDS,
-    adjustmentsApplied: 1,
-    originalSpread: originalValues.upper - originalValues.lower,
-    currentSpread: BASE_BANDS.upper - BASE_BANDS.lower,
-    totalAdjustment: "1.00%",
-    lastAdjustment: "Inicial",
-    nextAdjustment: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-  };
+  return comparacion;
 };
-
-// Función para reiniciar a los valores con primer ajuste
-export const resetBandsToAdjustedBase = () => {
-  localStorage.removeItem('exchangeBandsAdjustedData');
-  return BASE_BANDS;
-};
-
-// Función para simular paso de tiempo (útil para testing)
-export const simulateTimePassage = (days = 30) => {
-  const savedData = localStorage.getItem('exchangeBandsAdjustedData');
-  if (savedData) {
-    const parsed = JSON.parse(savedData);
-    // Restar días al timestamp para simular que pasó el tiempo
-    const newTimestamp = new Date(parsed.timestamp - (days * 24 * 60 * 60 * 1000));
-    parsed.timestamp = newTimestamp.getTime();
-    localStorage.setItem('exchangeBandsAdjustedData', JSON.stringify(parsed));
-  }
-  return getBandsAdjustmentInfo();
-};
+export default ExchangeBandsModule;

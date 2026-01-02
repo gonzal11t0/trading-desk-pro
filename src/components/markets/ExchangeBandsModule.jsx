@@ -1,282 +1,362 @@
-// src/components/markets/ExchangeBandsModule.jsx
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, RefreshCw, ExternalLink, Calendar } from 'lucide-react';
-import { fetchExchangeBandsData } from '../../api/exchangeBandsApi';
+import { TrendingUp, TrendingDown, Calendar, RefreshCw, Info } from 'lucide-react';
+import inflationApi from '../../api/inflationApi'; // ✅ CORRECTO
 
-export function ExchangeBandsModule() {
-  const [bandsData, setBandsData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState(new Date());
-  const [error, setError] = useState(null);
-  const [nextUpdate, setNextUpdate] = useState(null);
+const ExchangeBandsModule = () => {
+  const [loading, setLoading] = useState(true);
+  const [ setIpcData] = useState([]);
+  const [bandasData, setBandasData] = useState({
+    piso: 915.66,
+    techo: 1527.61,
+    pisoCalculado: 915.66,
+    techoCalculado: 1500.61,
+    fechaActualizacion: new Date().toISOString().split('T')[0],
+    proximaActualizacion: '',
+    ipcUtilizado: 0,
+    ipcMesReferencia: '',
+    variacionMensual: {
+      piso: 0,
+      techo: 0
+    }
+  });
 
-  const loadBandsData = async () => {
-    setIsLoading(true);
-    setError(null);
+
+
+  // Calcular mes t-2 (rezago de 2 meses)
+  const getMonthTMinus2 = () => {
+    const now = new Date();
+    const targetDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    return `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+
+
+  // Calcular nuevas bandas con IPC[t-2]
+  const calcularBandasConIPC = (pisoBase, techoBase, ipcPercent) => {
+    const factor = 1 + (ipcPercent / 100);
+    return {
+      pisoCalculado: pisoBase * factor,
+      techoCalculado: techoBase * factor,
+      variacionPiso: ((pisoBase * factor) / pisoBase - 1) * 100,
+      variacionTecho: ((techoBase * factor) / techoBase - 1) * 100
+    };
+  };
+
+  // Cargar datos y calcular bandas
+  const cargarDatosBandas = async () => {
+    setLoading(true);
+    
     try {
-      const data = await fetchExchangeBandsData();
-      setBandsData(data);
-      setLastUpdate(new Date());
+      // 1. Obtener datos IPC de tu API
+      const ipcHistorico = await inflationApi.getLastMonthsInflation(12); // ✅ Cambiado
+      console.log('📊 IPC histórico obtenido:', ipcHistorico);
       
-      // Calcular próxima actualización (primer día del próximo mes)
-      const nextUpdateDate = getNextMonthFirstDay();
-      setNextUpdate(nextUpdateDate);
-      
-      // Guardar para cache mensual
-      localStorage.setItem('exchangeBandsRealData', JSON.stringify({
-        ...data,
-        timestamp: Date.now(),
-        nextUpdate: nextUpdateDate
+      // Formatear datos para nuestro uso
+      const formattedIpcData = ipcHistorico.map(item => ({
+        month: item.date ? item.date.slice(0, 7) : '', // Extraer YYYY-MM
+        value: item.values?.monthly || 0,
+        date: item.date
       }));
+      
+      setIpcData(formattedIpcData);
+      
+      // 2. Determinar mes t-2
+      const mesTMinus2 = getMonthTMinus2();
+      console.log('📅 Buscando IPC para mes t-2:', mesTMinus2);
+      
+      // 3. Obtener IPC[t-2]
+      let ipcValor = 0;
+      const ipcEncontrado = formattedIpcData.find(item => item.month === mesTMinus2);
+      
+      if (ipcEncontrado) {
+        ipcValor = ipcEncontrado.value;
+        console.log('✅ IPC encontrado:', ipcEncontrado);
+      } else {
+        // Si no encuentra exacto, usar el último disponible
+        ipcValor = formattedIpcData[0]?.value || 2.1; // Fallback
+        console.log('⚠️ IPC no encontrado, usando último disponible:', ipcValor);
+      }
+      
+      // 4. Calcular bandas ajustadas
+      const basePiso = 915.66;
+      const baseTecho = 1527.61;
+      
+      const bandasCalculadas = calcularBandasConIPC(basePiso, baseTecho, ipcValor);
+      
+      // 5. Actualizar estado
+      setBandasData({
+        piso: basePiso,
+        techo: baseTecho,
+        pisoCalculado: bandasCalculadas.pisoCalculado,
+        techoCalculado: bandasCalculadas.techoCalculado,
+        fechaActualizacion: new Date().toISOString().split('T')[0],
+        ipcUtilizado: ipcValor,
+        ipcMesReferencia: mesTMinus2,
+        variacionMensual: {
+          piso: bandasCalculadas.variacionPiso,
+          techo: bandasCalculadas.variacionTecho
+        }
+      });
+      
     } catch (error) {
-      console.error('Error loading exchange bands data:', error);
-      setError('Error cargando datos oficiales');
+      console.error('❌ Error cargando datos de bandas:', error);
+      
+      // Fallback a valores estáticos si hay error
+      setBandasData(prev => ({
+        ...prev,
+        pisoCalculado: 933.50,
+        techoCalculado: 1524.12,
+        ipcUtilizado: 2.1,
+        ipcMesReferencia: getMonthTMinus2()
+      }));
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Calcular primer día del próximo mes
-  const getNextMonthFirstDay = () => {
-    const now = new Date();
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    return nextMonth;
+
+  const calcularDiasRestantes = () => {
+    const hoy = new Date();
+    const prox = new Date(bandasData.proximaActualizacion);
+    const diffTime = prox - hoy;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
 
-  // Verificar si necesita actualización mensual
-  const needsMonthlyUpdate = () => {
-    const savedData = localStorage.getItem('exchangeBandsMonthlyData');
-    if (!savedData) return true;
-    
-    const parsed = JSON.parse(savedData);
-    const dataAge = Date.now() - new Date(parsed.timestamp).getTime();
-    const monthlyAge = 30 * 24 * 60 * 60 * 1000; // 30 días
-    
-    return dataAge >= monthlyAge;
-  };
+  const diasRestantes = calcularDiasRestantes();
 
   useEffect(() => {
-    // Solo cargar si necesita actualización mensual o es la primera vez
-    if (needsMonthlyUpdate() || !bandsData) {
-      loadBandsData();
-    } else {
-      // Cargar datos cacheados
-      const savedData = localStorage.getItem('exchangeBandsRealData');
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        setBandsData(parsed);
-        setNextUpdate(new Date(parsed.nextUpdate));
-      }
-      setIsLoading(false);
-    }
+    cargarDatosBandas();
     
-    // No necesitamos interval de actualización por ser mensual
+    // Actualizar automáticamente cada hora
+    const interval = setInterval(() => {
+      cargarDatosBandas();
+    }, 3600000);
+    
+    return () => clearInterval(interval);
   }, []);
 
-  const displayData = bandsData || {
-    lower: 850,
-    upper: 1180,
-    spread: 330,
-    source: 'default'
-  };
-
-  const getSourceInfo = (source) => {
-    const sources = {
-      'dolarito': { 
-        name: 'Dolarito.ar', 
-        color: 'text-green-400', 
-        url: 'https://www.dolarito.ar/dolar/bandas-cambiarias' 
-      },
-      'dolarito_scraped': { 
-        name: 'Dolarito.ar', 
-        color: 'text-green-400',
-        url: 'https://www.dolarito.ar/dolar/bandas-cambiarias'
-      },
-      'dolarito_text': { 
-        name: 'Dolarito.ar', 
-        color: 'text-green-400',
-        url: 'https://www.dolarito.ar/dolar/bandas-cambiarias'
-      },
-      'bcra': { 
-        name: 'BCRA', 
-        color: 'text-blue-400', 
-        url: 'https://www.bcra.gob.ar/PublicacionesEstadisticas/Evolucion_moneda.asp' 
-      },
-      'bcra_calculated': { 
-        name: 'BCRA Calculado', 
-        color: 'text-blue-400' 
-      },
-      'blue_calculated': { 
-        name: 'Basado en Blue', 
-        color: 'text-orange-400' 
-      },
-      'monthly_cached': { 
-        name: 'Cache Mensual', 
-        color: 'text-yellow-400' 
-      },
-      'estimated_monthly': { 
-        name: 'Estimado Mensual', 
-        color: 'text-orange-400' 
-      },
-      'manual_monthly': { 
-        name: 'Manual', 
-        color: 'text-gray-400' 
-      },
-      'default': { 
-        name: 'Por Defecto', 
-        color: 'text-gray-400' 
-      }
-    };
-    return sources[source] || { name: source, color: 'text-gray-400' };
-  };
-
-  const sourceInfo = getSourceInfo(displayData.source);
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('es-AR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
-
   return (
-    <div className="section-bg rounded-xl p-6 border border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 group">
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-      
-      <div className="relative z-10">
-        {/* HEADER CON INFORMACIÓN MENSUAL */}
-        <div className="text-center mb-6">
-          <div className="flex flex-col items-center justify-center space-y-2 mb-4">
-<div className="flex items-center space-x-3">
-  <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg">
-    <TrendingUp className="h-5 w-5 text-white" />
-  </div>
-<h2 className="text-white font-bold text-lg tracking-tight" style={{ marginLeft: '1rem' }}>
-  BANDAS CAMBIARIAS
-</h2>
-</div>
-            
-            <div className="flex items-center space-x-2">
-              <span className={`text-xs ${sourceInfo.color}`}>
-                {sourceInfo.name}
-              </span>
-              {(displayData.source.includes('dolarito') || displayData.source === 'bcra') && (
-                <a 
-                  href={sourceInfo.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-blue-400 transition-colors"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
+    <div style={{
+      background: 'linear-gradient(135deg, #111827 0%, #1f2937 100%)',
+      borderRadius: '12px',
+      padding: '24px',
+      border: '1px solid #374151',
+      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)'
+    }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: '24px'
+      }}>
+        <div>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            margin: 0
+          }}>
+            <div style={{
+              width: '4px',
+              height: '24px',
+              background: '#3b82f6',
+              borderRadius: '2px'
+            }}></div>
+            BANDAS CAMBIARIAS
+          </h2>
+          
+          {/* Información del cálculo */}
+          <div style={{
+            marginTop: '8px',
+            padding: '8px 12px',
+            background: 'rgba(59, 130, 246, 0.1)',
+            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <Info size={16} style={{color: '#93c5fd', flexShrink: 0}} />
+            <div style={{fontSize: '12px', color: '#93c5fd'}}>
+              Calculado con IPC[{bandasData.ipcMesReferencia}]: {bandasData.ipcUtilizado.toFixed(2)}%
             </div>
-          </div>
-
-          {/* Información de actualización mensual */}
-          <div className="flex items-center justify-center space-x-2 text-gray-400 text-xs mb-3">
-            <Calendar className="w-3 h-3" />
-            <span>ACTUALIZACIÓN MENSUAL</span>
-          </div>
-
-          {/* Botón de refresh forzado */}
-          <div className="flex justify-center">
-            <button
-              onClick={loadBandsData}
-              disabled={isLoading}
-              className="p-2 rounded-lg bg-gray-800/50 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 disabled:opacity-50"
-              title="Forzar actualización"
-            >
-              <RefreshCw className={`w-4 h-4 text-gray-400 ${isLoading ? 'animate-spin' : ''}`} />
-            </button>
           </div>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
-            <p className="text-red-400 text-sm">{error}</p>
-            <p className="text-red-400/70 text-xs mt-1">Usando datos de respaldo</p>
-          </div>
-        )}
-
-        {/* VALORES PRINCIPALES */}
-        <div className="flex justify-around items-center mt-8 mb-4">
-          {/* Banda Inferior - VERDE */}
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-3 mb-2">
-              <div style={{ color: '#34d399' }}>
-                <TrendingDown className="w-5 h-5" />
-              </div>
-              <div 
-                style={{ 
-                  color: '#34d399', 
-                  fontSize: '2.5rem',
-                  fontWeight: '900'
-                }} 
-                className="font-mono tracking-tight select-all cursor-text"
-              >
-                ${displayData.lower}
-              </div>
-            </div>
-            <div className="text-gray-400 text-sm font-light">INFERIOR</div>
-          </div>
-
-          {/* Banda Superior - ROJO */}
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-3 mb-2">
-              <div style={{ color: '#ef4444' }}>
-                <TrendingUp className="w-5 h-5" />
-              </div>
-              <div 
-                style={{ 
-                  color: '#ef4444', 
-                  fontSize: '2.5rem',
-                  fontWeight: '900'
-                }} 
-                className="font-mono tracking-tight select-all cursor-text"
-              >
-                ${displayData.upper}
-              </div>
-            </div>
-            <div className="text-gray-400 text-sm font-light">SUPERIOR</div>
-          </div>
-        </div>
-
-        {/* INFORMACIÓN ADICIONAL MEJORADA */}
-        <div className="mt-6 pt-4 border-t border-gray-700/30">
         
-          
-          
+        <button
+          onClick={cargarDatosBandas}
+          disabled={loading}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            background: '#374151',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.5 : 1,
+            transition: 'background 0.2s'
+          }}
+          onMouseOver={(e) => {
+            if (!loading) e.target.style.background = '#4b5563';
+          }}
+          onMouseOut={(e) => {
+            if (!loading) e.target.style.background = '#374151';
+          }}
+        >
+          <RefreshCw size={18} style={{
+            animation: loading ? 'spin 1s linear infinite' : 'none'
+          }} />
+          {loading ? 'Calculando...' : 'Recalcular'}
+        </button>
+      </div>
 
-          {/* Próxima actualización */}
-          {nextUpdate && (
-            <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-              <div className="flex items-center justify-center space-x-2">
-                <Calendar className="w-3 h-3 text-blue-400" />
-                <span className="text-blue-400 text-xs">
-                  Próxima actualización: {formatDate(nextUpdate)}
-                </span>
-              </div>
+      {/* Valores de las bandas */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          gap: '32px'
+        }}>
+          {/* PISO */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              color: '#9ca3af',
+              fontSize: '14px',
+              marginBottom: '4px'
+            }}>INFERIOR</div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}>
+              <TrendingDown size={20} style={{color: '#60a5fa'}} />
+              <div style={{
+                fontSize: '28px',
+                fontWeight: 'bold',
+                color: '#ffffff'
+              }}>${bandasData.pisoCalculado.toFixed(2)}</div>
+            </div>
+            <div style={{
+              fontSize: '12px',
+              marginTop: '2px',
+              color: bandasData.variacionMensual.piso >= 0 ? '#f87171' : '#4ade80'
+            }}>
+              {bandasData.variacionMensual.piso >= 0 ? '+' : ''}{bandasData.variacionMensual.piso.toFixed(1)}% mensual
+            </div>
+            <div style={{
+              fontSize: '10px',
+              color: '#6b7280',
+              marginTop: '2px'
+            }}>
+              Base: ${bandasData.piso.toFixed(2)}
+            </div>
+          </div>
+          
+          {/* SEPARADOR */}
+          <div style={{ position: 'relative', marginBottom: '12px' }}>
+            <div style={{
+              width: '48px',
+              height: '4px',
+              background: 'linear-gradient(to right, #3b82f6, #6b7280, #ef4444)',
+              borderRadius: '4px'
+            }}></div>
+            <div style={{
+              position: 'absolute',
+              top: '-12px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontSize: '12px',
+              color: '#6b7280'
+            }}>
+              ~
+            </div>
+          </div>
+          
+          {/* TECHO */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              color: '#9ca3af',
+              fontSize: '14px',
+              marginBottom: '4px'
+            }}>SUPERIOR</div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}>
+              <TrendingUp size={20} style={{color: '#f87171'}} />
+              <div style={{
+                fontSize: '28px',
+                fontWeight: 'bold',
+                color: '#ffffff'
+              }}>${bandasData.techoCalculado.toFixed(2)}</div>
+            </div>
+            <div style={{
+              fontSize: '12px',
+              marginTop: '2px',
+              color: bandasData.variacionMensual.techo >= 0 ? '#f87171' : '#4ade80'
+            }}>
+              {bandasData.variacionMensual.techo >= 0 ? '+' : ''}{bandasData.variacionMensual.techo.toFixed(1)}% mensual
+            </div>
+            <div style={{
+              fontSize: '10px',
+              color: '#6b7280',
+              marginTop: '2px'
+            }}>
+              Base: ${bandasData.techo.toFixed(2)}
+            </div>
+          </div>
+        </div>
+        
+      </div>
+
+      {/* Próxima actualización */}
+      <div style={{
+        background: 'rgba(55, 65, 81, 0.5)',
+        padding: '16px',
+        borderRadius: '8px'
+      }}>
+
+        
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          {diasRestantes <= 7 && (
+            <div style={{
+              padding: '4px 12px',
+              background: 'rgba(245, 158, 11, 0.2)',
+              color: '#fbbf24',
+              borderRadius: '999px',
+              fontSize: '12px'
+            }}>
+              {diasRestantes <= 2 ? 'Próximamente' : 'Esta semana'}
             </div>
           )}
         </div>
-
-        {/* INDICADOR DE ESTADO MENSUAL */}
-        <div className="mt-4 p-3 bg-gray-800/30 rounded-lg border border-gray-700/30">
-          <div className="flex items-center justify-between">
-            <span className="text-gray-400 text-xs">ESTADO</span>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-green-400 text-xs font-semibold">ACTUALIZADO</span>
-            </div>
-          </div>
-          <div className="text-gray-500 text-xs text-center mt-1">
-            Datos oficiales mensuales
-          </div>
-        </div>
+      
       </div>
+
+      <style>
+        {`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}
+      </style>
     </div>
   );
-}
+};
+
+export default ExchangeBandsModule;
