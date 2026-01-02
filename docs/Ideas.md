@@ -1,7 +1,6 @@
 
 
-1-revisar la api de resrvas de bcra y  base monetaria para eliminar el bloque actual de  indicadores economicos argentinos
-y reemplazar con datos que tengamos de esa api
+
 2-hacer el login para que solo entre quienes tengan las credenciales
 3-pensar si una persona x que no sea yo puede usar la pagina.
 4-pensar si esta lista para subirla y vender la pagina a particulares.

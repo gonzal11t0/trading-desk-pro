@@ -1,14 +1,14 @@
-// src/hooks/useEconomicData.js - VERSIÓN CORREGIDA
+// src/hooks/useEconomicData.js - VERSIÓN COMPLETA CORREGIDA
 import { useState, useEffect } from 'react';
 import { fetchEconomicData, getBcraMonetaryData } from '../api/economicApi';
 
 export const useEconomicData = () => {
   const [data, setData] = useState({
-    bcra: [],
-    indicators: [],
-    reserves: null,
-    monetaryBase: null,
-    moneySupply: null,
+    bcra: [],           // Datos BCRA en formato array
+    indicators: [],     // Indicadores económicos (ahora incluye datos BCRA)
+    reserves: null,     // Reservas internacionales
+    monetaryBase: null, // Base monetaria
+    moneySupply: null,  // Oferta monetaria
     loading: true,
     error: null,
     lastUpdate: null
@@ -18,10 +18,10 @@ export const useEconomicData = () => {
     try {
       setData(prev => ({ ...prev, loading: true, error: null }));
       
-      // 1. Obtener datos económicos completos (incluye BCRA en formato estructurado)
+      // 1. Obtener datos económicos completos
       const economicData = await fetchEconomicData();
       
-      // 2. Obtener datos BCRA en formato de array para otros usos
+      // 2. Obtener datos BCRA en formato de array
       const bcraData = await getBcraMonetaryData();
       
       setData({
@@ -35,12 +35,14 @@ export const useEconomicData = () => {
         lastUpdate: new Date().toISOString()
       });
       
+      console.log(`✅ useEconomicData: ${bcraData.length} indicadores BCRA cargados`);
+      
     } catch (error) {
-      console.error('Error fetching economic data:', error);
+      console.error('❌ Error fetching economic data:', error);
       setData(prev => ({ 
         ...prev, 
         loading: false, 
-        error: error.message 
+        error: error.message || 'Error al cargar datos económicos'
       }));
     }
   };
@@ -48,8 +50,8 @@ export const useEconomicData = () => {
   useEffect(() => {
     fetchAllData();
     
-    // Refrescar cada 20 minutos
-    const interval = setInterval(fetchAllData, 20 * 60 * 1000);
+    // Refrescar cada 5 minutos (300,000 ms)
+    const interval = setInterval(fetchAllData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -58,19 +60,32 @@ export const useEconomicData = () => {
 
   // Función para obtener datos por categoría
   const getDataByCategory = (category) => {
-    if (category === 'monetary') return data.bcra;
-    if (category === 'inflation') {
-      return data.indicators.filter(item => 
-        item.label?.toLowerCase().includes('inflación')
+    if (!data.bcra.length) return [];
+    
+    if (category === 'encajes') {
+      return data.bcra.filter(item => 
+        item.id.includes('encajes') || 
+        item.label.toLowerCase().includes('encaje')
       );
     }
-    if (category === 'risk') {
-      return data.indicators.filter(item => 
-        item.label?.toLowerCase().includes('riesgo') || 
-        item.label?.toLowerCase().includes('embi')
+    if (category === 'tasas') {
+      return data.bcra.filter(item => 
+        item.unit === '%' || 
+        item.label.toLowerCase().includes('tasa')
       );
     }
-    return [];
+    if (category === 'instrumentos') {
+      return data.bcra.filter(item => 
+        ['cer', 'uva', 'uvi'].includes(item.id) ||
+        item.unit === 'Índice'
+      );
+    }
+    if (category === 'monetarios') {
+      return data.bcra.filter(item => 
+        ['reserves', 'monetary_base', 'm2'].includes(item.id)
+      );
+    }
+    return data.bcra;
   };
 
   return {
@@ -78,7 +93,7 @@ export const useEconomicData = () => {
     allData: [...data.bcra, ...data.indicators],
     
     // Datos segmentados
-    bcraData: data.bcra,
+    bcraData: data.bcra,            // ¡IMPORTANTE: EconomicDataBlock necesita esto!
     indicators: data.indicators,
     reserves: data.reserves,
     monetaryBase: data.monetaryBase,
@@ -97,6 +112,21 @@ export const useEconomicData = () => {
     // Utilidades
     hasBcraData: data.bcra.length > 0,
     hasEconomicData: data.indicators.length > 0,
-    bcraCount: data.bcra.length
+    bcraCount: data.bcra.length,
+    
+    // Métodos específicos por categoría
+    getEncajes: () => getDataByCategory('encajes'),
+    getTasas: () => getDataByCategory('tasas'),
+    getInstrumentos: () => getDataByCategory('instrumentos'),
+    getMonetarios: () => getDataByCategory('monetarios'),
+    
+    // Información de estado
+    status: {
+      totalIndicadores: data.bcra.length + data.indicators.length,
+      bcraConectado: data.bcra.length > 0,
+      ultimaActualizacion: data.lastUpdate ? new Date(data.lastUpdate).toLocaleTimeString('es-AR') : 'Nunca'
+    }
   };
 };
+
+export default useEconomicData;

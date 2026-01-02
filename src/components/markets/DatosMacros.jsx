@@ -34,7 +34,7 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
         ? 'linear-gradient(135deg, #06b6d4, #0891b2)' 
         : 'linear-gradient(135deg, #ef4444, #dc2626)',
       borderColor: reserves?.change >= 0 ? '#06b6d4' : '#ef4444',
-      format: (val) => `${formatNumber(val, 3)}M`
+      format: (val) => `${formatNumber(val, 3)}`
     },
     {
       id: 'monetaryBase',
@@ -48,7 +48,7 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
         ? 'linear-gradient(135deg, #10b981, #059669)' 
         : 'linear-gradient(135deg, #ef4444, #dc2626)',
       borderColor: monetaryBase?.change >= 0 ? '#10b981' : '#ef4444',
-      format: (val) => `${formatNumber(val, 6)}M`
+      format: (val) => `${formatNumber(val, false)}`
     },
     {
       id: 'm2',
@@ -61,7 +61,7 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
       tooltip: 'M2: Efectivo + depósitos. M3: M2 + instrumentos de inversión líquidos.',
       color: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
       borderColor: '#8b5cf6',
-      format: (val) => `${formatNumber(val, 8)}M`
+      format: (val) => `${formatNumber(val, false)}`
     }
   ];
 
@@ -198,7 +198,7 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
                 }}>
-                  {formatNumber(indicator.m3, 4)}M
+                  {formatNumber(indicator.m3, false)}
                 </div>
               </div>
             )}
