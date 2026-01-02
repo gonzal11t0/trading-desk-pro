@@ -111,7 +111,7 @@ const RiskCountryModule = () => {
   // Estilos base
   const styles = {
     container: {
-      background: 'linear-gradient(135deg, rgba(10, 10, 10, 0.9), rgba(30, 30, 30, 0.7))',
+      backgroundColor: 'rgb(26, 26, 26)',
       backdropFilter: 'blur(10px)',
       borderRadius: '12px',
       border: `1px solid ${colors.border}`,

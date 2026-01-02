@@ -138,7 +138,7 @@ const ExchangeBandsModule = () => {
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #111827 0%, #1f2937 100%)',
+      backgroundColor: 'rgb(26, 26, 26)',
       borderRadius: '12px',
       padding: '24px',
       border: '1px solid #374151',
