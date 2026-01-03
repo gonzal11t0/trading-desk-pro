@@ -40,6 +40,17 @@
 - BCRA (Datos oficiales)
 ## ⚡ Instalación Rápida
 
+
+## 🎮 Cómo Usar
+
+### Modo Demo (Instantáneo)
+```bash
+git clone https://github.com/gonzal11t0/trading-desk-pro.git
+cd trading-desk-pro
+npm install
+npm run dev
+
+
 ```bash
 # Clonar repositorio
 git clone https://github.com/tu-usuario/trading-desk-pro.git
