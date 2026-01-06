@@ -1,4 +1,4 @@
-// src/components/charts/TreemapDashboard.jsx - VERSIÓN ACTUALIZADA CON DATOS REALES
+// src/components/charts/TreemapDashboard.jsx - SIN BONOS
 import React from 'react';
 import FinancialTreemap from './FinancialTreemap';
 import { useTreemapData } from '../../hooks/useTreemapData';
@@ -9,7 +9,6 @@ const TreemapDashboard = () => {
   const { 
     leaderPanel, 
     cedears, 
-    bonds, 
     loading, 
     error, 
     lastUpdate, 
@@ -28,18 +27,25 @@ const TreemapDashboard = () => {
   // Mostrar skeleton mientras carga
   if (loading && leaderPanel.length === 0) {
     return (
-      <div className="treemap-dashboard-simple">
-        {[1, 2, 3].map((section, idx) => (
+<div 
+  className="treemap-dashboard-simple"
+  style={{ 
+    paddingBottom: '8px',      // Reducir padding inferior
+    marginBottom: '4px',       // Reducir margen inferior
+    minHeight: 'auto',         // Eliminar altura mínima fija
+    height: 'fit-content'      // Ajustar al contenido
+  }}
+>        {[1, 2].map((section, idx) => (
           <div key={idx} className="treemap-panel-full">
             <div className="financial-treemap-compact">
               <div className="treemap-header-compact">
                 <div className="treemap-title-compact">
-                  {idx === 0 ? 'PANEL LÍDER' : idx === 1 ? 'CEDEARS' : 'BONOS ($)'}
+                  {idx === 0 ? 'PANEL LÍDER' : 'CEDEARS'}
                 </div>
                 <div className="treemap-datetime-compact">Cargando...</div>
               </div>
               <div className="grid grid-cols-5 gap-2">
-                {[...Array(12)].map((_, i) => (
+                {[...Array(10)].map((_, i) => (
                   <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
                 ))}
               </div>
@@ -50,39 +56,21 @@ const TreemapDashboard = () => {
     );
   }
 
-  return (
-    <div className="treemap-dashboard-simple">
-      {/* Botón de actualización y estado */}
-      <div className="flex justify-between items-center mb-4 p-2 bg-gray-50 rounded-lg">
-        <div className="flex items-center space-x-2">
-          {error && (
-            <div className="flex items-center text-red-600 text-sm">
-              <AlertCircle className="w-4 h-4 mr-1" />
-              <span>Error: Mostrando datos de respaldo</span>
-            </div>
-          )}
-          <span className="text-sm text-gray-600">
-            Última actualización: {currentDateTime}
-          </span>
-        </div>
-        <button
-          onClick={refresh}
-          disabled={loading}
-          className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          <span>{loading ? 'Actualizando...' : 'Actualizar'}</span>
-        </button>
-      </div>
-
+// En TreemapDashboard.jsx - versión mejorada
+return (
+  <div className="treemap-dashboard-simple">
+    {/* Encabezado... */}
+    
+    {/* Dos paneles lado a lado en pantallas grandes */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* Panel Líder */}
       <div className="treemap-panel-full">
         <FinancialTreemap 
           data={leaderPanel}
-          title="PANEL LÍDER"
+          title="PANEL LÍDER - ACCIONES ARG"
           dateTime={currentDateTime}
-          columns={5}
-          blockSize="compact"
+          columns={4}
+          blockSize="normal"
         />
       </div>
       
@@ -90,26 +78,15 @@ const TreemapDashboard = () => {
       <div className="treemap-panel-full">
         <FinancialTreemap 
           data={cedears}
-          title="CEDEARS"
+          title="CEDEARS - ACCIONES USA"
           dateTime={currentDateTime}
-          columns={5}
-          blockSize="compact"
+          columns={4}
+          blockSize="normal"
         />
       </div>
-      
-      {/* Bonos */}
-      <div className="treemap-panel-full">
-  <FinancialTreemap 
-    data={bonds}
-    title="BONOS ($)"
-    dateTime={currentDateTime}
-    columns={6}
-    blockSize="compact"
-    showSimulatedWarning={bonds.some(b => b.isSimulated)}
-  />
-</div>
     </div>
-  );
+  </div>
+);
 };
 
 export default TreemapDashboard;

@@ -1,4 +1,4 @@
-// src/App.jsx
+// App.jsx - VERSIÓN CORREGIDA
 import React from 'react'
 import { TradingHeader } from './components/layout/TradingHeader'
 import { QuotesCarousel } from './components/markets/QuotesCarousel'
@@ -8,8 +8,8 @@ import { FinancialDashboard } from './components/markets/FinancialDashboard'
 import { Notice } from './components/charts/Notice'
 import { TradingViewCharts } from './components/charts/TradingViewCharts'
 import TreemapDashboard from './components/charts/TreemapDashboard'
-import EconomicDataBlock from './components/markets/EconomicDataBlock';
-
+import EconomicDataBlock from './components/markets/EconomicDataBlock'
+import AdSpace from './components/ads/AdSpace' // ⬅️ Import
 import './App.css'
 
 export default function App() {
@@ -21,19 +21,31 @@ export default function App() {
           <QuotesCarousel />
         </div>
         <div className="flex flex-row gap-6 ">
+          
+          {/* COLUMNA IZQUIERDA (70%) */}
           <div className="w-7/10 border-r-12 border-transparent border-b-25 border-transparent">
             <LiveStreamsGrid />
+            
+            {/* 📊 INDICADORES ECONÓMICOS */}
             <EconomicIndicators />
+            
+            {/* ⭐⭐ ADSPACE - JUSTO AQUÍ ⭐⭐ */}
+            <AdSpace />
+            
             <FinancialDashboard/>
             <div className="w-3/10 ml-12 pl-12 border-b-25 border-transparent"></div>
             <EconomicDataBlock/>
           </div>
+          
+          {/* COLUMNA DERECHA (30%) */}
           <div className="w-3/10 ml-12 pl-12 border-b-25 border-transparent">
-                <Notice  /> 
-              <TreemapDashboard />
-            
+            <Notice /> 
+            <TreemapDashboard />
+            {/* ⚠️ QUITAR AdSpace de aquí */}
           </div>
         </div>
+        
+        {/* GRAFICOS TRADINGVIEW (debajo de AdSpace) */}
         <TradingViewCharts />
       </div>
     </div>

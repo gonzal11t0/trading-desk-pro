@@ -6,7 +6,7 @@ const FinancialTreemap = ({
   data = [], 
   title = "PANEL", 
   dateTime = "",
-  columns = 2,
+  columns = 4,
 }) => {
   
   const getColor = (variation) => {
