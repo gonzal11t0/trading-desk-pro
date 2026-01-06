@@ -9,12 +9,17 @@ import { Notice } from './components/charts/Notice'
 import { TradingViewCharts } from './components/charts/TradingViewCharts'
 import TreemapDashboard from './components/charts/TreemapDashboard'
 import EconomicDataBlock from './components/markets/EconomicDataBlock'
-import AdSpace from './components/ads/AdSpace' // ⬅️ Import
+import AdSpace from './components/ads/AdSpace'
+import { FloatingEduButton, MacroExplainer } from './components/markets/MacroExplainer';
+
 import './App.css'
 
 export default function App() {
   return (
+    
     <div className="min-h-screen bg-black text-white font-mono">
+            <FloatingEduButton />
+      <MacroExplainer />
       <TradingHeader />
       <div className="container mx-auto px-4 ">
         <div className="mb-8 border-b-35 border-transparent">
