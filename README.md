@@ -194,3 +194,17 @@ Gráficos: TradingView
 Datos BCRA: Banco Central de la República Argentina
 
 Datos financieros: Múltiples proveedores de APIs
+
+## 🔐 Sistema de Autenticación
+
+### Configuración Inicial
+
+1. **Configurar credenciales en `.env`:**
+```bash
+# ADMINISTRADOR (tu cuenta)
+VITE_ADMIN_USER=tu@email.com
+VITE_ADMIN_PASS=TuContraseñaSegura123!
+
+# CLIENTES (máximo 10)
+VITE_USER_1=cliente1@gmail.com:ContraseñaSegura1!
+VITE_USER_2=cliente2@empresa.com:OtraContraseña#2

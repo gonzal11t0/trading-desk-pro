@@ -23,7 +23,7 @@ export const streams = [
     {
         id: 'Canal E',
         title: 'Canal E',
-        videoId: '7DIiJDvWnZU',
+        videoId: 'tytTT629brE',
     },
     {
         id: 'Bloomberg Business',

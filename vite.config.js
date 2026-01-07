@@ -10,6 +10,7 @@ export default defineConfig({
       
       'Content-Security-Policy': '',
        build: {
+    sourcemap: false,  
     rollupOptions: {
       output: {
         manualChunks: undefined

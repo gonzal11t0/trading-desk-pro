@@ -31,3 +31,8 @@ dist-ssr
 .env.production
 node_modules/
 dist/
+".env" 
+".env.local" 
+".env.*.local" 
+".env.*.local" 
+".env.local" 
