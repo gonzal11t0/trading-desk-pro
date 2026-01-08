@@ -151,10 +151,12 @@ const MainLayout = ({ children, showHeader = true }) => {
 // ============================================
 // PÁGINA DE LOGIN
 // ============================================
+// ============================================
+// PÁGINA DE LOGIN - VERSIÓN CORREGIDA (POSICIÓN VERTICAL)
+// ============================================
 const LoginPage = () => {
   const { isAuthenticated } = useAuth();
 
-  // Si ya está autenticado, redirigir
   if (isAuthenticated) {
     const redirectTo = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
     sessionStorage.removeItem('redirectAfterLogin');
@@ -162,32 +164,83 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      {/* Modal de login */}
-      <LoginModal />
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#000000',
+      display: 'flex',
+      alignItems: 'flex-start', // Cambiado de 'center' a 'flex-start'
+      justifyContent: 'center',
+      position: 'relative',
+      overflow: 'hidden',
+      paddingTop: '10vh' // Añadir padding top para subirlo
+    }}>
       
-      {/* Dashboard en segundo plano (bloqueado) */}
-      <div className="opacity-20 blur-sm pointer-events-none">
-        <MainLayout showHeader={false}>
-          <div className="container mx-auto px-4">
-            <div className="mb-8 border-b-35 border-transparent">
-              <div className="h-16 bg-gray-900/50 rounded"></div>
-            </div>
-            <div className="flex flex-row gap-6">
-              <div className="w-7/10 border-r-12 border-transparent border-b-25 border-transparent">
-                <div className="h-64 bg-gray-900/50 rounded mb-6"></div>
-                <div className="h-48 bg-gray-900/50 rounded mb-6"></div>
-                <div className="h-32 bg-gray-900/50 rounded mb-6"></div>
-                <div className="h-96 bg-gray-900/50 rounded"></div>
-              </div>
-              <div className="w-3/10 ml-12 pl-12 border-b-25 border-transparent">
-                <div className="h-48 bg-gray-900/50 rounded mb-6"></div>
-                <div className="h-64 bg-gray-900/50 rounded"></div>
-              </div>
-            </div>
-            <div className="h-96 bg-gray-900/50 rounded mt-6"></div>
+      {/* Efectos de fondo */}
+      <div style={{
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        right: '0',
+        bottom: '0',
+        background: `
+          radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+          radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.05) 0%, transparent 50%)
+        `,
+        zIndex: 1
+      }}></div>
+      
+      {/* Contenedor principal - SUBIDO */}
+      <div style={{
+        position: 'relative',
+        zIndex: 10,
+        width: '100%',
+        maxWidth: '420px',
+        padding: '0 1rem',
+        marginTop: '5vh' // Margen superior para ajustar posición
+      }}>
+        <LoginModal />
+      </div>
+      
+      {/* Dashboard en segundo plano (bloqueado) - REBAJADO */}
+      <div style={{
+        position: 'absolute',
+        top: '40vh', // Comienza más abajo
+        left: 0,
+        right: 0,
+        bottom: 0,
+        opacity: 0.1,
+        filter: 'blur(12px)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }}>
+        {/* Contenido simplificado del dashboard */}
+        <div style={{
+          backgroundColor: '#000',
+          height: '100%'
+        }}>
+          {/* Solo líneas básicas */}
+          <div style={{
+            height: '60px',
+            backgroundColor: 'rgba(30, 41, 59, 0.3)',
+            marginBottom: '20px'
+          }}></div>
+          <div style={{
+            display: 'flex',
+            gap: '20px',
+            marginBottom: '20px'
+          }}>
+            <div style={{
+              flex: '7',
+              height: '200px',
+              backgroundColor: 'rgba(30, 41, 59, 0.3)'
+            }}></div>
+            <div style={{
+              flex: '3',
+              height: '200px',
+              backgroundColor: 'rgba(30, 41, 59, 0.3)'
+            }}></div>
           </div>
-        </MainLayout>
+        </div>
       </div>
     </div>
   );
