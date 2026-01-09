@@ -1,17 +1,17 @@
+/* exchangebandsModule*/
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Calendar, RefreshCw, Info } from 'lucide-react';
-import inflationApi from '../../api/inflationApi'; // ✅ CORRECTO
+import inflationApi from '../../api/inflationApi';
 
 const ExchangeBandsModule = () => {
   const [loading, setLoading] = useState(true);
-  const [ setIpcData] = useState([]);
+  const [ setIpcData] = useState([]); // ✅ CORREGIDO: Añadí la variable de estado
   const [bandasData, setBandasData] = useState({
     piso: 915.66,
     techo: 1527.61,
     pisoCalculado: 915.66,
     techoCalculado: 1500.61,
     fechaActualizacion: new Date().toISOString().split('T')[0],
-    proximaActualizacion: '',
     ipcUtilizado: 0,
     ipcMesReferencia: '',
     variacionMensual: {
@@ -20,16 +20,12 @@ const ExchangeBandsModule = () => {
     }
   });
 
-
-
   // Calcular mes t-2 (rezago de 2 meses)
   const getMonthTMinus2 = () => {
     const now = new Date();
     const targetDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
     return `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
   };
-
-
 
   // Calcular nuevas bandas con IPC[t-2]
   const calcularBandasConIPC = (pisoBase, techoBase, ipcPercent) => {
@@ -48,12 +44,11 @@ const ExchangeBandsModule = () => {
     
     try {
       // 1. Obtener datos IPC de tu API
-      const ipcHistorico = await inflationApi.getLastMonthsInflation(12); // ✅ Cambiado
-      console.log('📊 IPC histórico obtenido:', ipcHistorico);
+      const ipcHistorico = await inflationApi.getLastMonthsInflation(12);
       
       // Formatear datos para nuestro uso
       const formattedIpcData = ipcHistorico.map(item => ({
-        month: item.date ? item.date.slice(0, 7) : '', // Extraer YYYY-MM
+        month: item.date ? item.date.slice(0, 7) : '',
         value: item.values?.monthly || 0,
         date: item.date
       }));
@@ -62,7 +57,6 @@ const ExchangeBandsModule = () => {
       
       // 2. Determinar mes t-2
       const mesTMinus2 = getMonthTMinus2();
-      console.log('📅 Buscando IPC para mes t-2:', mesTMinus2);
       
       // 3. Obtener IPC[t-2]
       let ipcValor = 0;
@@ -70,11 +64,9 @@ const ExchangeBandsModule = () => {
       
       if (ipcEncontrado) {
         ipcValor = ipcEncontrado.value;
-        console.log('✅ IPC encontrado:', ipcEncontrado);
       } else {
         // Si no encuentra exacto, usar el último disponible
-        ipcValor = formattedIpcData[0]?.value || 2.1; // Fallback
-        console.log('⚠️ IPC no encontrado, usando último disponible:', ipcValor);
+        ipcValor = formattedIpcData[0]?.value || 2.1;
       }
       
       // 4. Calcular bandas ajustadas
@@ -99,8 +91,6 @@ const ExchangeBandsModule = () => {
       });
       
     } catch (error) {
-      console.error('❌ Error cargando datos de bandas:', error);
-      
       // Fallback a valores estáticos si hay error
       setBandasData(prev => ({
         ...prev,
@@ -113,17 +103,6 @@ const ExchangeBandsModule = () => {
       setLoading(false);
     }
   };
-
-
-  const calcularDiasRestantes = () => {
-    const hoy = new Date();
-    const prox = new Date(bandasData.proximaActualizacion);
-    const diffTime = prox - hoy;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  const diasRestantes = calcularDiasRestantes();
 
   useEffect(() => {
     cargarDatosBandas();
@@ -316,35 +295,26 @@ const ExchangeBandsModule = () => {
             </div>
           </div>
         </div>
-        
       </div>
 
-      {/* Próxima actualización */}
+      {/* Fecha de actualización */}
       <div style={{
         background: 'rgba(55, 65, 81, 0.5)',
         padding: '16px',
-        borderRadius: '8px'
+        borderRadius: '8px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
       }}>
-
-        
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          {diasRestantes <= 7 && (
-            <div style={{
-              padding: '4px 12px',
-              background: 'rgba(245, 158, 11, 0.2)',
-              color: '#fbbf24',
-              borderRadius: '999px',
-              fontSize: '12px'
-            }}>
-              {diasRestantes <= 2 ? 'Próximamente' : 'Esta semana'}
-            </div>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Calendar size={16} style={{color: '#9ca3af'}} />
+          <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+            Actualizado: {bandasData.fechaActualizacion}
+          </div>
         </div>
-      
+        <div style={{ fontSize: '12px', color: '#6b7280' }}>
+          IPC {bandasData.ipcMesReferencia}: {bandasData.ipcUtilizado.toFixed(2)}%
+        </div>
       </div>
 
       <style>

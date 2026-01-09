@@ -1,14 +1,13 @@
-// src/api/inflationApi.js - VERSIÓN FINAL CORREGIDA
+// src/api/inflationApi.js
+
 const ARGENSTATS_API_KEY = 'as_prod_2LPhBgR8GnCZv6SAuH9fosOLJcMNoqjF';
 
 export const inflationApi = {
   /**
    * Obtiene los últimos datos de inflación disponibles
-   * @returns {Promise<Object>} Datos formateados de inflación
    */
   getCurrentInflation: async () => {
     try {
-      
       const response = await fetch(
         `/api/argenstats/inflation?view=current`,
         {
@@ -20,7 +19,7 @@ export const inflationApi = {
       );
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}`);
       }
 
       const result = await response.json();
@@ -31,27 +30,22 @@ export const inflationApi = {
 
       const { data } = result;
       
-      // FORMATO CORRECTO según estructura real
       return {
-        // Valores principales (¡ESTOS SON LOS CORRECTOS!)
-        monthly: data.values?.monthly || 0,      // 2.5%
-        annual: data.values?.yearly || 0,        // 31.4% (IPC anual)
-        accumulated: data.values?.accumulated || 0, // 27.9%
-        index: data.index || 0,                  // 9841.3581
+        monthly: data.values?.monthly || 0,
+        annual: data.values?.yearly || 0,
+        accumulated: data.values?.accumulated || 0,
+        index: data.index || 0,
         
-        // Metadatos
         date: data.date ? new Date(data.date).toISOString().split('T')[0] : '',
         lastUpdate: data.lastUpdate || '',
         component: data.component?.name || 'Nivel general',
         region: data.region || 'Nacional',
         
-        // Datos completos
         raw: data,
         metadata: result.metadata,
         source: 'argenstats'
       };
-    } catch (error) {
-      console.error('❌ Error obteniendo inflación:', error);
+    } catch {
       return getMockInflationData();
     }
   },
@@ -81,8 +75,7 @@ export const inflationApi = {
         }));
       }
       return [];
-    } catch (error) {
-      console.error('❌ Error histórico:', error);
+    } catch {
       return getMockHistoricalData();
     }
   },
@@ -102,8 +95,7 @@ export const inflationApi = {
       
       const result = await response.json();
       return result.success ? result.data : null;
-    } catch (error) {
-      console.error('❌ Error componentes:', error);
+    } catch {
       return null;
     }
   },
@@ -122,28 +114,22 @@ export const inflationApi = {
       
       const result = await response.json();
       return result.success ? result.data : null;
-    } catch (error) {
-      console.error('❌ Error regional:', error);
+    } catch {
       return null;
     }
   },
 
   /**
    * Obtiene los últimos N meses de inflación con cambios calculados
-   * @param {number} months - Cantidad de meses a obtener (default: 4)
-   * @returns {Promise<Array>} Datos de los últimos meses con cambios
    */
   getLastMonthsInflation: async (months = 4) => {
     try {
-      // Calcular fechas para los últimos N meses
       const toDate = new Date();
       const fromDate = new Date();
       fromDate.setMonth(fromDate.getMonth() - months);
       
       const from = fromDate.toISOString().split('T')[0];
       const to = toDate.toISOString().split('T')[0];
-      
-      console.log(`📊 Obteniendo últimos ${months} meses (${from} a ${to})...`);
       
       const response = await fetch(
         `/api/argenstats/inflation?view=historical&from=${from}&to=${to}`,
@@ -156,22 +142,19 @@ export const inflationApi = {
       );
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}`);
       }
 
       const result = await response.json();
       
       if (!result.success || !Array.isArray(result.data)) {
-        console.warn('⚠️ No se obtuvieron datos históricos:', result.error);
         return getMockHistoricalDataWithChanges(months);
       }
 
-      // Ordenar por fecha (más reciente primero)
       const sortedData = result.data
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, months);
       
-      // Calcular cambios vs mes anterior
       const dataWithChanges = sortedData.map((currentMonth, index) => {
         const previousMonth = sortedData[index + 1];
         
@@ -182,12 +165,10 @@ export const inflationApi = {
           };
         }
         
-        // Calcular cambios
         const monthlyChange = currentMonth.values?.monthly - previousMonth.values?.monthly;
         const yearlyChange = currentMonth.values?.yearly - previousMonth.values?.yearly;
         const accumulatedChange = currentMonth.values?.accumulated - previousMonth.values?.accumulated;
         
-        // Función helper para formatear con signo
         const formatChange = (value) => {
           if (value > 0) return `+${value.toFixed(1)}`;
           if (value < 0) return value.toFixed(1);
@@ -204,11 +185,9 @@ export const inflationApi = {
         };
       });
       
-      console.log(`✅ ${dataWithChanges.length} meses con cambios calculados:`, dataWithChanges);
       return dataWithChanges;
       
-    } catch (error) {
-      console.error('❌ Error obteniendo últimos meses:', error);
+    } catch {
       return getMockHistoricalDataWithChanges(months);
     }
   }
