@@ -7,10 +7,11 @@ api:
             -- economicApi 
                 --   exchangeBandsApi  
                     --   inflationApi 
-                        ---  mervalApi  
-                            --  exchangebandsModule  
+                        --- mervalApi  
+                            -- exchangebandsModule  
                                 --  quotesApi
                                     --riskCountryApi
                                         --stocksApi
                                             --treemapApi
-
+                                                --usermanagement
+                                                --AdSpace

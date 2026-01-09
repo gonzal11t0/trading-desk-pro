@@ -1,3 +1,4 @@
+/* usermanagement */
 import React, { useState, useEffect } from 'react';
 import { 
   Users, 
@@ -12,24 +13,22 @@ import {
   Key, 
   Mail, 
   Shield, 
-  QrCode,
   Search,
   Filter,
-  Download,
   AlertCircle
 } from 'lucide-react';
-import { extractUsersFromEnv} from '../../utils/authHelpers';
+import { extractUsersFromEnv } from '../../utils/authHelpers';
 import { generatePasswordForClient } from '../../utils/passwordGenerator';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [showPassword, setShowPassword] = useState({});
   const [newUserEmail, setNewUserEmail] = useState('');
-  const [ setIsAddingUser] = useState(false);
+  const [isAddingUser, setIsAddingUser] = useState(false); // ✅ CORREGIDO: Variable definida
   const [generatedPassword, setGeneratedPassword] = useState(null);
   const [activeTab, setActiveTab] = useState('users');
   const [searchTerm, setSearchTerm] = useState('');
-  const [setSelectedUser] = useState(null);
+  const [ setSelectedUser] = useState(null); // ✅ CORREGIDO: Variable definida
 
   useEffect(() => {
     loadUsers();
@@ -53,7 +52,6 @@ const UserManagement = () => {
     if (generatedPassword) {
       navigator.clipboard.writeText(generatedPassword.message);
       
-      // Notificación
       const notification = document.createElement('div');
       notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 font-mono text-sm';
       notification.textContent = '✓ Mensaje copiado para WhatsApp';
@@ -65,7 +63,6 @@ const UserManagement = () => {
   const handleAddUser = () => {
     if (!newUserEmail.trim()) return;
     
-    // Simular agregado (en producción sería editar .env)
     const passwordData = generatePasswordForClient(newUserEmail);
     setGeneratedPassword({
       ...passwordData,
@@ -81,7 +78,6 @@ const UserManagement = () => {
     if (!user.hasPassword) return '❌ Sin contraseña';
     
     if (showPassword[user.email]) {
-      // Buscar en variables de entorno
       for (let i = 1; i <= 10; i++) {
         const envVar = import.meta.env[`VITE_USER_${i}`];
         if (envVar && envVar.includes(user.email)) {
@@ -103,7 +99,7 @@ const UserManagement = () => {
 
   const filteredUsers = users.filter(user => 
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.displayName.toLowerCase().includes(searchTerm.toLowerCase())
+    (user.displayName && user.displayName.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -238,7 +234,7 @@ const UserManagement = () => {
                     <Mail className="w-4 h-4 text-gray-500" />
                     <div>
                       <div className="font-medium text-white">{user.email}</div>
-                      <div className="text-xs text-gray-500">{user.displayName}</div>
+                      <div className="text-xs text-gray-500">{user.displayName || 'Sin nombre'}</div>
                     </div>
                   </div>
                 </div>
@@ -299,7 +295,6 @@ const UserManagement = () => {
                     <button
                       onClick={() => {
                         if (window.confirm(`¿Eliminar usuario ${user.email}?`)) {
-                          console.log('Eliminar usuario:', user.email);
                           loadUsers();
                         }
                       }}
@@ -345,37 +340,47 @@ const UserManagement = () => {
               Crea credenciales seguras para nuevos clientes. El sistema generará una contraseña automáticamente.
             </p>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Email del nuevo cliente
-                </label>
-                <input
-                  type="email"
-                  value={newUserEmail}
-                  onChange={(e) => setNewUserEmail(e.target.value)}
-                  placeholder="nuevo@cliente.com"
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                />
-              </div>
+            {!isAddingUser ? (
+              <button
+                onClick={() => setIsAddingUser(true)}
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white rounded-lg transition-colors flex items-center justify-center"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Agregar Nuevo Usuario
+              </button>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-gray-300 mb-2">
+                    Email del nuevo cliente
+                  </label>
+                  <input
+                    type="email"
+                    value={newUserEmail}
+                    onChange={(e) => setNewUserEmail(e.target.value)}
+                    placeholder="nuevo@cliente.com"
+                    className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                  />
+                </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={handleAddUser}
-                  disabled={!newUserEmail.trim()}
-                  className="py-3 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white rounded-lg transition-colors flex items-center justify-center disabled:opacity-50"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Generar Credenciales
-                </button>
-                <button
-                  onClick={() => setIsAddingUser(false)}
-                  className="py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                >
-                  Cancelar
-                </button>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={handleAddUser}
+                    disabled={!newUserEmail.trim()}
+                    className="py-3 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white rounded-lg transition-colors flex items-center justify-center disabled:opacity-50"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Generar Credenciales
+                  </button>
+                  <button
+                    onClick={() => setIsAddingUser(false)}
+                    className="py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Estadísticas */}

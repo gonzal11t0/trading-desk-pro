@@ -1,46 +1,45 @@
-// AdSpace.jsx - VERSIÓN CON ESTILOS OPTIMIZADOS
+// AdSpace.jsx 
 import React from 'react';
 
 const AdSpace = () => {
   return (
-    <div className="ad-space bg-gray-900 border border-gray-700 rounded-lg p-4 my-4">
-      {/* Encabezado más discreto */}
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-xs text-gray-500">
-          • Espacio publicitario •
+    <div className="ad-space bg-gradient-to-br from-gray-900/50 to-gray-900/30 border border-gray-700/50 rounded-xl p-4 my-4 backdrop-blur-sm">
+      {/* Encabezado mínimo */}
+      <div className="flex justify-between items-center mb-3">
+        <span className="text-xs font-mono text-gray-500 tracking-wider">
+          • PUBLICIDAD •
         </span>
-        <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded">
-          Ad
+        <span className="text-xs bg-gray-800/50 text-gray-400 px-2 py-1 rounded border border-gray-700">
+          PATROCINADO
         </span>
       </div>
       
-      {/* Contenedor más compacto */}
-      <div className="ad-container min-h-[180px] flex flex-col items-center justify-center border border-dashed border-gray-600 rounded-lg p-4 hover:border-gray-500 transition-colors">
+      {/* Contenedor ultra compacto */}
+      <div className="min-h-[140px] flex flex-col items-center justify-center border-2 border-dashed border-gray-600/50 rounded-xl p-4 hover:border-blue-500/30 transition-all duration-300 hover:bg-gray-800/10">
         
-        {/* Icono más pequeño */}
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-900 to-purple-900 rounded-full flex items-center justify-center mb-3">
-          <span className="text-xl">💰</span>
+        {/* Icono elegante */}
+        <div className="mb-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-lg flex items-center justify-center border border-blue-500/20">
+            <span className="text-lg">💎</span>
+          </div>
         </div>
         
-        {/* Texto optimizado */}
-        <h4 className="text-base font-semibold text-center mb-1">
-          Espacio Disponible
-        </h4>
-        
-        <p className="text-gray-400 text-xs text-center mb-3 max-w-xs">
-          Ideal para brokers, herramientas financieras, cursos.
+        {/* Texto conciso */}
+        <div className="text-center mb-3">
+          <h4 className="text-sm font-bold text-white/90 mb-1 tracking-tight">
+            ESPACIO PREMIUM
+          </h4>
+          <p className="text-gray-400/80 text-xs leading-tight px-2">
+            Conecta con traders profesionales
+          </p>
+        </div>
+      </div>
+      
+      {/* Footer legal mínimo */}
+      <div className="mt-3 pt-3 border-t border-gray-800/30">
+        <p className="text-[10px] text-gray-600 text-center font-mono tracking-tight">
+          Patrocinado • Anuncio segmentado • Crypto-friendly
         </p>
-        
-        {/* Botón más pequeño */}
-        <div className="px-4 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 rounded text-sm font-medium cursor-pointer hover:opacity-90 transition inline-block">
-          Contactar
-        </div>
-        
-        {/* Stats más pequeños */}
-        <div className="mt-4 text-xs text-gray-500 text-center">
-          <span className="mr-3">🎯 Audience: Traders</span>
-          <span>📊 CTR: 2.4%</span>
-        </div>
       </div>
     </div>
   );
