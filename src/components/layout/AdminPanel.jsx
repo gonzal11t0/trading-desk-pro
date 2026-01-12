@@ -1,32 +1,43 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Users, Copy, RefreshCw, Eye, EyeOff, Trash2, Plus, Check, X, Key, Mail, Shield, QrCode, AlertCircle } from 'lucide-react';
+/* admin panel*/
+import React, { useState, useEffect, useRef } from 'react';
+import { Users, Copy, RefreshCw, Eye, EyeOff, Plus, Check, X, Key, Mail, Shield, AlertCircle } from 'lucide-react';
 import { extractUsersFromEnv } from '../../utils/authHelpers';
 import { generatePasswordForClient } from '../../utils/passwordGenerator';
+
+// Constantes fuera del componente
+const TABS = [
+  { id: 'users', label: 'Usuarios', icon: Users },
+  { id: 'generate', label: 'Generar Claves', icon: Key }
+];
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const AUTO_HIDE_TIMEOUT = 30000;
+const PASSWORD_DISPLAY_TIMEOUT = 10000;
+const COPY_FEEDBACK_TIMEOUT = 2000;
+const LOADING_TIMEOUT = 500;
 
 const AdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [showPassword, setShowPassword] = useState({});
   const [newUserEmail, setNewUserEmail] = useState('');
-  const [isAddingUser, setIsAddingUser] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState(null);
   const [activeTab, setActiveTab] = useState('users');
   const [loading, setLoading] = useState(false);
   const [showCopyFeedback, setShowCopyFeedback] = useState(false);
+  
+  const timeoutRefs = useRef({});
 
   // Cargar usuarios
   useEffect(() => {
     loadUsers();
   }, []);
 
-  // Cerrar contraseñas visibles después de 30 segundos
+  // Limpiar timeouts al desmontar
   useEffect(() => {
-    if (Object.keys(showPassword).length > 0) {
-      const timer = setTimeout(() => {
-        setShowPassword({});
-      }, 30000); // 30 segundos
-      return () => clearTimeout(timer);
-    }
-  }, [showPassword]);
+    return () => {
+      Object.values(timeoutRefs.current).forEach(clearTimeout);
+    };
+  }, []);
 
   const loadUsers = () => {
     try {
@@ -39,14 +50,32 @@ const AdminPanel = () => {
     }
   };
 
-  const togglePasswordVisibility = useCallback((email) => {
-    setShowPassword(prev => ({
-      ...prev,
-      [email]: !prev[email]
-    }));
-  }, []);
+  const togglePasswordVisibility = (email) => {
+    setShowPassword(prev => {
+      const newState = { ...prev, [email]: !prev[email] };
+      
+      // Configurar auto-ocultar si ahora es visible
+      if (newState[email]) {
+        // Limpiar timeout anterior si existe
+        if (timeoutRefs.current[email]) {
+          clearTimeout(timeoutRefs.current[email]);
+        }
+        
+        timeoutRefs.current[email] = setTimeout(() => {
+          setShowPassword(current => ({ ...current, [email]: false }));
+          delete timeoutRefs.current[email];
+        }, PASSWORD_DISPLAY_TIMEOUT);
+      } else if (timeoutRefs.current[email]) {
+        // Si se oculta manualmente, limpiar timeout
+        clearTimeout(timeoutRefs.current[email]);
+        delete timeoutRefs.current[email];
+      }
+      
+      return newState;
+    });
+  };
 
-  const handleGeneratePassword = useCallback((email, clientName = 'Nuevo Cliente') => {
+  const handleGeneratePassword = (email, clientName = 'Nuevo Cliente') => {
     try {
       const passwordData = generatePasswordForClient(clientName);
       setGeneratedPassword({
@@ -59,14 +88,23 @@ const AdminPanel = () => {
         console.error('Error generating password:', error);
       }
     }
-  }, []);
+  };
 
-  const handleCopyPassword = useCallback(() => {
+  const handleCopyPassword = () => {
     if (generatedPassword?.message) {
       navigator.clipboard.writeText(generatedPassword.message)
         .then(() => {
           setShowCopyFeedback(true);
-          setTimeout(() => setShowCopyFeedback(false), 2000);
+          
+          // Limpiar timeout anterior
+          if (timeoutRefs.current.copyFeedback) {
+            clearTimeout(timeoutRefs.current.copyFeedback);
+          }
+          
+          timeoutRefs.current.copyFeedback = setTimeout(() => {
+            setShowCopyFeedback(false);
+            delete timeoutRefs.current.copyFeedback;
+          }, COPY_FEEDBACK_TIMEOUT);
         })
         .catch(err => {
           if (import.meta.env.DEV) {
@@ -74,12 +112,12 @@ const AdminPanel = () => {
           }
         });
     }
-  }, [generatedPassword]);
+  };
 
-  const handleAddUser = useCallback(() => {
+  const handleAddUser = () => {
     const trimmedEmail = newUserEmail.trim();
     
-    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    if (!trimmedEmail || !EMAIL_REGEX.test(trimmedEmail)) {
       return;
     }
     
@@ -97,7 +135,6 @@ const AdminPanel = () => {
       });
       
       setNewUserEmail('');
-      setIsAddingUser(false);
       
       // Agregar a la lista local
       setUsers(prev => [...prev, {
@@ -111,9 +148,9 @@ const AdminPanel = () => {
         console.error('Error adding user:', error);
       }
     }
-  }, [newUserEmail, users]);
+  };
 
-  const getPasswordDisplay = useCallback((user) => {
+  const getPasswordDisplay = (user) => {
     if (!user.hasPassword) {
       return (
         <span style={{ color: '#ef4444', fontStyle: 'italic' }}>
@@ -123,13 +160,6 @@ const AdminPanel = () => {
     }
     
     if (showPassword[user.email]) {
-      // Ocultar después de mostrar (seguridad)
-      setTimeout(() => {
-        if (showPassword[user.email]) {
-          setShowPassword(prev => ({ ...prev, [user.email]: false }));
-        }
-      }, 10000); // Auto-ocultar después de 10 segundos
-      
       // Solo buscar en desarrollo
       if (import.meta.env.DEV) {
         for (let i = 1; i <= 10; i++) {
@@ -158,13 +188,35 @@ const AdminPanel = () => {
     }
     
     return '🔒 ******';
-  }, [showPassword]);
+  };
 
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = () => {
     setLoading(true);
     loadUsers();
-    setTimeout(() => setLoading(false), 500);
-  }, []);
+    
+    // Limpiar timeout anterior
+    if (timeoutRefs.current.loading) {
+      clearTimeout(timeoutRefs.current.loading);
+    }
+    
+    timeoutRefs.current.loading = setTimeout(() => {
+      setLoading(false);
+      delete timeoutRefs.current.loading;
+    }, LOADING_TIMEOUT);
+  };
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+  };
+
+  const handleCloseGeneratedPassword = () => {
+    setGeneratedPassword(null);
+  };
+
+  // Validaciones memoizadas en el render (simples, no need useMemo)
+  const isEmailValid = newUserEmail && EMAIL_REGEX.test(newUserEmail);
+  const isUserExists = users.some(user => user.email === newUserEmail.trim());
+  const canAddUser = newUserEmail.trim() && isEmailValid && !isUserExists;
 
   return (
     <div style={{
@@ -252,13 +304,10 @@ const AdminPanel = () => {
         borderBottom: '1px solid rgba(55, 65, 81, 0.5)',
         marginBottom: '20px'
       }}>
-        {[
-          { id: 'users', label: 'Usuarios', icon: Users },
-          { id: 'generate', label: 'Generar Claves', icon: Key }
-        ].map(tab => (
+        {TABS.map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
             style={{
               padding: '8px 16px',
               fontSize: '14px',
@@ -297,9 +346,9 @@ const AdminPanel = () => {
               </p>
             </div>
           ) : (
-            users.map((user, index) => (
+            users.map((user) => (
               <div
-                key={`${user.email}-${index}`}
+                key={user.email}
                 style={{
                   padding: '16px',
                   background: 'rgba(30, 41, 59, 0.5)',
@@ -457,7 +506,7 @@ const AdminPanel = () => {
                 e.target.style.boxShadow = 'none';
               }}
             />
-            {newUserEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUserEmail) && (
+            {newUserEmail && !isEmailValid && (
               <div style={{
                 marginTop: '4px',
                 fontSize: '12px',
@@ -474,11 +523,11 @@ const AdminPanel = () => {
           
           <button
             onClick={handleAddUser}
-            disabled={!newUserEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUserEmail)}
+            disabled={!canAddUser}
             style={{
               width: '100%',
               padding: '12px',
-              background: !newUserEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUserEmail)
+              background: !canAddUser
                 ? 'linear-gradient(135deg, rgba(55, 65, 81, 0.5) 0%, rgba(75, 85, 99, 0.5) 100%)'
                 : 'linear-gradient(135deg, #2563eb 0%, #10b981 100%)',
               color: 'white',
@@ -486,15 +535,13 @@ const AdminPanel = () => {
               border: 'none',
               fontSize: '14px',
               fontWeight: '600',
-              cursor: !newUserEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUserEmail)
-                ? 'not-allowed'
-                : 'pointer',
+              cursor: !canAddUser ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
               transition: 'all 0.2s ease',
-              opacity: !newUserEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUserEmail) ? 0.5 : 1
+              opacity: !canAddUser ? 0.5 : 1
             }}
           >
             <Plus style={{ width: '16px', height: '16px' }} />
@@ -533,7 +580,7 @@ const AdminPanel = () => {
               </div>
             </div>
             <button
-              onClick={() => setGeneratedPassword(null)}
+              onClick={handleCloseGeneratedPassword}
               style={{
                 background: 'none',
                 border: 'none',
@@ -679,11 +726,6 @@ const AdminPanel = () => {
         @keyframes fadeOut {
           from { opacity: 1; transform: translateX(0); }
           to { opacity: 0; transform: translateX(100%); }
-        }
-        
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
         }
       `}</style>
     </div>

@@ -1,38 +1,57 @@
-// src/components/charts/FinancialTreemap.jsx - VERSIÓN MEJORADA
-import React from 'react';
+/* financialTreemap*/
+import React, { useMemo, useCallback } from 'react';
 import './FinancialTreemap.css';
+
+const TreemapBlock = React.memo(({ item, getColor, onClick }) => {
+  const variationFormatted = `${item.variation > 0 ? '+' : ''}${item.variation.toFixed(2)}%`;
+  
+  return (
+    <div
+      className="treemap-block-compact"
+      style={{ backgroundColor: getColor(item.variation) }}
+      title={`${item.ticker}: ${variationFormatted}`}
+      onClick={() => onClick?.(item)}
+    >
+      <div className="block-ticker-compact">{item.ticker}</div>
+      <div className={`block-variation-compact ${item.variation >= 0 ? 'positive' : 'negative'}`}>
+        {variationFormatted}
+      </div>
+    </div>
+  );
+});
 
 const FinancialTreemap = ({ 
   data = [], 
   title = "PANEL", 
   dateTime = "",
   columns = 4,
+  className = "",
+  onBlockClick
 }) => {
-  
-  const getColor = (variation) => {
+  const getColor = useCallback((variation) => {
     if (variation > 2) return '#00ff00';
     if (variation > 0.5) return '#90ee90';
     if (variation < -2) return '#ff0000';
     if (variation < -0.5) return '#ff6b6b';
     if (variation > 0) return '#4169e1';
     return '#2c3e50';
-  };
+  }, []);
 
-  const getGridStyle = () => {
+  const gridStyle = useMemo(() => {
+    if (data.length === 0) return {};
     const rows = Math.ceil(data.length / columns);
-    
     return {
       gridTemplateColumns: `repeat(${columns}, 1fr)`,
       gridTemplateRows: `repeat(${rows}, 1fr)`,
       height: `${rows * 70}px`,
       gap: '5px'
     };
-  };
+  }, [data.length, columns]);
 
-  // Si no hay datos, mostrar mensaje
+  // No data state
   if (data.length === 0) {
     return (
-      <div className="financial-treemap-compact">
+      <div className={`financial-treemap-compact ${className}`}>
         <div className="treemap-header-compact">
           <div className="treemap-title-compact">{title}</div>
           <div className="treemap-datetime-compact">{dateTime}</div>
@@ -45,7 +64,7 @@ const FinancialTreemap = ({
   }
 
   return (
-    <div className="financial-treemap-compact">
+    <div className={`financial-treemap-compact ${className}`}>
       <div className="treemap-header-compact">
         <div className="treemap-title-compact">{title}</div>
         <div className="treemap-datetime-compact">{dateTime}</div>
@@ -53,27 +72,19 @@ const FinancialTreemap = ({
       
       <div 
         className="treemap-grid-compact"
-        style={getGridStyle()}
+        style={gridStyle}
       >
         {data.map((item, index) => (
-          <div
-            key={`${title}-${item.ticker}-${index}`}
-            className="treemap-block-compact"
-            style={{
-              backgroundColor: getColor(item.variation),
-              cursor: 'pointer'
-            }}
-            title={`${item.ticker}: ${item.variation > 0 ? '+' : ''}${item.variation}%`}
-          >
-            <div className="block-ticker-compact">{item.ticker}</div>
-            <div className={`block-variation-compact ${item.variation >= 0 ? 'positive' : 'negative'}`}>
-              {item.variation > 0 ? '+' : ''}{item.variation.toFixed(2)}%
-            </div>
-          </div>
+          <TreemapBlock
+            key={item.id || `${title}-${item.ticker}-${index}`}
+            item={item}
+            getColor={getColor}
+            onClick={onBlockClick}
+          />
         ))}
       </div>
     </div>
   );
 };
 
-export default FinancialTreemap;
+export default React.memo(FinancialTreemap);

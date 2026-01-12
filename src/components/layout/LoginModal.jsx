@@ -1,4 +1,4 @@
-/* loginModal.jsx - VERSIÓN SIMPLIFICADA SIN ICONOS EN INPUTS */
+/* loginModal.jsx */
 
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, AlertCircle, Loader2, Terminal, Key, Smartphone } from 'lucide-react';
@@ -12,7 +12,7 @@ const LoginModal = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
+  const [ setShowTooltip] = useState(false);
   
   // === SEGURIDAD NIVEL 2: Admin con password extra ===
   const [adminAccessCode, setAdminAccessCode] = useState('');
@@ -354,7 +354,7 @@ const LoginModal = () => {
                       <svg className="w-4 h-4" style={{ color: 'white' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
-                    )}
+                    )} 
                   </div>
                 </div>
                 <label htmlFor="remember" className="text-base font-bold tracking-wide cursor-pointer" style={{ 

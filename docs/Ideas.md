@@ -14,4 +14,23 @@ api:
                                         --stocksApi
                                             --treemapApi
                                                 --usermanagement
-                                                --AdSpace
+                                                --AdSpac
+components:
+Charts:
+    --financialTreemap
+        --market maps
+            --notice
+                --tradingviewcharts
+                    --treemapcharts
+                        --treemapdashboard
+
+layout:
+    --admin panel
+        --dragdropcontainer
+        --loginModal
+        --TradingHeader
+
+ui:
+    --passwordinput
+    --Sparkline
+    --statusbadge
