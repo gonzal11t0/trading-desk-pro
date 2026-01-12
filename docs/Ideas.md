@@ -34,3 +34,9 @@ ui:
     --passwordinput
     --Sparkline
     --statusbadge
+
+video:
+    --live streamsgrid
+
+server:
+    apiserver
