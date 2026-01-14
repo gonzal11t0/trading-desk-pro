@@ -9,48 +9,45 @@ export const useAuth = () => {
   const [isChecking, setIsChecking] = useState(true);
 
   // Verificar estado de autenticación al montar - CORREGIDO
-  useEffect(() => {
-    let mounted = true;
+useEffect(() => {
+  let mounted = true;
+  
+  const checkAuth = async () => {
+    if (!mounted) return;
     
-    const checkAuth = async () => {
-      if (!mounted) return;
+    try {
+      // Inicializar auth desde localStorage
+      authStore.initAuth();
       
-      try {
-        // Verificar sesión única (solo si está autenticado)
-        if (authStore.isAuthenticated) {
-          const hasSingleSession = authStore.checkSingleSession();
-          if (!hasSingleSession) {
-            authStore.logout();
-          }
-        }
-        
-        // Verificar timeout (solo si está autenticado)
-        if (authStore.isAuthenticated) {
-          const isActive = authStore.checkTimeout();
-          if (!isActive) {
-            authStore.logout();
-          }
-        }
-        
-      } catch (error) {
-        console.error('Error en checkAuth:', error);
-      } finally {
-        if (mounted) {
-          setIsChecking(false);
+      // Verificar timeout solo si está autenticado
+      if (authStore.isAuthenticated) {
+        const isActive = authStore.checkTimeout();
+        if (!isActive) {
+          authStore.logout();
+        } else {
+          // Actualizar actividad si sigue activo
+          authStore.updateActivity();
         }
       }
-    };
+      
+    } catch (error) {
+      console.error('Error en checkAuth:', error);
+    } finally {
+      if (mounted) {
+        setIsChecking(false);
+      }
+    }
+  };
 
-    // Pequeño delay para evitar bucles
-    setTimeout(() => {
-      checkAuth();
-    }, 100);
+  // Pequeño delay
+  setTimeout(() => {
+    checkAuth();
+  }, 100);
 
-    // Cleanup
-    return () => {
-      mounted = false;
-    };
-  }, [authStore]);
+  return () => {
+    mounted = false;
+  };
+}, [authStore]);
 
   // Actualizar actividad en eventos del usuario - CORREGIDO
   useEffect(() => {

@@ -135,7 +135,7 @@ const TreemapDashboard = () => {
       />
       
       {/* Dos paneles lado a lado en pantallas grandes */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4">
         <TreemapPanel 
           data={leaderPanel}
           title={PANEL_TITLES.LEADER}
