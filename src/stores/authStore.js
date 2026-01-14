@@ -15,10 +15,10 @@ export const useAuthStore = create((set, get) => ({
       name: 'Usuario Demo'
     },
     {
-      email: 'admin@demo.com',
+      email: 'admin@tradingdesk.com',
       password: 'Admin123!',
       role: 'admin',
-      name: 'Admin Demo'
+      name: 'Administrador'
     }
   ],
 
