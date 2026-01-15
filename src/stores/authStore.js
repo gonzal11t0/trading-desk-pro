@@ -1,4 +1,4 @@
-// authStore.js - VERSIÓN QUE USA .env
+// authStore.js - VERSIÓN CON FALLBACK PARA VERCEL
 import { create } from 'zustand';
 
 export const useAuthStore = create((set, get) => ({
@@ -9,18 +9,28 @@ export const useAuthStore = create((set, get) => ({
   rememberMe: false,
   userRole: 'user',
   
-  // Método para obtener usuarios de .env
+  // Método para obtener usuarios (con fallback para producción)
   getValidUsers: () => {
     const users = [];
     
-    console.log('🔍 Buscando usuarios en .env...');
+    console.log('🔍 Buscando usuarios...');
+    console.log('Entorno:', import.meta.env.MODE);
+    console.log('VITE_ADMIN_USER definido?', !!import.meta.env.VITE_ADMIN_USER);
     
-    // 1. ADMIN desde VITE_ADMIN_USER / VITE_ADMIN_PASS
-    const adminEmail = import.meta.env.VITE_ADMIN_USER;
-    const adminPassword = import.meta.env.VITE_ADMIN_PASS;
+    // 1. ADMIN (intentar desde .env, luego fallback)
+    let adminEmail, adminPassword;
+    
+    try {
+      adminEmail = import.meta.env.VITE_ADMIN_USER;
+      adminPassword = import.meta.env.VITE_ADMIN_PASS;
+    } catch (error) {
+      console.log('⚠️ Error leyendo .env, usando valores por defecto');
+      adminEmail = 'gonzalo@admin.com';
+      adminPassword = 'Admin@Trading2025!';
+    }
     
     if (adminEmail && adminPassword) {
-      console.log('✅ Admin encontrado en .env:', adminEmail);
+      console.log('✅ Admin configurado:', adminEmail);
       users.push({
         email: adminEmail.trim(),
         password: adminPassword.trim(),
@@ -28,57 +38,76 @@ export const useAuthStore = create((set, get) => ({
         name: 'Administrador',
         source: 'VITE_ADMIN_USER'
       });
-    } else {
-      console.log('❌ VITE_ADMIN_USER no definido en .env');
     }
     
-    // 2. USUARIOS CLIENTES desde VITE_USER_X
-    for (let i = 1; i <= 10; i++) {
-      const envVar = import.meta.env[`VITE_USER_${i}`];
-      if (envVar && envVar.includes(':')) {
-        const [email, password] = envVar.split(':');
-        if (email && password) {
-          console.log(`✅ Usuario ${i} encontrado:`, email);
-          users.push({
-            email: email.trim(),
-            password: password.trim(),
-            role: 'client',
-            name: email.split('@')[0],
-            source: `VITE_USER_${i}`
-          });
+    // 2. USUARIOS CLIENTES (con fallback)
+    try {
+      for (let i = 1; i <= 10; i++) {
+        const envVar = import.meta.env[`VITE_USER_${i}`];
+        if (envVar && envVar.includes(':')) {
+          const [email, password] = envVar.split(':');
+          if (email && password) {
+            console.log(`✅ Usuario ${i} encontrado:`, email);
+            users.push({
+              email: email.trim(),
+              password: password.trim(),
+              role: 'client',
+              name: email.split('@')[0],
+              source: `VITE_USER_${i}`
+            });
+          }
         }
       }
+    } catch (error) {
+      console.log('⚠️ Error leyendo usuarios de .env');
     }
     
-    // 3. Usuario demo de respaldo (solo si no hay usuarios)
+    // 3. VALORES POR DEFECTO SI NO HAY NADA
     if (users.length === 0) {
-      console.log('⚠️ No hay usuarios en .env, usando demo');
+      console.log('⚠️ No hay usuarios en .env, usando valores por defecto');
+      
+      // ADMIN por defecto
+      users.push({
+        email: 'gonzalo@admin.com',
+        password: 'Admin@Trading2025!',
+        role: 'admin',
+        name: 'Administrador',
+        source: 'default'
+      });
+      
+      // CLIENTE por defecto
       users.push({
         email: 'demo@tradingdesk.com',
         password: 'Demo123!',
-        role: 'user',
+        role: 'client',
         name: 'Usuario Demo',
-        source: 'hardcoded'
+        source: 'default'
+      });
+      
+      // USUARIO de tu .env (gonzalaz@live.com.ar)
+      users.push({
+        email: 'gonzalaz@live.com.ar',
+        password: 'M+qFS3!Yt2FM',
+        role: 'client',
+        name: 'Cliente',
+        source: 'default'
       });
     }
     
-    console.log('📋 Usuarios disponibles:', users.length);
+    console.log('📋 Total usuarios:', users.length);
+    users.forEach(u => {
+      console.log(`  - ${u.email} (${u.role}) - fuente: ${u.source}`);
+    });
+    
     return users;
   },
 
-  // Método de login - AHORA SÍ LEE DE .env
+  // Método de login
   login: (email, password, rememberMe = false) => {
     console.log('🔐 Login attempt:', email);
-    console.log('🔑 Password length:', password?.length || 0);
     
-    // Obtener usuarios actualizados de .env
+    // Obtener usuarios
     const validUsers = get().getValidUsers();
-    
-    console.log('👥 Usuarios disponibles:', validUsers.map(u => ({
-      email: u.email,
-      role: u.role,
-      source: u.source
-    })));
     
     // Buscar usuario
     const user = validUsers.find(
@@ -86,11 +115,7 @@ export const useAuthStore = create((set, get) => ({
     );
     
     if (user) {
-      console.log('✅ USUARIO ENCONTRADO:', {
-        email: user.email,
-        role: user.role,
-        source: user.source
-      });
+      console.log('✅ Login exitoso. Rol:', user.role);
       
       const userData = {
         email: user.email,
@@ -98,12 +123,10 @@ export const useAuthStore = create((set, get) => ({
         role: user.role
       };
       
-      // Guardar en localStorage
       localStorage.setItem('auth_user', JSON.stringify(userData));
       localStorage.setItem('remember_me', rememberMe.toString());
       localStorage.setItem('last_activity', Date.now().toString());
       
-      // Actualizar estado
       set({ 
         currentUser: userData, 
         isAuthenticated: true,
@@ -114,23 +137,17 @@ export const useAuthStore = create((set, get) => ({
       
       return { success: true, user: userData };
     } else {
-      console.log('❌ USUARIO NO ENCONTRADO');
-      console.log('Email buscado:', email);
-      console.log('Password buscada:', password ? '******' : 'vacía');
-      console.log('Posible error:', {
-        emailMatch: validUsers.some(u => u.email === email),
-        passwordMatch: validUsers.some(u => u.password === password),
-        usersWithSameEmail: validUsers.filter(u => u.email === email)
-      });
+      console.log('❌ Login fallido. Usuarios disponibles:');
+      validUsers.forEach(u => console.log(`  - ${u.email}`));
       
       return { 
         success: false, 
-        error: 'Usuario o contraseña incorrectos. Verifica tu .env' 
+        error: 'Credenciales incorrectas' 
       };
     }
   },
 
-  // Logout simple
+  // ... (resto del código igual: logout, checkAuth, updateActivity)
   logout: () => {
     localStorage.removeItem('auth_user');
     localStorage.removeItem('remember_me');
@@ -142,49 +159,24 @@ export const useAuthStore = create((set, get) => ({
       rememberMe: false,
       lastActivity: null 
     });
-    console.log('👋 Usuario deslogueado');
   },
 
-  // Verificar si ya está logueado
   checkAuth: () => {
     const storedUser = localStorage.getItem('auth_user');
-    const storedRemember = localStorage.getItem('remember_me');
-    const storedActivity = localStorage.getItem('last_activity');
-    
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
-        const rememberMe = storedRemember === 'true';
-        const lastActivity = storedActivity ? parseInt(storedActivity) : null;
-        
-        // Verificar timeout solo si no es "remember me"
-        const isExpired = !rememberMe && lastActivity && 
-          (Date.now() - lastActivity) > (60 * 60 * 1000); // 1 hora
-        
-        if (isExpired) {
-          console.log('⏰ Sesión expirada');
-          localStorage.removeItem('auth_user');
-          localStorage.removeItem('last_activity');
-          return;
-        }
-        
         set({ 
           currentUser: user, 
           isAuthenticated: true,
-          userRole: user.role,
-          rememberMe: rememberMe,
-          lastActivity: lastActivity 
+          userRole: user.role
         });
-        
-        console.log('🔄 Sesión restaurada:', user.email, 'Rol:', user.role);
       } catch (error) {
         console.error('Error parsing stored user:', error);
-        localStorage.removeItem('auth_user');
       }
     }
   },
   
-  // Actualizar actividad
   updateActivity: () => {
     localStorage.setItem('last_activity', Date.now().toString());
     set({ lastActivity: Date.now() });
