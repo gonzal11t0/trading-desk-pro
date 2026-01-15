@@ -1,7 +1,7 @@
-/* loginModal.jsx */
+/* loginModal.jsx - VERSIÓN SIMPLIFICADA Y FUNCIONAL */
 
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, AlertCircle, Loader2, Terminal, Key, Smartphone } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Loader2, Smartphone } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 const LoginModal = () => {
@@ -12,25 +12,6 @@ const LoginModal = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [ setShowTooltip] = useState(false);
-  
-  // === SEGURIDAD NIVEL 2: Admin con password extra ===
-  const [adminAccessCode, setAdminAccessCode] = useState('');
-  const [showAdminFeatures, setShowAdminFeatures] = useState(false);
-  const [adminAttempts, setAdminAttempts] = useState(0);
-  const [isAdminLocked, setIsAdminLocked] = useState(false);
-  
-  // === CONFIGURACIÓN SEGURA ===
-  const ADMIN_SECRET_CODE = import.meta.env.VITE_ADMIN_SECRET_CODE || 
-                          (import.meta.env.DEV ? 'dev-secret-' + Date.now() : '');
-  const MAX_ADMIN_ATTEMPTS = 3;
-  const ADMIN_LOCK_TIME = 300000;
-  
-  // === SEGURIDAD NIVEL 3: Solo localhost ===
-  const isLocalhost = import.meta.env.VITE_APP_ENV === 'development' || 
-                   window.location.hostname === 'localhost' || 
-                   window.location.hostname === '127.0.0.1' ||
-                   window.location.hostname.startsWith('192.168.');
 
   // Efecto de entrada
   useEffect(() => {
@@ -39,40 +20,6 @@ const LoginModal = () => {
       document.body.style.overflow = 'auto';
     };
   }, []);
-
-  // Timer para desbloqueo admin
-  useEffect(() => {
-    if (!isAdminLocked) return;
-    const timer = setTimeout(() => {
-      setIsAdminLocked(false);
-      setAdminAttempts(0);
-    }, ADMIN_LOCK_TIME);
-    return () => clearTimeout(timer);
-  }, [isAdminLocked]);
-
-  const handleAdminAccess = () => {
-    if (isAdminLocked) {
-      setError('Modo admin bloqueado. Espera 5 minutos.');
-      return;
-    }
-    
-    if (adminAccessCode === ADMIN_SECRET_CODE) {
-      setShowAdminFeatures(true);
-      setAdminAccessCode('');
-      setError('');
-    } else {
-      const newAttempts = adminAttempts + 1;
-      setAdminAttempts(newAttempts);
-      
-      if (newAttempts >= MAX_ADMIN_ATTEMPTS) {
-        setIsAdminLocked(true);
-        setError(`Demasiados intentos. Modo admin bloqueado por 5 minutos.`);
-      } else {
-        setError(`Código incorrecto. Intentos: ${newAttempts}/${MAX_ADMIN_ATTEMPTS}`);
-      }
-      setAdminAccessCode('');
-    }
-  };
 
   // Si ya está autenticado, no mostrar el modal
   if (isAuthenticated || isChecking) {
@@ -139,75 +86,6 @@ const LoginModal = () => {
           WebkitAnimation: 'slideUp 0.5s ease-out'
         }}>
           
-          {/* === PANEL DE ACCESO ADMIN (SOLO LOCALHOST) === */}
-          {isLocalhost && !showAdminFeatures && (
-            <div className="mb-6" style={{
-              background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 64, 175, 0.5) 100%)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(59, 130, 246, 0.3)',
-              borderRadius: '16px',
-              padding: '16px'
-            }}>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <Terminal className="w-4 h-4" style={{ color: '#93c5fd' }} />
-                  <span className="text-sm font-mono" style={{ color: '#93c5fd' }}>ACCESO ADMINISTRADOR</span>
-                </div>
-                <div className="text-xs px-2 py-1 rounded" style={{ 
-                  background: 'rgba(30, 64, 175, 0.3)',
-                  color: '#93c5fd'
-                }}>LOCAL</div>
-              </div>
-              
-              <div className="space-y-3">
-                <input
-                  type="password"
-                  value={adminAccessCode}
-                  onChange={(e) => setAdminAccessCode(e.target.value)}
-                  placeholder="Código de acceso admin"
-                  className="w-full px-3 py-2 font-mono text-sm rounded"
-                  style={{
-                    background: 'rgba(30, 41, 59, 0.5)',
-                    border: '1px solid rgba(55, 65, 81, 0.5)',
-                    color: 'white'
-                  }}
-                  disabled={isAdminLocked}
-                />
-                
-                <button
-                  onClick={handleAdminAccess}
-                  disabled={!adminAccessCode || isAdminLocked}
-                  className="w-full py-2 text-sm font-medium rounded disabled:opacity-50"
-                  style={{
-                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                    color: 'white'
-                  }}
-                >
-                  {isAdminLocked ? 'BLOQUEADO' : 'ACTIVAR MODO ADMIN'}
-                </button>
-                
-                {adminAttempts > 0 && (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="text-xs" style={{ color: '#9ca3af' }}>
-                      Intentos: {adminAttempts}/{MAX_ADMIN_ATTEMPTS}
-                    </div>
-                    <div className="flex space-x-1">
-                      {[...Array(MAX_ADMIN_ATTEMPTS)].map((_, i) => (
-                        <div 
-                          key={i}
-                          className="w-2 h-2 rounded-full"
-                          style={{
-                            backgroundColor: i < adminAttempts ? '#ef4444' : '#374151'
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Tarjeta de login principal */}
           <div className="relative rounded-2xl shadow-2xl overflow-hidden" style={{
             background: 'rgba(17, 24, 39, 0.8)',
@@ -223,7 +101,7 @@ const LoginModal = () => {
               <div className="text-center">
                 <h2 className="text-2xl font-bold tracking-tight mb-2" style={{ color: 'white' }}>TRADING DESK PRO</h2>
                 <p className="text-sm font-mono" style={{ color: '#9ca3af' }}>
-                  {showAdminFeatures ? 'MODO ADMINISTRADOR' : 'ACCESO SEGURO'}
+                  ACCESO SEGURO
                 </p>
               </div>
             </div>
@@ -231,7 +109,7 @@ const LoginModal = () => {
             {/* Formulario */}
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               
-              {/* Campo Email - MODIFICADO */}
+              {/* Campo Email */}
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-center text-base font-semibold tracking-wide mb-3" style={{ color: '#d1d5db' }}>
                   EMAIL DE ACCESO
@@ -265,18 +143,12 @@ const LoginModal = () => {
                 )}
               </div>
 
-              {/* Campo Contraseña - MODIFICADO */}
+              {/* Campo Contraseña */}
               <div className="space-y-2">
                 <div className="flex items-center justify-center mb-3">
                   <label htmlFor="password" className="block text-center text-base font-semibold tracking-wide" style={{ color: '#d1d5db' }}>
                     CONTRASEÑA
                   </label>
-                  {showAdminFeatures && (
-                    <div className="ml-2 flex items-center text-xs" style={{ color: '#60a5fa' }}>
-                      <Key className="w-3 h-3 mr-1" />
-                      ADMIN
-                    </div>
-                  )}
                 </div>
                 
                 <div className="relative">
@@ -338,9 +210,7 @@ const LoginModal = () => {
               </div>
 
               {/* Recordarme */}
-              <div className="flex items-center justify-center space-x-3 cursor-pointer group relative"
-                   onMouseEnter={() => setShowTooltip(true)}
-                   onMouseLeave={() => setShowTooltip(false)}>
+              <div className="flex items-center justify-center space-x-3 cursor-pointer group">
                 <div className="relative">
                   <input
                     type="checkbox"
@@ -361,7 +231,7 @@ const LoginModal = () => {
                   color: rememberMe ? '#60a5fa' : '#d1d5db',
                   textShadow: rememberMe ? '0 0 10px rgba(96, 165, 250, 0.3)' : 'none'
                 }}>
-                  <span className="mr-2">💾</span> {/* Icono de disquete */}
+                  <span className="mr-2">💾</span>
                   RECORDAR SESIÓN
                 </label>
               </div>
