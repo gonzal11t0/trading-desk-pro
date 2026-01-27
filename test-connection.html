@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Conexión Backend</title>
+    <style>
+        body { font-family: monospace; background: #0a0a0a; color: #fff; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .log { background: #1a1a1a; padding: 10px; border-radius: 5px; margin: 10px 0; }
+        button { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        input { padding: 8px; margin: 5px; width: 300px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Test de Conexión Backend Trading Desk Pro</h1>
+        
+        <div class="log" id="status">
+            <h3>Estado del Backend:</h3>
+            <p id="backend-status">Comprobando...</p>
+        </div>
+        
+        <div class="log">
+            <h3>Prueba de Login:</h3>
+            <input type="email" id="email" placeholder="Email" value="admin@tradingdesk.com"><br>
+            <input type="password" id="password" placeholder="Password" value="Admin@Trading2025!"><br>
+            <button onclick="testLogin()">Test Login</button>
+        </div>
+        
+        <div class="log" id="result"></div>
+        
+        <div class="log">
+            <h3>Endpoints disponibles:</h3>
+            <ul>
+                <li><a href="http://localhost:3001/api/health" target="_blank">GET /api/health</a></li>
+                <li><a href="http://localhost:3001/api/test" target="_blank">GET /api/test</a></li>
+                <li>POST /api/auth/login</li>
+                <li>GET /api/users (requiere token)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Comprobar estado del backend
+        async function checkBackend() {
+            try {
+                const response = await fetch('http://localhost:3001/api/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('backend-status').innerHTML = 
+                        `<span class="success">✅ CONECTADO</span> - ${data.status} - ${data.timestamp}`;
+                } else {
+                    document.getElementById('backend-status').innerHTML = 
+                        `<span class="error">❌ ERROR: ${response.status}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('backend-status').innerHTML = 
+                    `<span class="error">❌ NO CONECTADO: ${error.message}</span>`;
+            }
+        }
+
+        // Probar login
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = '<p>Enviando credenciales...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ LOGIN EXITOSO</h4>
+                            <p><strong>Usuario:</strong> ${data.user.name} (${data.user.role})</p>
+                            <p><strong>Plan:</strong> ${data.user.plan}</p>
+                            <p><strong>Token:</strong> ${data.token.substring(0, 50)}...</p>
+                            <button onclick="testProtectedEndpoint('${data.token}')">Test Endpoint Protegido</button>
+                        </div>
+                    `;
+                    
+                    // Guardar token para pruebas
+                    window.testToken = data.token;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ LOGIN FALLIDO</h4>
+                            <p><strong>Error:</strong> ${data.message || 'Error desconocido'}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ ERROR DE CONEXIÓN</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>Verifica que el backend esté corriendo en puerto 3001</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Probar endpoint protegido
+        async function testProtectedEndpoint(token) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML += '<p>Probando endpoint protegido /api/users...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/users', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML += `
+                        <div class="success">
+                            <p>✅ Endpoint protegido funcionando</p>
+                            <p><strong>Usuarios encontrados:</strong> ${data.users?.length || 0}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML += `
+                        <div class="error">
+                            <p>❌ Error en endpoint protegido: ${data.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML += `
+                    <div class="error">
+                        <p>❌ Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Inicializar
+        checkBackend();
+    </script>
+</body>
+</html>
