@@ -1,89 +1,145 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useState } from 'react';
+import { useAuthStore } from '../stores/authStore';
 
-// Usa ruta RELATIVA para Vercel
-const API_BASE = '/api';
-
+/**
+ * Hook personalizado para manejo de autenticación - VERSIÓN CORREGIDA
+ */
 export const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userData, setUserData] = useState(null);
+  const authStore = useAuthStore();
+  const [isChecking, setIsChecking] = useState(true);
 
-  const checkAuth = useCallback(async () => {
-    const token = localStorage.getItem('jwt_token');
-    if (!token) {
-      setIsAuthenticated(false);
-      return;
-    }
-
+  // Verificar estado de autenticación al montar - CORREGIDO
+useEffect(() => {
+  let mounted = true;
+  
+  const checkAuth = async () => {
+    if (!mounted) return;
+    
     try {
-      const response = await fetch(`${API_BASE}/verify`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      // Inicializar auth desde localStorage
+      authStore.initAuth();
       
-      if (response.ok) {
-        const data = await response.json();
-        setIsAuthenticated(true);
-        setIsAdmin(data.user.plan === 'enterprise');
-        setUserData(data.user);
-      } else {
-        localStorage.removeItem('jwt_token');
-        localStorage.removeItem('user');
-        setIsAuthenticated(false);
+      // Verificar timeout solo si está autenticado
+      if (authStore.isAuthenticated) {
+        const isActive = authStore.checkTimeout();
+        if (!isActive) {
+          authStore.logout();
+        } else {
+          // Actualizar actividad si sigue activo
+          authStore.updateActivity();
+        }
       }
-    } catch (error) {
-      setIsAuthenticated(false);
-    }
-  }, []);
-
-  const login = async (email, password) => {
-    try {
-      const response = await fetch(`${API_BASE}/auth`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        return { success: false, message: error.error };
-      }
-
-      const data = await response.json();
-      
-      localStorage.setItem('jwt_token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      setIsAuthenticated(true);
-      setIsAdmin(data.user.plan === 'enterprise');
-      setUserData(data.user);
-      
-      return { success: true, user: data.user };
       
     } catch (error) {
-      return { success: false, message: 'Error de conexión' };
+      console.error('Error en checkAuth:', error);
+    } finally {
+      if (mounted) {
+        setIsChecking(false);
+      }
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
-    setIsAdmin(false);
-    setUserData(null);
-  };
-
-  useEffect(() => {
+  // Pequeño delay
+  setTimeout(() => {
     checkAuth();
-  }, [checkAuth]);
+  }, 100);
+
+  return () => {
+    mounted = false;
+  };
+}, [authStore]);
+
+  // Actualizar actividad en eventos del usuario - CORREGIDO
+  useEffect(() => {
+    let timeoutId;
+    
+    const updateActivity = () => {
+      if (authStore.isAuthenticated) {
+        // Debounce para no llamar demasiadas veces
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          authStore.updateActivity();
+        }, 1000);
+      }
+    };
+
+    // Solo agregar listeners si está autenticado
+    if (authStore.isAuthenticated) {
+      const events = ['mousedown', 'keydown'];
+      events.forEach(event => {
+        window.addEventListener(event, updateActivity);
+      });
+
+      return () => {
+        events.forEach(event => {
+          window.removeEventListener(event, updateActivity);
+        });
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [authStore.isAuthenticated, authStore]);
+
+  // Función de login - SIMPLIFICADA
+  const login = async (email, password, rememberMe = false) => {
+    try {
+      setIsChecking(true);
+      const result = authStore.login(email, password, rememberMe);
+      
+      if (result.success) {
+        console.log(`✅ Login exitoso: ${email}`);
+        // Pequeño delay para que se actualice el estado
+        setTimeout(() => setIsChecking(false), 100);
+        return { success: true, user: result.user };
+      } else {
+        console.log(`❌ Login fallido: ${email} - ${result.error}`);
+        setIsChecking(false);
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      console.error('Error en login:', error);
+      setIsChecking(false);
+      return { success: false, error: 'Error interno del sistema' };
+    }
+  };
+
+  // Función de logout
+  const logout = () => {
+    authStore.logout();
+    setIsChecking(false);
+  };
 
   return {
-    isAuthenticated,
-    isAdmin,
-    userData,
-    isChecking: false,
+    // Estado
+    isAuthenticated: authStore.isAuthenticated,
+    currentUser: authStore.currentUser,
+    userRole: authStore.userRole,
+    isAdmin: authStore.userRole === 'admin',
+    isChecking,
+    
+    // Métodos
     login,
     logout,
-    checkAuth,
-    getSessionTimeLeft: () => 3600
+    
+    // Utilidades simplificadas
+    checkSession: () => {
+      if (authStore.isAuthenticated) {
+        return authStore.checkTimeout();
+      }
+      return true;
+    },
+    
+    // Tiempo restante de sesión
+    getSessionTimeLeft: () => {
+      if (!authStore.lastActivity || !authStore.isAuthenticated) {
+        return 0;
+      }
+      
+      const timeoutMs = authStore.rememberMe ? 
+        (30 * 24 * 60 * 60 * 1000) : // 30 días
+        (60 * 60 * 1000);           // 60 minutos
+      
+      const timeLeft = timeoutMs - (Date.now() - authStore.lastActivity);
+      return Math.max(0, Math.floor(timeLeft / 1000));
+    }
   };
 };
