@@ -18,7 +18,8 @@ const initialUserDatabase = {
     plan: 'enterprise',
     active: true,
     createdAt: '2024-01-01'
-  }
+  },
+  
 };
 
 // ============================================
