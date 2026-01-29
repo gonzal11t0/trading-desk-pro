@@ -18,18 +18,7 @@ const initialUserDatabase = {
     plan: 'enterprise',
     active: true,
     createdAt: '2024-01-01'
-  },
-  
-  // nuevo@cliente.com:Cliente123!
-  'ZW1haWw9bnVldm9AY2xpZW50ZS5jb20mcGFzcz1DbGllbnRlMTIzIQ==': {
-    email: 'nuevo@cliente.com',
-    name: 'Cliente Nuevo',
-    role: 'client',
-    plan: 'basic',
-    active: true,
-    createdAt: new Date().toISOString().split('T')[0]
   }
-  // gonzalaz@live.com.ar y demo@tradingdesk.com ELIMINADOS
 };
 
 // ============================================
