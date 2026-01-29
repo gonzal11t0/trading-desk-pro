@@ -63,20 +63,12 @@ export const useAuth = () => {
       setIsLoading(true);
       setError('');
 
-      // SOLO 2 USUARIOS - sincronizado con panel admin
       const validCredentials = {
         // admin@tradingdesk.com:Admin@Trading2025!
         'ZW1haWw9YWRtaW5AdHJhZGluZ2Rlc2suY29tJnBhc3M9QWRtaW5AVHJhZGluZzIwMjUh': {
           role: 'admin',
           name: 'Administrador',
           plan: 'enterprise'
-        },
-        
-        // nuevo@cliente.com:Cliente123!
-        'ZW1haWw9bnVldm9AY2xpZW50ZS5jb20mcGFzcz1DbGllbnRlMTIzIQ==': {
-          role: 'client',
-          name: 'Cliente Nuevo',
-          plan: 'basic'
         }
       };
 
