@@ -589,7 +589,7 @@ Datos BCRA: Banco Central de la República Argentina
 Datos financieros: Múltiples proveedores de APIs
 Optimización: Vite Rolldown + Terser
 
-© 2025 Trading Desk Pro. Todos los derechos reservados.
+© 2026 Trading Desk Pro. Todos los derechos reservados.
 
 Última actualización: Enero 2026
 Versión de Documentación: 2.0.0
