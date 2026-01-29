@@ -88,7 +88,7 @@ const login = async (email, password, rememberMe = false) => {
     console.log('📤 Email:', email);
     console.log('📍 Ruta de API:', '/api/auth');
 
-    const response = await fetch('/api/auth', {
+    const response = await fetch('https://tdp-backend-git-main-gonzal11t0s-projects.vercel.app/api/auth', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
