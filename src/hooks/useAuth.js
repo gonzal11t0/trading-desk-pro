@@ -79,59 +79,66 @@ export const useAuth = () => {
     }
   }, [authStore.isAuthenticated, authStore]);
 
-  // Función de login - LLAMANDO AL BACKEND
-  const login = async (email, password, rememberMe = false) => {
-    try {
-      setIsLoading(true);
-      setError('');
-      
-      console.log('🔐 Enviando credenciales al servidor seguro...');
+const login = async (email, password, rememberMe = false) => {
+  try {
+    setIsLoading(true);
+    setError('');
+    
+    console.log('🔐 Enviando credenciales al servidor seguro...');
     console.log('📤 Email:', email);
-      console.log('📍 Ruta de API:', '/api/auth');
-      // IMPORTANTE: La ruta correcta es /api/auth
-      const response = await fetch('/api/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, rememberMe }),
-      });
+    console.log('📍 Ruta de API:', '/api/auth');
 
-        const responseText = await response.text();
+    const response = await fetch('/api/auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password, rememberMe }),
+    });
+
+    // SOLO UNA LECTURA del response
+    const responseText = await response.text();
     console.log('📥 Raw response:', responseText.substring(0, 200));
     console.log('📊 Response status:', response.status);
-    console.log('📊 Response headers:', response.headers);
-      const data = await response.json();
-      
-      if (!data.success) {
-        console.log('❌ Error del servidor:', data.message);
-        throw new Error(data.message || 'Error de autenticación');
-      }
 
-      console.log('✅ Credenciales validadas en el servidor');
-      
-      // Guardar en authStore (sin contraseñas)
-      authStore.loginSuccess(data.user, data.token, rememberMe);
-      
-      // También guardar en localStorage
-      localStorage.setItem('tdp_token', data.token);
-      localStorage.setItem('tdp_user', JSON.stringify(data.user));
-      localStorage.setItem('tdp_remember', rememberMe.toString());
-      localStorage.setItem('last_activity', Date.now().toString());
-      
-      return { success: true, user: data.user };
-      
-    } catch (error) {
-      console.error('Error en login:', error);
-      setError(error.message);
-      return { 
-        success: false, 
-        error: error.message || 'Error de conexión con el servidor' 
-      };
-    } finally {
-      setIsLoading(false);
+    // Intentar parsear como JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);  // ← Parsear desde el TEXTO
+    } catch (jsonError) {
+      console.error('❌ NO ES JSON válido:', responseText.substring(0, 200));
+      throw new Error('El servidor devolvió un formato inválido');
     }
-  };
+    
+    if (!data.success) {
+      console.log('❌ Error del servidor:', data.message);
+      throw new Error(data.message || 'Error de autenticación');
+    }
+
+    console.log('✅ Credenciales validadas en el servidor');
+    
+    // Guardar en authStore (sin contraseñas)
+    authStore.loginSuccess(data.user, data.token, rememberMe);
+    
+    // También guardar en localStorage
+    localStorage.setItem('tdp_token', data.token);
+    localStorage.setItem('tdp_user', JSON.stringify(data.user));
+    localStorage.setItem('tdp_remember', rememberMe.toString());
+    localStorage.setItem('last_activity', Date.now().toString());
+    
+    return { success: true, user: data.user };
+    
+  } catch (error) {
+    console.error('Error en login:', error);
+    setError(error.message);
+    return { 
+      success: false, 
+      error: error.message || 'Error de conexión con el servidor' 
+    };
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Función de logout
   const logout = () => {
