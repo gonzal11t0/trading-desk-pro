@@ -78,67 +78,69 @@ export const useAuth = () => {
       };
     }
   }, [authStore.isAuthenticated, authStore]);
-
 const login = async (email, password, rememberMe = false) => {
   try {
     setIsLoading(true);
     setError('');
     
-    console.log('🔐 Enviando credenciales al servidor seguro...');
-    console.log('📤 Email:', email);
-    console.log('📍 Ruta de API:', '/api/auth');
 
-    const response = await fetch('https://tdp-backend-git-main-gonzal11t0s-projects.vercel.app/api/auth', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password, rememberMe }),
-    });
+    // HASHS CORRECTOS - generados desde tu consola
+    const validCredentials = {
+      // admin@tradingdesk.com:Admin@Trading2025!
+      'ZW1haWw9YWRtaW5AdHJhZGluZ2Rlc2suY29tJnBhc3M9QWRtaW5AVHJhZGluZzIwMjUh': true,
+      
+      // gonzalaz@live.com.ar:M+qFS3!Yt2FM
+      'ZW1haWw9Z29uemFsYXpAbGl2ZS5jb20uYXImcGFzcz1NK3FGUzMhWXQyRk0=': true,
+      
+      // demo@tradingdesk.com:Demo123!
+      'ZW1haWw9ZGVtb0B0cmFkaW5nZGVzay5jb20mcGFzcz1EZW1vMTIzIQ==': true
+    };
 
-    // SOLO UNA LECTURA del response
-    const responseText = await response.text();
-    console.log('📥 Raw response:', responseText.substring(0, 200));
-    console.log('📊 Response status:', response.status);
-
-    // Intentar parsear como JSON
-    let data;
-    try {
-      data = JSON.parse(responseText);  // ← Parsear desde el TEXTO
-    } catch (jsonError) {
-      console.error('❌ NO ES JSON válido:', responseText.substring(0, 200));
-      throw new Error('El servidor devolvió un formato inválido');
+    // Crear hash simple de la credencial
+    const credentialHash = btoa(`email=${email}&pass=${password}`);
+    
+   
+    
+    if (validCredentials[credentialHash]) {
+      
+      const userData = {
+        email: email,
+        name: email === 'admin@tradingdesk.com' ? 'Administrador' : 
+              email === 'gonzalaz@live.com.ar' ? 'Gonzalo' : 'Usuario Demo',
+        role: 'admin',
+        plan: 'enterprise'
+      };
+      
+      const token = 'tdp_' + Date.now() + '_' + Math.random().toString(36).substr(2);
+      
+      // Guardar en authStore
+      authStore.loginSuccess(userData, token, rememberMe);
+      
+      // También guardar en localStorage
+      localStorage.setItem('tdp_token', token);
+      localStorage.setItem('tdp_user', JSON.stringify(data.user));
+      localStorage.setItem('tdp_remember', rememberMe.toString());
+      localStorage.setItem('last_activity', Date.now().toString());
+      
+      return { success: true, user: userData };
+    } else {
+     
+      throw new Error('Credenciales incorrectas');
     }
-    
-    if (!data.success) {
-      console.log('❌ Error del servidor:', data.message);
-      throw new Error(data.message || 'Error de autenticación');
-    }
-
-    console.log('✅ Credenciales validadas en el servidor');
-    
-    // Guardar en authStore (sin contraseñas)
-    authStore.loginSuccess(data.user, data.token, rememberMe);
-    
-    // También guardar en localStorage
-    localStorage.setItem('tdp_token', data.token);
-    localStorage.setItem('tdp_user', JSON.stringify(data.user));
-    localStorage.setItem('tdp_remember', rememberMe.toString());
-    localStorage.setItem('last_activity', Date.now().toString());
-    
-    return { success: true, user: data.user };
     
   } catch (error) {
-    console.error('Error en login:', error);
     setError(error.message);
     return { 
       success: false, 
-      error: error.message || 'Error de conexión con el servidor' 
+      error: error.message || 'Error de autenticación' 
     };
   } finally {
     setIsLoading(false);
   }
 };
+
+
+
 
   // Función de logout
   const logout = () => {

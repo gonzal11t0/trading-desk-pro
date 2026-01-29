@@ -9,21 +9,19 @@ export const useAuthStore = create((set, get) => ({
   rememberMe: false,
   userRole: 'user',
   
-  // NUEVO: Método para cuando el login es exitoso desde el backend
-  loginSuccess: (userData, token, rememberMe) => {
-    console.log('🔄 Actualizando store con datos del backend');
-    
-    set({ 
-      currentUser: userData, 
-      isAuthenticated: true,
-      userRole: userData.role,
-      rememberMe: rememberMe,
-      lastActivity: Date.now()
-    });
-    
-    return { success: true, user: userData };
-  },
-
+loginSuccess: (userData, token, rememberMe) => {
+  console.log('🔄 Login exitoso desde useAuth');
+  
+  set({ 
+    currentUser: userData, 
+    isAuthenticated: true,
+    userRole: userData.role,
+    rememberMe: rememberMe,
+    lastActivity: Date.now()
+  });
+  
+  return { success: true, user: userData };
+},
   // MODIFICADA: Función de login (ahora solo maneja el estado, NO valida)
   login: (email, password, rememberMe = false) => {
     console.log('⚠️ Esta función ya no valida credenciales. Usa el hook useAuth()');
