@@ -1,55 +1,55 @@
+// src/hooks/useAuth.js - VERSIÓN CORREGIDA
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 
-/**
- * Hook personalizado para manejo de autenticación - VERSIÓN CORREGIDA
- */
 export const useAuth = () => {
   const authStore = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Verificar estado de autenticación al montar - CORREGIDO
-useEffect(() => {
-  let mounted = true;
-  
-  const checkAuth = async () => {
-    if (!mounted) return;
+  // Verificar estado de autenticación al montar
+  useEffect(() => {
+    let mounted = true;
     
-    try {
-      // Inicializar auth desde localStorage
-      authStore.initAuth();
+    const checkAuth = async () => {
+      if (!mounted) return;
       
-      // Verificar timeout solo si está autenticado
-      if (authStore.isAuthenticated) {
-        const isActive = authStore.checkTimeout();
-        if (!isActive) {
-          authStore.logout();
-        } else {
-          // Actualizar actividad si sigue activo
-          authStore.updateActivity();
+      try {
+        // Inicializar auth desde localStorage
+        authStore.initAuth();
+        
+        // Verificar timeout solo si está autenticado
+        if (authStore.isAuthenticated) {
+          const isActive = authStore.checkTimeout();
+          if (!isActive) {
+            authStore.logout();
+          } else {
+            // Actualizar actividad si sigue activo
+            authStore.updateActivity();
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error en checkAuth:', error);
+      } finally {
+        if (mounted) {
+          setIsChecking(false);
         }
       }
-      
-    } catch (error) {
-      console.error('Error en checkAuth:', error);
-    } finally {
-      if (mounted) {
-        setIsChecking(false);
-      }
-    }
-  };
+    };
 
-  // Pequeño delay
-  setTimeout(() => {
-    checkAuth();
-  }, 100);
+    // Pequeño delay
+    setTimeout(() => {
+      checkAuth();
+    }, 100);
 
-  return () => {
-    mounted = false;
-  };
-}, [authStore]);
+    return () => {
+      mounted = false;
+    };
+  }, [authStore]);
 
-  // Actualizar actividad en eventos del usuario - CORREGIDO
+  // Actualizar actividad en eventos del usuario
   useEffect(() => {
     let timeoutId;
     
@@ -79,26 +79,52 @@ useEffect(() => {
     }
   }, [authStore.isAuthenticated, authStore]);
 
-  // Función de login - SIMPLIFICADA
+  // Función de login - LLAMANDO AL BACKEND
   const login = async (email, password, rememberMe = false) => {
     try {
-      setIsChecking(true);
-      const result = authStore.login(email, password, rememberMe);
+      setIsLoading(true);
+      setError('');
       
-      if (result.success) {
-        console.log(`✅ Login exitoso: ${email}`);
-        // Pequeño delay para que se actualice el estado
-        setTimeout(() => setIsChecking(false), 100);
-        return { success: true, user: result.user };
-      } else {
-        console.log(`❌ Login fallido: ${email} - ${result.error}`);
-        setIsChecking(false);
-        return { success: false, error: result.error };
+      console.log('🔐 Enviando credenciales al servidor seguro...');
+
+      // IMPORTANTE: La ruta correcta es /api/auth
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, rememberMe }),
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        console.log('❌ Error del servidor:', data.message);
+        throw new Error(data.message || 'Error de autenticación');
       }
+
+      console.log('✅ Credenciales validadas en el servidor');
+      
+      // Guardar en authStore (sin contraseñas)
+      authStore.loginSuccess(data.user, data.token, rememberMe);
+      
+      // También guardar en localStorage
+      localStorage.setItem('tdp_token', data.token);
+      localStorage.setItem('tdp_user', JSON.stringify(data.user));
+      localStorage.setItem('tdp_remember', rememberMe.toString());
+      localStorage.setItem('last_activity', Date.now().toString());
+      
+      return { success: true, user: data.user };
+      
     } catch (error) {
       console.error('Error en login:', error);
-      setIsChecking(false);
-      return { success: false, error: 'Error interno del sistema' };
+      setError(error.message);
+      return { 
+        success: false, 
+        error: error.message || 'Error de conexión con el servidor' 
+      };
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -115,6 +141,8 @@ useEffect(() => {
     userRole: authStore.userRole,
     isAdmin: authStore.userRole === 'admin',
     isChecking,
+    isLoading,
+    error,
     
     // Métodos
     login,
