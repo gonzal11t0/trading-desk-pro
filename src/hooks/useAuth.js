@@ -86,7 +86,8 @@ export const useAuth = () => {
       setError('');
       
       console.log('🔐 Enviando credenciales al servidor seguro...');
-
+    console.log('📤 Email:', email);
+      console.log('📍 Ruta de API:', '/api/auth');
       // IMPORTANTE: La ruta correcta es /api/auth
       const response = await fetch('/api/auth', {
         method: 'POST',
@@ -96,6 +97,10 @@ export const useAuth = () => {
         body: JSON.stringify({ email, password, rememberMe }),
       });
 
+        const responseText = await response.text();
+    console.log('📥 Raw response:', responseText.substring(0, 200));
+    console.log('📊 Response status:', response.status);
+    console.log('📊 Response headers:', response.headers);
       const data = await response.json();
       
       if (!data.success) {
