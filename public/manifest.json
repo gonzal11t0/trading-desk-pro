@@ -1,0 +1,9 @@
+{
+  "name": "Trading Desk Pro",
+  "short_name": "TradingDesk",
+  "description": "Dashboard financiero profesional con datos en tiempo real",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000"
+}
