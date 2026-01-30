@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { ExternalLink, Maximize2, RefreshCw, Play, Pause } from 'lucide-react'
 
+
 // Mover configuraciones fuera del componente
 const CHART_CONFIGS = [
   {
@@ -124,6 +125,7 @@ const ChartCard = React.memo(({
 
   const categoryIcon = CATEGORY_ICONS[chart.category] || '📈'
 
+  
   return (
     <div 
       className="group relative rounded-xl overflow-hidden border border-gray-700/50 bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-sm transition-all duration-500 hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/10 hover:scale-[1.02]"
@@ -225,7 +227,40 @@ const ChartCard = React.memo(({
 const useTradingView = () => {
   const chartsInitialized = useRef(false)
   const [isRefreshing, setIsRefreshing] = useState({})
-
+  useEffect(() => {
+    // Silenciar errores de TradingView en desarrollo
+    if (process.env.NODE_ENV === 'development') {
+      const originalError = console.error;
+      const originalWarn = console.warn;
+      
+      console.error = (...args) => {
+        if (args[0] && typeof args[0] === 'string') {
+          if (args[0].includes('TradingView') && 
+              (args[0].includes('telemetry') || 
+               args[0].includes('support-portal') ||
+               args[0].includes('Couldn\'t load support portal'))) {
+            return; // Silencia errores específicos de TradingView
+          }
+        }
+        originalError.apply(console, args);
+      };
+      
+      console.warn = (...args) => {
+        if (args[0] && typeof args[0] === 'string') {
+          if (args[0].includes('TradingView') || 
+              args[0].includes('Chart.DataProblemModel')) {
+            return; // Silencia warnings específicos de TradingView
+          }
+        }
+        originalWarn.apply(console, args);
+      };
+      
+      return () => {
+        console.error = originalError;
+        console.warn = originalWarn;
+      };
+    }
+  }, []); 
   const initializeChart = useCallback((chartConfig) => {
     const container = document.getElementById(`tradingview_${chartConfig.id}`)
     if (!container) return

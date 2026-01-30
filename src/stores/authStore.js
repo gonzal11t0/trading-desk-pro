@@ -70,7 +70,6 @@ loginSuccess: (userData, token, rememberMe) => {
           lastActivity: parseInt(localStorage.getItem('last_activity') || Date.now().toString())
         });
         
-        console.log('✅ Sesión recuperada para:', user.email);
       } catch (error) {
         console.error('Error parsing stored user:', error);
         get().logout();

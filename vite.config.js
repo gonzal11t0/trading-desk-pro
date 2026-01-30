@@ -17,6 +17,26 @@ export default defineConfig({
     port: 5173,
     host: true,
     proxy: {
+        '/api/coingecko': {
+        target: 'https://api.coingecko.com/api/v3',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/coingecko/, '')
+      },
+      '/api/argentinadatos': {
+        target: 'https://mercados.ambito.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/argentina-datos/, '')
+      },
+      '/api/estadisticasbcra': {
+        target: 'https://api.estadisticasbcra.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/estadisticasbcra/, '')
+      },
+      '/api/bcrae': {
+        target: 'https://api.bcra.gob.ar/estadisticas/v4.0',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/bcra/, '')
+      },
       '/api/argentina-datos': {
         target: 'https://api.argentinadatos.com',
         changeOrigin: true,
@@ -90,7 +110,13 @@ export default defineConfig({
       '/api/cedears': {
         target: 'https://api.financialmodelingprep.com/v3',
         changeOrigin: true
-      }
+      },
+      '/api/eoddata': {
+  target: 'https://api.eoddata.com',
+  changeOrigin: true,
+  rewrite: (path) => path.replace(/^\/api\/eoddata/, '')
+  // ELIMINA el bloque 'configure' - no funciona así en Vite
+}
     }
   },
   
@@ -140,6 +166,9 @@ export default defineConfig({
         }
       }
     },
+    input: {
+        main: './index.html'
+      },
     chunkSizeWarningLimit: 800,
     minify: 'terser',
     terserOptions: {

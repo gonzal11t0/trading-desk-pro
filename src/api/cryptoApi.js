@@ -24,20 +24,20 @@ export const fetchCryptoPrice = async (symbol) => {
  */
 const fetchCoinGeckoData = async (symbol) => {
   try {
-    const response = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${symbol}&vs_currencies=usd&include_24hr_change=true`,
-      { timeout: 5000 }
-    );
+    // URL CORREGIDA - Usa el parámetro symbol
+    const response = await fetch(`/api/coingecko/simple/price?ids=${symbol}&vs_currencies=usd&include_24hr_change=true`);
     
     if (!response.ok) return null;
     
     const data = await response.json();
     const cryptoData = data[symbol];
     
-    if (cryptoData?.usd !== undefined && cryptoData?.usd_24h_change !== undefined) {
+    // Asegúrate que los datos existen
+    if (cryptoData && cryptoData.usd !== undefined) {
       return {
         price: cryptoData.usd,
-        change: cryptoData.usd_24h_change
+        change: cryptoData.usd_24h_change || 0,
+        name: symbol.charAt(0).toUpperCase() + symbol.slice(1)
       };
     }
     
