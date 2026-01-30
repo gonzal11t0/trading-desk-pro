@@ -185,18 +185,11 @@ Performance optimizations
  Comercialización
 
 Modelos de Venta:
-SaaS Mensual: $49-$299/mes
 
-Licencia de Código: $2,999 (único pago)
+Uso completo 20 USD/Mensual
 
-Consultoría: $3,000-$10,000 (implementación custom)
 
-Planes Disponibles:
-Básico ($49/mes): Dashboard BCRA + 3 gráficos
 
-Pro ($99/mes): 9 gráficos + alertas + histórico
-
-Enterprise ($299/mes): White-label + API + Soporte 24/7
  Contribuir
 Las contribuciones son bienvenidas. Por favor:
 

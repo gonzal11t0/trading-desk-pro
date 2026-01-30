@@ -64,7 +64,6 @@ export const useAuth = () => {
       setError('');
 
       const validCredentials = {
-        // admin@tradingdesk.com:Admin@Trading2025!
         'ZW1haWw9YWRtaW5AdHJhZGluZ2Rlc2suY29tJnBhc3M9QWRtaW5AVHJhZGluZzIwMjUh': {
           role: 'admin',
           name: 'Administrador',

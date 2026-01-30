@@ -10,7 +10,6 @@ import { generatePasswordForClient } from '../../utils/passwordGenerator'
 // BASE DE DATOS DE USUARIOS - Sincronizada con useAuth.js
 // ============================================
 const initialUserDatabase = {
-  // admin@tradingdesk.com:Admin@Trading2025!
   'ZW1haWw9YWRtaW5AdHJhZGluZ2Rlc2suY29tJnBhc3M9QWRtaW5AVHJhZGluZzIwMjUh': {
     email: 'admin@tradingdesk.com',
     name: 'Administrador',
