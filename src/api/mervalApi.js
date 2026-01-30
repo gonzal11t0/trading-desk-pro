@@ -6,7 +6,7 @@
  */
 export const fetchMervalData = async () => {
   try {
-    // Intentar API principal (BCRA)
+    // Intentar API principal (BCRA) VIA PROXY
     const bcraData = await fetchMervalFromBCRA();
     if (bcraData) return bcraData;
     
@@ -22,15 +22,11 @@ export const fetchMervalData = async () => {
   }
 };
 
-/**
- * Obtiene datos MERVAL desde API BCRA
- */
 const fetchMervalFromBCRA = async () => {
   try {
-    const response = await fetch(
-      'https://api.estadisticasbcra.com/api/merval',
-      { timeout: 8000 }
-    );
+    // USAR PROXY EN LUGAR DE LLAMADA DIRECTA
+    const encodedUrl = encodeURIComponent('https://api.estadisticasbcra.com/api/merval');
+    const response = await fetch(`/api/proxy?url=${encodedUrl}`);
     
     if (!response.ok) return null;
     
