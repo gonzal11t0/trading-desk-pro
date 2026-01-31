@@ -260,21 +260,7 @@ const RiskCountryModule = () => {
           </div>
         )}
 
-        {/* Separador */}
-        <div className="border-t border-gray-700/30 pt-3 md:pt-4">
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-500">Fuente oficial</span>
-            <a 
-              href="https://argentinadatos.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
-            >
-              ArgentinaDatos.com
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </div>
+
 
         {/* Indicador de estado */}
         <div className="flex justify-between items-center pt-3 md:pt-4 border-t border-gray-700/30">
