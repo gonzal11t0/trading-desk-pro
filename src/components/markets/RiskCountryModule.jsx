@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRiskCountry } from '../../hooks/useRiskCountry';
+import { AlertTriangle, RefreshCw, TrendingUp, ExternalLink, Shield } from 'lucide-react';
 
 const RiskCountryModule = () => {
   const { data, loading, error, lastUpdated, refresh } = useRiskCountry();
@@ -42,64 +43,69 @@ const RiskCountryModule = () => {
     return 'low';
   };
 
-  // Determinar colores según nivel
-  const getRiskColors = (level) => {
+  // Determinar clases Tailwind según nivel
+  const getRiskClasses = (level) => {
     switch(level) {
       case 'critical':
         return {
-          bg: '#1f0000',
-          border: '#ff000033',
-          text: '#ff5555',
-          badgeBg: '#ff000033',
-          badgeText: '#ff9999',
-          icon: '#ff4444',
-          value: '#ff7777'
+          bg: 'bg-red-950/20',
+          border: 'border-red-900/30',
+          text: 'text-red-400',
+          badgeBg: 'bg-red-900/30',
+          badgeText: 'text-red-300',
+          icon: 'text-red-500',
+          value: 'text-red-400',
+          gradient: 'from-red-900/10 to-red-950/5'
         };
       case 'high':
         return {
-          bg: '#1f0f00',
-          border: '#ff880033',
-          text: '#ffaa55',
-          badgeBg: '#ff880033',
-          badgeText: '#ffcc99',
-          icon: '#ff9944',
-          value: '#ffbb77'
+          bg: 'bg-orange-950/20',
+          border: 'border-orange-900/30',
+          text: 'text-orange-400',
+          badgeBg: 'bg-orange-900/30',
+          badgeText: 'text-orange-300',
+          icon: 'text-orange-500',
+          value: 'text-orange-400',
+          gradient: 'from-orange-900/10 to-orange-950/5'
         };
       case 'medium':
         return {
-          bg: '#1f1f00',
-          border: '#ffff0033',
-          text: '#ffff55',
-          badgeBg: '#ffff0033',
-          badgeText: '#ffff99',
-          icon: '#ffff44',
-          value: '#ffff77'
+          bg: 'bg-yellow-950/20',
+          border: 'border-yellow-900/30',
+          text: 'text-yellow-400',
+          badgeBg: 'bg-yellow-900/30',
+          badgeText: 'text-yellow-300',
+          icon: 'text-yellow-500',
+          value: 'text-yellow-400',
+          gradient: 'from-yellow-900/10 to-yellow-950/5'
         };
       case 'low':
         return {
-          bg: '#001f00',
-          border: '#00ff0033',
-          text: '#55ff55',
-          badgeBg: '#00ff0033',
-          badgeText: '#99ff99',
-          icon: '#44ff44',
-          value: '#77ff77'
+          bg: 'bg-green-950/20',
+          border: 'border-green-900/30',
+          text: 'text-green-400',
+          badgeBg: 'bg-green-900/30',
+          badgeText: 'text-green-300',
+          icon: 'text-green-500',
+          value: 'text-green-400',
+          gradient: 'from-green-900/10 to-green-950/5'
         };
       default:
         return {
-          bg: '#0f0f0f',
-          border: '#66666633',
-          text: '#aaaaaa',
-          badgeBg: '#66666633',
-          badgeText: '#cccccc',
-          icon: '#888888',
-          value: '#bbbbbb'
+          bg: 'bg-gray-900/20',
+          border: 'border-gray-700/30',
+          text: 'text-gray-400',
+          badgeBg: 'bg-gray-800/30',
+          badgeText: 'text-gray-300',
+          icon: 'text-gray-500',
+          value: 'text-gray-400',
+          gradient: 'from-gray-800/10 to-gray-900/5'
         };
     }
   };
 
   const riskLevel = getRiskLevel(data?.valor);
-  const colors = getRiskColors(riskLevel);
+  const riskClasses = getRiskClasses(riskLevel);
   const riskLabels = {
     critical: 'CRÍTICO',
     high: 'ALTO',
@@ -108,237 +114,29 @@ const RiskCountryModule = () => {
     unknown: 'DESCONOCIDO'
   };
 
-  // Estilos base
-  const styles = {
-    container: {
-      backgroundColor: 'rgb(26, 26, 26)',
-      backdropFilter: 'blur(10px)',
-      borderRadius: '12px',
-      border: `1px solid ${colors.border}`,
-      padding: '20px',
-      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
-      transition: 'all 0.3s ease',
-      fontFamily: "'Inter', 'Segoe UI', sans-serif"
-    },
-    header: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      marginBottom: '24px'
-    },
-    titleContainer: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px'
-    },
-    iconWrapper: {
-      background: `${colors.bg}`,
-      padding: '10px',
-      borderRadius: '10px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
-    titleText: {
-      color: '#ffffff',
-      fontSize: '18px',
-      fontWeight: '600',
-      margin: 0,
-      lineHeight: '1.2'
-    },
-    subtitle: {
-      color: '#888888',
-      fontSize: '14px',
-      margin: '4px 0 0 0'
-    },
-    badge: {
-      background: colors.badgeBg,
-      color: colors.badgeText,
-      padding: '4px 10px',
-      borderRadius: '20px',
-      fontSize: '11px',
-      fontWeight: '700',
-      textTransform: 'uppercase',
-      letterSpacing: '0.5px'
-    },
-    statusBadge: {
-      padding: '4px 10px',
-      borderRadius: '20px',
-      fontSize: '11px',
-      fontWeight: '600',
-      textTransform: 'uppercase'
-    },
-    valueContainer: {
-      marginBottom: '24px'
-    },
-    valueRow: {
-      display: 'flex',
-      alignItems: 'baseline',
-      justifyContent: 'space-between',
-      marginBottom: '4px'
-    },
-    value: {
-      color: colors.value,
-      fontSize: '42px',
-      fontWeight: '700',
-      lineHeight: '1'
-    },
-    unit: {
-      color: '#888888',
-      fontSize: '18px',
-      marginLeft: '8px'
-    },
-    valueLabel: {
-      color: '#666666',
-      fontSize: '14px',
-      marginTop: '4px'
-    },
-    infoRow: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      fontSize: '14px',
-      marginBottom: '12px'
-    },
-    infoLabel: {
-      color: '#888888',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px'
-    },
-    infoValue: {
-      color: '#ffffff',
-      fontWeight: '500',
-      textAlign: 'right'
-    },
-    timeValue: {
-      color: '#aaaaaa',
-      fontSize: '12px',
-      display: 'block'
-    },
-    separator: {
-      borderTop: '1px solid rgba(100, 100, 100, 0.3)',
-      paddingTop: '12px',
-      marginTop: '12px'
-    },
-    sourceRow: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      fontSize: '12px'
-    },
-    sourceLabel: {
-      color: '#666666'
-    },
-    sourceLink: {
-      color: '#4dabf7',
-      textDecoration: 'none',
-      fontWeight: '500'
-    },
-    statusRow: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginTop: '16px',
-      paddingTop: '12px',
-      borderTop: '1px solid rgba(100, 100, 100, 0.3)'
-    },
-    statusIndicator: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      fontSize: '12px'
-    },
-    statusDot: {
-      width: '8px',
-      height: '8px',
-      borderRadius: '50%'
-    },
-    statusText: {
-      color: '#888888'
-    },
-    refreshButton: {
-      background: 'rgba(100, 100, 100, 0.2)',
-      color: '#cccccc',
-      border: 'none',
-      padding: '6px 12px',
-      borderRadius: '6px',
-      fontSize: '12px',
-      fontWeight: '500',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease'
-    },
-    controlButtons: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px'
-    },
-    smallButton: {
-      background: 'transparent',
-      border: 'none',
-      padding: '6px',
-      borderRadius: '6px',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
-    loadingContainer: {
-      textAlign: 'center',
-      padding: '24px 0'
-    },
-    loadingText: {
-      color: '#888888',
-      fontSize: '14px',
-      marginTop: '8px'
-    },
-    errorContainer: {
-      textAlign: 'center',
-      padding: '16px 0'
-    },
-    errorText: {
-      color: '#ff5555',
-      fontSize: '14px',
-      fontWeight: '500',
-      marginBottom: '12px'
-    },
-    retryButton: {
-      background: 'rgba(255, 85, 85, 0.1)',
-      color: '#ff9999',
-      border: '1px solid rgba(255, 85, 85, 0.3)',
-      padding: '8px 16px',
-      borderRadius: '6px',
-      fontSize: '13px',
-      fontWeight: '500',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease'
-    }
-  };
-
   // Estado de la fuente
   const getSourceConfig = (source) => {
     switch(source) {
       case 'argentinaDatos':
         return {
-          color: '#00ff0033',
-          text: '#00ff00',
+          bg: 'bg-green-900/30',
+          text: 'text-green-400',
           label: 'LIVE',
-          dotColor: '#00ff00'
+          dotColor: 'bg-green-500'
         };
       case 'cache':
         return {
-          color: '#0088ff33',
-          text: '#88bbff',
+          bg: 'bg-blue-900/30',
+          text: 'text-blue-400',
           label: 'CACHÉ',
-          dotColor: '#0088ff'
+          dotColor: 'bg-blue-500'
         };
       default:
         return {
-          color: '#66666633',
-          text: '#aaaaaa',
+          bg: 'bg-gray-800/30',
+          text: 'text-gray-400',
           label: 'MOCK',
-          dotColor: '#888888'
+          dotColor: 'bg-gray-500'
         };
     }
   };
@@ -347,38 +145,22 @@ const RiskCountryModule = () => {
 
   if (loading) {
     return (
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <div style={styles.titleContainer}>
-            <div style={{...styles.iconWrapper, background: 'rgba(255, 85, 85, 0.1)'}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff5555" strokeWidth="2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
+      <div className={`bg-gray-900/30 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-gray-700/50 min-w-0 animate-pulse`}>
+        <div className="flex justify-between items-start mb-4 md:mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-red-900/20 rounded-lg">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
             </div>
             <div>
-              <h3 style={styles.titleText}>Riesgo País</h3>
-              <p style={styles.subtitle}>EMBI+ Argentina</p>
+              <h3 className="text-white text-lg md:text-xl font-semibold">Riesgo País</h3>
+              <p className="text-gray-400 text-sm">EMBI+ Argentina</p>
             </div>
           </div>
-          <div style={{animation: 'spin 1s linear infinite'}}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888888" strokeWidth="2">
-              <path d="M21 12a9 9 0 11-6.219-8.56"/>
-            </svg>
-          </div>
+          <RefreshCw className="w-4 h-4 text-gray-500 animate-spin" />
         </div>
-        <div style={styles.loadingContainer}>
-          <div style={{
-            display: 'inline-block',
-            background: 'rgba(100, 100, 100, 0.3)',
-            height: '40px',
-            width: '120px',
-            borderRadius: '8px',
-            animation: 'pulse 1.5s ease-in-out infinite',
-            marginBottom: '8px'
-          }}></div>
-          <p style={styles.loadingText}>Cargando datos...</p>
+        <div className="text-center py-8">
+          <div className="h-10 bg-gray-800/50 rounded-lg w-32 mx-auto mb-3"></div>
+          <p className="text-gray-500 text-sm">Cargando datos...</p>
         </div>
       </div>
     );
@@ -386,29 +168,23 @@ const RiskCountryModule = () => {
 
   if (error) {
     return (
-      <div style={{...styles.container, borderColor: '#ff000033'}}>
-        <div style={styles.header}>
-          <div style={styles.titleContainer}>
-            <div style={{...styles.iconWrapper, background: 'rgba(255, 85, 85, 0.1)'}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff5555" strokeWidth="2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
+      <div className="bg-gray-900/30 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-red-900/30 min-w-0">
+        <div className="flex justify-between items-start mb-4 md:mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-red-900/20 rounded-lg">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
             </div>
             <div>
-              <h3 style={styles.titleText}>Riesgo País</h3>
-              <p style={styles.subtitle}>EMBI+ Argentina</p>
+              <h3 className="text-white text-lg md:text-xl font-semibold">Riesgo País</h3>
+              <p className="text-gray-400 text-sm">EMBI+ Argentina</p>
             </div>
           </div>
         </div>
-        <div style={styles.errorContainer}>
-          <p style={styles.errorText}>Error cargando datos</p>
+        <div className="text-center py-6">
+          <p className="text-red-400 font-medium mb-4">Error cargando datos</p>
           <button 
             onClick={refresh}
-            style={styles.retryButton}
-            onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 85, 85, 0.2)'}
-            onMouseOut={e => e.currentTarget.style.background = 'rgba(255, 85, 85, 0.1)'}
+            className="px-4 py-2 bg-red-900/20 text-red-300 border border-red-800/30 rounded-lg text-sm hover:bg-red-900/30 transition-colors"
           >
             Reintentar
           </button>
@@ -419,132 +195,105 @@ const RiskCountryModule = () => {
 
   return (
     <div 
-      style={styles.container}
-      onMouseOver={e => {
-        e.currentTarget.style.borderColor = colors.border.replace('33', '66');
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.6)';
-      }}
-      onMouseOut={e => {
-        e.currentTarget.style.borderColor = colors.border;
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.5)';
-      }}
+      className={`bg-gradient-to-br ${riskClasses.gradient} backdrop-blur-sm rounded-xl p-4 md:p-6 border ${riskClasses.border} min-w-0 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-xl`}
     >
       {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.titleContainer}>
-          <div style={styles.iconWrapper}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={colors.icon} strokeWidth="2">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              <line x1="12" y1="9" x2="12" y2="13"/>
-              <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
+      <div className="flex justify-between items-start mb-4 md:mb-6 min-w-0">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className={`p-3 ${riskClasses.bg} rounded-lg flex-shrink-0`}>
+            <AlertTriangle className={`w-5 h-5 ${riskClasses.icon}`} />
           </div>
-          <div>
-            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-              <h3 style={styles.titleText}>Riesgo País</h3>
-              <span style={styles.badge}>{riskLabels[riskLevel]}</span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-white text-lg md:text-xl font-semibold truncate min-w-0">Riesgo País</h3>
+              <span className={`px-2 py-1 ${riskClasses.badgeBg} ${riskClasses.badgeText} rounded-full text-xs font-bold uppercase flex-shrink-0`}>
+                {riskLabels[riskLevel]}
+              </span>
             </div>
-            <p style={styles.subtitle}>EMBI+ Argentina</p>
+            <p className="text-gray-400 text-sm">EMBI+ Argentina</p>
           </div>
         </div>
         
-        <div style={styles.controlButtons}>
-          <span style={{...styles.statusBadge, background: sourceConfig.color, color: sourceConfig.text}}>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className={`px-2 py-1 ${sourceConfig.bg} ${sourceConfig.text} rounded-full text-xs font-medium uppercase`}>
             {sourceConfig.label}
           </span>
           <button 
-            style={{...styles.smallButton, background: colors.bg}}
             onClick={refresh}
+            className={`p-2 ${riskClasses.bg} rounded-lg hover:opacity-80 transition-opacity`}
             title="Actualizar"
-            onMouseOver={e => e.currentTarget.style.background = colors.bg.replace('1f', '2f')}
-            onMouseOut={e => e.currentTarget.style.background = colors.bg}
           >
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke={colors.text} 
-              strokeWidth="2"
-              style={{transition: 'transform 0.3s ease'}}
-              onMouseOver={e => e.currentTarget.style.transform = 'rotate(180deg)'}
-              onMouseOut={e => e.currentTarget.style.transform = 'rotate(0deg)'}
-            >
-              <path d="M23 4v6h-6"/>
-              <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
-            </svg>
+            <RefreshCw className={`w-4 h-4 ${riskClasses.text}`} />
           </button>
         </div>
       </div>
 
       {/* Valor Principal */}
-      <div style={styles.valueContainer}>
-        <div style={styles.valueRow}>
-          <div>
-            <span style={styles.value}>
+      <div className="mb-4 md:mb-6">
+        <div className="flex justify-between items-baseline mb-1">
+          <div className="flex items-baseline gap-2">
+            <span className={`${riskClasses.value} text-3xl md:text-4xl font-bold`}>
               {data?.valor?.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) || 'N/A'}
             </span>
-            <span style={styles.unit}>puntos</span>
+            <span className="text-gray-500 text-lg md:text-xl">puntos</span>
           </div>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888888" strokeWidth="2">
-            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
-            <polyline points="17 6 23 6 23 12"/>
-          </svg>
+          <TrendingUp className="w-5 h-5 text-gray-500" />
         </div>
-        <p style={styles.valueLabel}>Valor EMBI+</p>
+        <p className="text-gray-500 text-sm">Valor EMBI+</p>
       </div>
 
       {/* Información adicional */}
-      <div>
+      <div className="space-y-3 md:space-y-4">
+        {/* Fecha de actualización */}
+        {lastUpdated && (
+          <div className="flex justify-between items-center text-sm">
+            <div className="flex items-center gap-2 text-gray-500">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Actualizado</span>
+            </div>
+            <div className="text-right">
+              <span className="text-white font-medium">{formatDate(lastUpdated)}</span>
+              <span className="text-gray-400 text-xs block">{formatTime(lastUpdated)}</span>
+            </div>
+          </div>
+        )}
 
-
-        <div style={styles.separator}>
-          <div style={styles.sourceRow}>
-            <span style={styles.sourceLabel}>Fuente oficial</span>
+        {/* Separador */}
+        <div className="border-t border-gray-700/30 pt-3 md:pt-4">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-500">Fuente oficial</span>
             <a 
               href="https://argentinadatos.com" 
               target="_blank" 
               rel="noopener noreferrer"
-              style={styles.sourceLink}
-              onMouseOver={e => e.currentTarget.style.color = '#6bc5ff'}
-              onMouseOut={e => e.currentTarget.style.color = '#4dabf7'}
+              className="text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
             >
               ArgentinaDatos.com
+              <ExternalLink className="w-3 h-3" />
             </a>
           </div>
         </div>
 
         {/* Indicador de estado */}
-        <div style={styles.statusRow}>
-          <div style={styles.statusIndicator}>
-          
+        <div className="flex justify-between items-center pt-3 md:pt-4 border-t border-gray-700/30">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 ${sourceConfig.dotColor} rounded-full`}></div>
+            <span className="text-gray-500 text-xs">
+              {data?.source === 'argentinaDatos' ? 'Datos en vivo' : 'Datos cacheados'}
+            </span>
           </div>
           {data?.source !== 'argentinaDatos' && (
             <button
               onClick={refresh}
-              style={styles.refreshButton}
-              onMouseOver={e => e.currentTarget.style.background = 'rgba(100, 100, 100, 0.3)'}
-              onMouseOut={e => e.currentTarget.style.background = 'rgba(100, 100, 100, 0.2)'}
+              className="px-3 py-1.5 bg-gray-800/50 text-gray-300 text-xs rounded-lg hover:bg-gray-700/50 transition-colors"
             >
               Forzar actualización
             </button>
           )}
         </div>
       </div>
-
-      {/* Animaciones CSS inline */}
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
     </div>
   );
 };

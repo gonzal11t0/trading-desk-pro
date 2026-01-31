@@ -1,11 +1,10 @@
-/* exchangebandsModule*/
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Calendar, RefreshCw, Info } from 'lucide-react';
+import { TrendingUp, TrendingDown, Calendar, RefreshCw, Info, Minus } from 'lucide-react';
 import inflationApi from '../../api/inflationApi';
 
 const ExchangeBandsModule = () => {
   const [loading, setLoading] = useState(true);
-  const [ setIpcData] = useState([]); // ✅ CORREGIDO: Añadí la variable de estado
+  const [ipcData, setIpcData] = useState([]);
   const [bandasData, setBandasData] = useState({
     piso: 915.66,
     techo: 1527.61,
@@ -43,10 +42,8 @@ const ExchangeBandsModule = () => {
     setLoading(true);
     
     try {
-      // 1. Obtener datos IPC de tu API
       const ipcHistorico = await inflationApi.getLastMonthsInflation(12);
       
-      // Formatear datos para nuestro uso
       const formattedIpcData = ipcHistorico.map(item => ({
         month: item.date ? item.date.slice(0, 7) : '',
         value: item.values?.monthly || 0,
@@ -55,33 +52,28 @@ const ExchangeBandsModule = () => {
       
       setIpcData(formattedIpcData);
       
-      // 2. Determinar mes t-2
       const mesTMinus2 = getMonthTMinus2();
       
-      // 3. Obtener IPC[t-2]
       let ipcValor = 0;
       const ipcEncontrado = formattedIpcData.find(item => item.month === mesTMinus2);
       
       if (ipcEncontrado) {
         ipcValor = ipcEncontrado.value;
       } else {
-        // Si no encuentra exacto, usar el último disponible
         ipcValor = formattedIpcData[0]?.value || 2.1;
       }
       
-      // 4. Calcular bandas ajustadas
       const basePiso = 915.66;
       const baseTecho = 1527.61;
       
       const bandasCalculadas = calcularBandasConIPC(basePiso, baseTecho, ipcValor);
       
-      // 5. Actualizar estado
       setBandasData({
         piso: basePiso,
         techo: baseTecho,
         pisoCalculado: bandasCalculadas.pisoCalculado,
         techoCalculado: bandasCalculadas.techoCalculado,
-        fechaActualizacion: new Date().toISOString().split('T')[0],
+        fechaActualizacion: new Date().toLocaleDateString('es-AR'),
         ipcUtilizado: ipcValor,
         ipcMesReferencia: mesTMinus2,
         variacionMensual: {
@@ -91,7 +83,6 @@ const ExchangeBandsModule = () => {
       });
       
     } catch (error) {
-      // Fallback a valores estáticos si hay error
       setBandasData(prev => ({
         ...prev,
         pisoCalculado: 933.50,
@@ -107,7 +98,6 @@ const ExchangeBandsModule = () => {
   useEffect(() => {
     cargarDatosBandas();
     
-    // Actualizar automáticamente cada hora
     const interval = setInterval(() => {
       cargarDatosBandas();
     }, 3600000);
@@ -115,216 +105,148 @@ const ExchangeBandsModule = () => {
     return () => clearInterval(interval);
   }, []);
 
+  if (loading) {
+    return (
+      <div className="bg-gray-900/30 backdrop-blur-sm rounded-xl p-6 md:p-7 border border-gray-700/50 min-w-0 animate-pulse">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
+              <div className="h-6 bg-gray-700 rounded w-40"></div>
+            </div>
+            <div className="h-4 bg-gray-800/50 rounded w-60"></div>
+          </div>
+          <div className="h-9 bg-gray-700 rounded w-28"></div>
+        </div>
+        <div className="text-center py-8">
+          <div className="h-10 bg-gray-800/50 rounded-lg w-full max-w-xs mx-auto mb-3"></div>
+          <p className="text-gray-500 text-sm">Calculando bandas...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{
-      backgroundColor: 'rgb(26, 26, 26)',
-      borderRadius: '12px',
-      padding: '24px',
-      border: '1px solid #374151',
-      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)'
-    }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '24px'
-      }}>
-        <div>
-          <h2 style={{
-            fontSize: '24px',
-            fontWeight: 'bold',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            margin: 0
-          }}>
-            <div style={{
-              width: '4px',
-              height: '24px',
-              background: '#3b82f6',
-              borderRadius: '2px'
-            }}></div>
-            BANDAS CAMBIARIAS
-          </h2>
+    <div className="bg-gray-900/30 backdrop-blur-sm rounded-xl p-6 md:p-8 border border-gray-700/50 min-w-0">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-5 md:mb-8 min-w-0">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-4 md:gap-3 mb-3">
+            <div className="w-1 h-5 md:h-6 bg-blue-600 rounded-full flex-shrink-0"></div>
+            <h2 className="text-white text-lg md:text-xl lg:text-2xl font-bold truncate min-w-0">
+              BANDAS CAMBIARIAS
+            </h2>
+          </div>
           
           {/* Información del cálculo */}
-          <div style={{
-            marginTop: '8px',
-            padding: '8px 12px',
-            background: 'rgba(59, 130, 246, 0.1)',
-            borderRadius: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <Info size={16} style={{color: '#93c5fd', flexShrink: 0}} />
-            <div style={{fontSize: '12px', color: '#93c5fd'}}>
-              Calculado con IPC[{bandasData.ipcMesReferencia}]: {bandasData.ipcUtilizado.toFixed(2)}%
+          <div className="flex items-start gap-2 p-2 md:p-3 bg-blue-900/10 rounded-lg">
+            <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="text-blue-300 text-xs md:text-sm min-w-0">
+              <span className="font-medium">Cálculo: </span>
+              IPC[{bandasData.ipcMesReferencia.replace('-', '/')}] = {bandasData.ipcUtilizado.toFixed(2)}%
             </div>
           </div>
         </div>
         
+        {/* Botón de recarga */}
         <button
           onClick={cargarDatosBandas}
           disabled={loading}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            background: '#374151',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.5 : 1,
-            transition: 'background 0.2s'
-          }}
-          onMouseOver={(e) => {
-            if (!loading) e.target.style.background = '#4b5563';
-          }}
-          onMouseOut={(e) => {
-            if (!loading) e.target.style.background = '#374151';
-          }}
+          className={`flex items-center gap-2 px-3 md:px-4 py-2 bg-gray-800/50 text-gray-300 rounded-lg transition-all duration-200 hover:bg-gray-700/50 min-w-0 flex-shrink-0 ${
+            loading ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          <RefreshCw size={18} style={{
-            animation: loading ? 'spin 1s linear infinite' : 'none'
-          }} />
-          {loading ? 'Calculando...' : 'Recalcular'}
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <span className="text-sm whitespace-nowrap">
+            {loading ? 'Calculando...' : 'Recalcular'}
+          </span>
         </button>
       </div>
 
-      {/* Valores de las bandas */}
-      <div style={{ marginBottom: '24px' }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'center',
-          gap: '32px'
-        }}>
+      {/* Valores de las bandas - RESPONSIVE */}
+      <div className="mb-4 md:mb-6">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 lg:gap-8">
+          
           {/* PISO */}
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              color: '#9ca3af',
-              fontSize: '14px',
-              marginBottom: '4px'
-            }}>INFERIOR</div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}>
-              <TrendingDown size={20} style={{color: '#60a5fa'}} />
-              <div style={{
-                fontSize: '28px',
-                fontWeight: 'bold',
-                color: '#ffffff'
-              }}>${bandasData.pisoCalculado.toFixed(2)}</div>
+          <div className="text-center w-full sm:w-auto min-w-0">
+            <div className="text-gray-400 text-sm mb-1">INFERIOR</div>
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <TrendingDown className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
+              <div className="text-white text-2xl md:text-3xl font-bold">
+                ${bandasData.pisoCalculado.toFixed(2)}
+              </div>
             </div>
-            <div style={{
-              fontSize: '12px',
-              marginTop: '2px',
-              color: bandasData.variacionMensual.piso >= 0 ? '#f87171' : '#4ade80'
-            }}>
-              {bandasData.variacionMensual.piso >= 0 ? '+' : ''}{bandasData.variacionMensual.piso.toFixed(1)}% mensual
+            <div className={`text-xs md:text-sm mb-1 ${
+              bandasData.variacionMensual.piso >= 0 ? 'text-red-400' : 'text-green-400'
+            }`}>
+              {bandasData.variacionMensual.piso >= 0 ? '+' : ''}
+              {bandasData.variacionMensual.piso.toFixed(1)}% mensual
             </div>
-            <div style={{
-              fontSize: '10px',
-              color: '#6b7280',
-              marginTop: '2px'
-            }}>
+            <div className="text-gray-500 text-xs">
               Base: ${bandasData.piso.toFixed(2)}
             </div>
           </div>
           
           {/* SEPARADOR */}
-          <div style={{ position: 'relative', marginBottom: '12px' }}>
-            <div style={{
-              width: '48px',
-              height: '4px',
-              background: 'linear-gradient(to right, #3b82f6, #6b7280, #ef4444)',
-              borderRadius: '4px'
-            }}></div>
-            <div style={{
-              position: 'absolute',
-              top: '-12px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              fontSize: '12px',
-              color: '#6b7280'
-            }}>
-              ~
+          <div className="relative my-8 sm:my-0">
+            <div className="hidden sm:flex items-center justify-center">
+              <div className="w-8 md:w-12 h-1 bg-gradient-to-r from-blue-500 via-gray-500 to-red-500 rounded-full"></div>
+              <Minus className="w-4 h-4 text-gray-500 mx-1" />
+              <div className="w-8 md:w-12 h-1 bg-gradient-to-r from-red-500 via-gray-500 to-blue-500 rounded-full"></div>
+            </div>
+            <div className="sm:hidden w-full h-1 bg-gradient-to-r from-blue-500 via-gray-500 to-red-500 rounded-full"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-500 text-xs bg-gray-900 px-1">
+              ±
             </div>
           </div>
           
           {/* TECHO */}
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              color: '#9ca3af',
-              fontSize: '14px',
-              marginBottom: '4px'
-            }}>SUPERIOR</div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}>
-              <TrendingUp size={20} style={{color: '#f87171'}} />
-              <div style={{
-                fontSize: '28px',
-                fontWeight: 'bold',
-                color: '#ffffff'
-              }}>${bandasData.techoCalculado.toFixed(2)}</div>
+          <div className="text-center w-full sm:w-auto min-w-0">
+            <div className="text-gray-400 text-sm mb-1">SUPERIOR</div>
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-red-400" />
+              <div className="text-white text-2xl md:text-3xl font-bold">
+                ${bandasData.techoCalculado.toFixed(2)}
+              </div>
             </div>
-            <div style={{
-              fontSize: '12px',
-              marginTop: '2px',
-              color: bandasData.variacionMensual.techo >= 0 ? '#f87171' : '#4ade80'
-            }}>
-              {bandasData.variacionMensual.techo >= 0 ? '+' : ''}{bandasData.variacionMensual.techo.toFixed(1)}% mensual
+            <div className={`text-xs md:text-sm mb-1 ${
+              bandasData.variacionMensual.techo >= 0 ? 'text-red-400' : 'text-green-400'
+            }`}>
+              {bandasData.variacionMensual.techo >= 0 ? '+' : ''}
+              {bandasData.variacionMensual.techo.toFixed(1)}% mensual
             </div>
-            <div style={{
-              fontSize: '10px',
-              color: '#6b7280',
-              marginTop: '2px'
-            }}>
+            <div className="text-gray-500 text-xs">
               Base: ${bandasData.techo.toFixed(2)}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Fecha de actualización */}
-      <div style={{
-        background: 'rgba(55, 65, 81, 0.5)',
-        padding: '16px',
-        borderRadius: '8px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Calendar size={16} style={{color: '#9ca3af'}} />
-          <div style={{ fontSize: '12px', color: '#9ca3af' }}>
-            Actualizado: {bandasData.fechaActualizacion}
+      {/* Footer informativo */}
+      <div className="bg-gray-800/30 rounded-lg p-3 md:p-4">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <div className="text-gray-400 text-xs md:text-sm">
+              Actualizado: <span className="text-gray-300 font-medium">{bandasData.fechaActualizacion}</span>
+            </div>
           </div>
-        </div>
-        <div style={{ fontSize: '12px', color: '#6b7280' }}>
-          IPC {bandasData.ipcMesReferencia}: {bandasData.ipcUtilizado.toFixed(2)}%
+          
+          <div className="flex items-center gap-2">
+            <div className="text-gray-500 text-xs md:text-sm">
+              IPC <span className="text-gray-300">{bandasData.ipcMesReferencia.replace('-', '/')}</span>:
+            </div>
+            <div className="text-blue-400 text-sm md:text-base font-semibold">
+              {bandasData.ipcUtilizado.toFixed(2)}%
+            </div>
+          </div>
         </div>
       </div>
 
-      <style>
-        {`
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-        `}
-      </style>
+      {/* Información adicional para móviles */}
+      <div className="mt-3 text-gray-500 text-xs text-center sm:hidden">
+        Las bandas se ajustan mensualmente con IPC[t-2]
+      </div>
     </div>
   );
 };

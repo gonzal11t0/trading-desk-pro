@@ -1,18 +1,14 @@
-// src/components/markets/DatosMacros.jsx
 import React, { useState } from 'react';
 
 export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
   const [tooltipVisible, setTooltipVisible] = useState(null);
 
-  // Función para formatear números con decimales completos
   const formatNumber = (value, isUSD = false) => {
-     if (!value || value === 0) return '--';
+    if (!value || value === 0) return '--';
     
-    // Convertir de millones a billones
     const valueInBillions = value / 1000;
     const symbol = isUSD ? 'USD' : 'ARS';
     
-    // Formatear con 1 decimal máximo
     const formatted = valueInBillions.toLocaleString('es-AR', {
       minimumFractionDigits: 1,
       maximumFractionDigits: 1
@@ -30,11 +26,11 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
       icon: '🏦',
       description: reserves?.label || 'Reservas Internacionales',
       tooltip: 'Valor en millones de dólares. Representa las reservas internacionales brutas del Banco Central.',
-      color: reserves?.change >= 0 
-        ? 'linear-gradient(135deg, #06b6d4, #0891b2)' 
-        : 'linear-gradient(135deg, #ef4444, #dc2626)',
-      borderColor: reserves?.change >= 0 ? '#06b6d4' : '#ef4444',
-      format: (val) => `${formatNumber(val, 3)}`
+      positiveClass: 'from-cyan-500 to-blue-600',
+      negativeClass: 'from-red-500 to-red-600',
+      bgPositive: 'bg-gradient-to-br from-cyan-500/20 to-blue-600/10',
+      bgNegative: 'bg-gradient-to-br from-red-500/20 to-red-600/10',
+      format: (val) => `${formatNumber(val, true)}`
     },
     {
       id: 'monetaryBase',
@@ -44,10 +40,10 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
       icon: '💵',
       description: monetaryBase?.label || 'Circulación Monetaria',
       tooltip: 'Valor en millones de pesos. Dinero en circulación más reservas bancarias en el BCRA.',
-      color: monetaryBase?.change >= 0 
-        ? 'linear-gradient(135deg, #10b981, #059669)' 
-        : 'linear-gradient(135deg, #ef4444, #dc2626)',
-      borderColor: monetaryBase?.change >= 0 ? '#10b981' : '#ef4444',
+      positiveClass: 'from-green-500 to-emerald-600',
+      negativeClass: 'from-red-500 to-red-600',
+      bgPositive: 'bg-gradient-to-br from-green-500/20 to-emerald-600/10',
+      bgNegative: 'bg-gradient-to-br from-red-500/20 to-red-600/10',
       format: (val) => `${formatNumber(val, false)}`
     },
     {
@@ -59,263 +55,140 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
       icon: '📊',
       description: moneySupply?.label || 'Agregados Monetarios',
       tooltip: 'M2: Efectivo + depósitos. M3: M2 + instrumentos de inversión líquidos.',
-      color: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-      borderColor: '#8b5cf6',
+      positiveClass: 'from-purple-500 to-violet-600',
+      negativeClass: 'from-red-500 to-red-600',
+      bgPositive: 'bg-gradient-to-br from-purple-500/20 to-violet-600/10',
+      bgNegative: 'bg-gradient-to-br from-red-500/20 to-red-600/10',
       format: (val) => `${formatNumber(val, false)}`
     }
   ];
 
-  const containerStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '16px',
-    marginTop: '24px'
-  };
-
   return (
-    <div style={containerStyle}>
-      {indicators.map((indicator) => (
-        <div 
-          key={indicator.id} 
-          style={{
-            border: `1px solid ${indicator.borderColor}40`,
-            background: `linear-gradient(135deg, rgba(17, 24, 39, 0.8), rgba(3, 7, 18, 0.8))`,
-            borderRadius: '12px',
-            padding: '20px',
-            boxShadow: `0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 1px ${indicator.borderColor}20`,
-            position: 'relative',
-            overflow: 'visible'
-          }}
-        >
-          {/* Efecto de brillo */}
-          <div style={{
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            right: '0',
-            height: '4px',
-            background: indicator.color,
-            borderRadius: '12px 12px 0 0'
-          }}></div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-            <div style={{
-              padding: '12px',
-              borderRadius: '10px',
-              background: indicator.color,
-              boxShadow: `0 8px 16px ${indicator.borderColor}30`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '48px',
-              height: '48px'
-            }}>
-              <span style={{ fontSize: '24px' }}>{indicator.icon}</span>
-            </div>
-            <div>
-              <h4 style={{
-                fontWeight: '700',
-                fontSize: '14px',
-                color: '#ffffff',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                marginBottom: '4px'
-              }}>
-                {indicator.label}
-              </h4>
-              <p style={{
-                fontSize: '12px',
-                color: 'rgba(156, 163, 175, 0.8)'
-              }}>
-                {indicator.description}
-              </p>
-            </div>
-          </div>
-          
-          <div style={{ marginTop: '12px' }}>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: '700',
-              color: '#ffffff',
-              fontFamily: 'monospace',
-              marginBottom: '12px',
-              textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}>
-              {indicator.value ? indicator.format(indicator.value) : '--'}
+    <div className="w-full min-w-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-6">
+      {indicators.map((indicator) => {
+        const isPositive = indicator.change >= 0;
+        const hasValue = indicator.value || indicator.m3;
+        
+        return (
+          <div 
+            key={indicator.id} 
+            className="w-full min-w-0 relative overflow-visible bg-gradient-to-br from-gray-900/80 to-gray-950/80 rounded-xl p-5 border border-gray-700/50 shadow-xl"
+          >
+            {/* Top border effect */}
+            <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-xl bg-gradient-to-r ${isPositive ? indicator.positiveClass : indicator.negativeClass}`}></div>
+            
+            {/* Icon and Title */}
+            <div className="flex items-center gap-4 mb-5">
+              <div className={`p-3 rounded-lg bg-gradient-to-br ${isPositive ? indicator.positiveClass : indicator.negativeClass} shadow-lg flex items-center justify-center w-12 h-12`}>
+                <span className="text-2xl">{indicator.icon}</span>
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-bold text-white text-sm uppercase tracking-wider truncate">
+                  {indicator.label}
+                </h4>
+                <p className="text-gray-400 text-xs mt-1 truncate">
+                  {indicator.description}
+                </p>
+              </div>
             </div>
             
-            {indicator.change !== undefined && (
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 16px',
-                borderRadius: '999px',
-                background: indicator.change >= 0 
-                  ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.2))' 
-                  : 'linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.2))',
-                border: `1px solid ${indicator.change >= 0 ? 'rgba(16, 185, 129, 0.5)' : 'rgba(239, 68, 68, 0.5)'}`,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-              }}>
-                <span style={{
-                  color: indicator.change >= 0 ? '#10b981' : '#ef4444',
-                  fontSize: '16px'
-                }}>
-                  {indicator.change > 0 ? '↗' : '↘'}
-                </span>
-                <span style={{
-                  fontWeight: '600',
-                  fontSize: '14px',
-                  color: indicator.change >= 0 ? '#10b981' : '#ef4444'
-                }}>
-                  {Math.abs(indicator.change)}%
-                </span>
+            {/* Value and Change */}
+            <div className="mt-3">
+              <div className="text-2xl font-bold text-white font-mono truncate mb-3 text-shadow">
+                {indicator.value ? indicator.format(indicator.value) : '--'}
               </div>
-            )}
-            
-            {indicator.m3 && (
-              <div style={{
-                marginTop: '20px',
-                paddingTop: '16px',
-                borderTop: '1px solid rgba(75, 85, 99, 0.3)'
-              }}>
-                <div style={{
-                  fontSize: '12px',
-                  color: 'rgba(156, 163, 175, 0.8)',
-                  marginBottom: '4px'
-                }}>
-                  M3
-                </div>
-                <div style={{
-                  fontSize: '18px',
-                  fontWeight: '600',
-                  color: '#ffffff',
-                  fontFamily: 'monospace',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}>
-                  {formatNumber(indicator.m3, false)}
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Tooltip con icono 💡 y texto explicativo */}
-          {(indicator.value || indicator.m3) && (
-           <div style={{
-  position: 'absolute',
-  top: '10px',
-  right: '10px',
-  background: '#0f172a',
-  color: '#ffffff',  // Cambiado a blanco sólido
-  padding: '4px 8px',
-  borderRadius: '6px',
-  fontSize: '11px',
-  opacity: '1',  // Cambiado a 1 (100% opaco)
-  cursor: 'help',
-  border: '1px solid #374151',  // gris sólido en lugar de rgba
-  zIndex: '10'
-}}
-            onMouseEnter={() => setTooltipVisible(indicator.id)}
-            onMouseLeave={() => setTooltipVisible(null)}
-            >
-              💡
               
-              {/* Tooltip flotante */}
-              {tooltipVisible === indicator.id && (
-               <div style={{
-              position: 'absolute',
-              top: '100%',
-              right: '0',
-              marginTop: '8px',
-              width: '240px',
-              background: '#0f172a',                  
-              color: '#ffffff',
-              padding: '12px',
-              borderRadius: '8px',
-              fontSize: '12px',
-              lineHeight: '1.4',
-              border: '1px solid #374151',  // Cambiado a sólido
-              boxShadow: '0 8px 24px #000000',  // Negro sólido
-              zIndex: '1000',
-            }}>
-                  <div style={{
-                    fontWeight: '600',
-                    color: indicator.borderColor,
-                    marginBottom: '6px',
-                    fontSize: '13px'
-                  }}>
-                    📊 {indicator.label}
+              {indicator.change !== undefined && (
+                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${isPositive ? 'bg-green-500/20 border border-green-500/30' : 'bg-red-500/20 border border-red-500/30'}`}>
+                  <span className={`text-lg ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                    {isPositive ? '↗' : '↘'}
+                  </span>
+                  <span className={`font-semibold text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                    {Math.abs(indicator.change)}%
+                  </span>
+                </div>
+              )}
+              
+              {/* M3 Value (for money supply) */}
+              {indicator.m3 && (
+                <div className="mt-5 pt-4 border-t border-gray-700/30">
+                  <div className="text-gray-400 text-xs mb-1">
+                    M3
                   </div>
-                  <div style={{
-                    color: 'rgba(255, 255, 255, 0.9)',
-                    marginBottom: '8px'
-                  }}>
-                    {indicator.tooltip}
+                  <div className="text-lg font-semibold text-white font-mono truncate">
+                    {formatNumber(indicator.m3, false)}
                   </div>
-                  
-                  {/* Información adicional específica */}
-                  {indicator.id === 'reserves' && (
-                    <div style={{
-                      fontSize: '11px',
-                      color: 'rgba(156, 163, 175, 0.8)',
-                      borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                      paddingTop: '8px',
-                      marginTop: '8px'
-                    }}>
-                      <div>🏦 <strong>Importancia:</strong> Indicador clave de solvencia externa</div>
-                      <div>📈 <strong>Meta:</strong> Reservas positivas y estables</div>
-                    </div>
-                  )}
-                  
-                  {indicator.id === 'monetaryBase' && (
-                    <div style={{
-                      fontSize: '11px',
-                      color: 'rgba(156, 163, 175, 0.8)',
-                      borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                      paddingTop: '8px',
-                      marginTop: '8px'
-                    }}>
-                      <div>💰 <strong>Componentes:</strong> Efectivo + reservas bancarias</div>
-                      <div>⚖️ <strong>Control:</strong> Herramienta clave de política monetaria</div>
-                    </div>
-                  )}
-                  
-                  {indicator.id === 'm2' && (
-                    <div style={{
-                      fontSize: '11px',
-                      color: 'rgba(156, 163, 175, 0.8)',
-                      borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                      paddingTop: '8px',
-                      marginTop: '8px'
-                    }}>
-                      <div>📈 <strong>M2:</strong> Liquidez inmediata del sistema</div>
-                      <div>📊 <strong>M3:</strong> Liquidez ampliada + inversiones</div>
-                    </div>
-                  )}
-                  
-                  {/* Triángulo del tooltip */}
-                  <div style={{
-                    position: 'absolute',
-                    top: '-6px',
-                    right: '12px',
-                    width: '12px',
-                    height: '12px',
-                    background: '#0f172a',
-                    transform: 'rotate(45deg)',
-                    borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.1)'
-                  }}></div>
                 </div>
               )}
             </div>
-          )}
-        </div>
-      ))}
+            
+            {/* Tooltip */}
+            {hasValue && (
+              <div 
+                className="absolute top-3 right-3 bg-gray-900 text-white p-1.5 rounded-md text-xs cursor-help border border-gray-700 z-10"
+                onMouseEnter={() => setTooltipVisible(indicator.id)}
+                onMouseLeave={() => setTooltipVisible(null)}
+              >
+                💡
+                
+                {tooltipVisible === indicator.id && (
+                  <div className="absolute top-full right-0 mt-2 w-64 bg-gray-900 text-white p-4 rounded-lg text-xs leading-relaxed border border-gray-700 shadow-2xl z-50">
+                    <div className={`font-semibold text-sm mb-2 ${isPositive ? 'text-cyan-400' : 'text-red-400'}`}>
+                      📊 {indicator.label}
+                    </div>
+                    <div className="text-gray-300 mb-3">
+                      {indicator.tooltip}
+                    </div>
+                    
+                    {/* Additional info based on indicator */}
+                    {indicator.id === 'reserves' && (
+                      <div className="text-gray-400 text-xs border-t border-gray-700 pt-3 mt-3">
+                        <div className="flex items-center gap-1 mb-1">
+                          <span>🏦</span>
+                          <span><strong>Importancia:</strong> Indicador clave de solvencia externa</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span>📈</span>
+                          <span><strong>Meta:</strong> Reservas positivas y estables</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {indicator.id === 'monetaryBase' && (
+                      <div className="text-gray-400 text-xs border-t border-gray-700 pt-3 mt-3">
+                        <div className="flex items-center gap-1 mb-1">
+                          <span>💰</span>
+                          <span><strong>Componentes:</strong> Efectivo + reservas bancarias</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span>⚖️</span>
+                          <span><strong>Control:</strong> Herramienta clave de política monetaria</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {indicator.id === 'm2' && (
+                      <div className="text-gray-400 text-xs border-t border-gray-700 pt-3 mt-3">
+                        <div className="flex items-center gap-1 mb-1">
+                          <span>📈</span>
+                          <span><strong>M2:</strong> Liquidez inmediata del sistema</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span>📊</span>
+                          <span><strong>M3:</strong> Liquidez ampliada + inversiones</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Tooltip arrow */}
+                    <div className="absolute -top-1.5 right-3 w-3 h-3 bg-gray-900 transform rotate-45 border-l border-t border-gray-700"></div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
-};
+}

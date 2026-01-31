@@ -1,0 +1,65 @@
+/* src/styles/global-styles.css */
+/* TODOS los estilos específicos que mantenían tu diseño */
+
+/* 1. CONTENEDORES Y ESTRUCTURA */
+.w-7\/10 {
+  width: 70% !important;
+}
+
+.w-3\/10 {
+  width: 30% !important;
+}
+
+.container-custom {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* 2. TARJETAS TERMINAL (esto daba el look característico) */
+.terminal-card {
+  background-color: #1A1A1A !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.terminal-card:hover {
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* 3. VALORES CON FONTE MONO (look financiero) */
+.terminal-value {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.025em;
+}
+
+/* 4. COLORES ESPECÍFICOS DE DATOS */
+.data-positive {
+  color: #00FF9D !important;
+}
+
+.data-negative {
+  color: #FF5E5E !important;
+}
+
+/* 5. SECCIONES CON FONDO */
+.section-bg {
+  background-color: #1A1A1A !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+/* 6. GRADIENTES DE TEXTO */
+.gradient-text-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Importa este archivo en main.jsx */

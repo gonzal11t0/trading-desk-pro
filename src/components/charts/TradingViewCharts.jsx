@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { ExternalLink, Maximize2, RefreshCw, Play, Pause } from 'lucide-react'
 
-
 // Mover configuraciones fuera del componente
 const CHART_CONFIGS = [
   {
@@ -225,42 +224,61 @@ const ChartCard = React.memo(({
 
 // Hook personalizado para manejar TradingView
 const useTradingView = () => {
+  
   const chartsInitialized = useRef(false)
   const [isRefreshing, setIsRefreshing] = useState({})
-  useEffect(() => {
-    // Silenciar errores de TradingView en desarrollo
-    if (process.env.NODE_ENV === 'development') {
-      const originalError = console.error;
-      const originalWarn = console.warn;
-      
-      console.error = (...args) => {
-        if (args[0] && typeof args[0] === 'string') {
-          if (args[0].includes('TradingView') && 
-              (args[0].includes('telemetry') || 
-               args[0].includes('support-portal') ||
-               args[0].includes('Couldn\'t load support portal'))) {
-            return; // Silencia errores específicos de TradingView
-          }
-        }
-        originalError.apply(console, args);
-      };
-      
-      console.warn = (...args) => {
-        if (args[0] && typeof args[0] === 'string') {
-          if (args[0].includes('TradingView') || 
-              args[0].includes('Chart.DataProblemModel')) {
-            return; // Silencia warnings específicos de TradingView
-          }
-        }
-        originalWarn.apply(console, args);
-      };
-      
-      return () => {
-        console.error = originalError;
-        console.warn = originalWarn;
-      };
+ useEffect(() => {
+  // SILENCIAR ABSOLUTAMENTE TODOS LOS ERRORES DE TRADINGVIEW
+  const originalError = console.error;
+  const originalWarn = console.warn;
+  const originalLog = console.log;
+  
+  console.error = (...args) => {
+    if (args[0] && typeof args[0] === 'string') {
+      if (args[0].includes('TradingView') || 
+          args[0].includes('telemetry') || 
+          args[0].includes('support-portal') ||
+          args[0].includes('Couldn\'t load support portal') ||
+          args[0].includes('Chart.DataProblemModel') ||
+          args[0].includes('Failed to fetch')) {
+        // SILENCIAR COMPLETAMENTE - NO HACER NADA
+        return;
+      }
     }
-  }, []); 
+    originalError.apply(console, args);
+  };
+  
+  console.warn = (...args) => {
+    if (args[0] && typeof args[0] === 'string') {
+      if (args[0].includes('TradingView') || 
+          args[0].includes('ChunkLoadError') ||
+          args[0].includes('DataProblemModel')) {
+        // SILENCIAR COMPLETAMENTE - NO HACER NADA
+        return;
+      }
+    }
+    originalWarn.apply(console, args);
+  };
+  
+  // También silenciar logs específicos
+  console.log = (...args) => {
+    if (args[0] && typeof args[0] === 'string') {
+      if (args[0].includes('TradingView') || 
+          args[0].includes('Fetch:') ||
+          args[0].includes('telemetry')) {
+        // SILENCIAR
+        return;
+      }
+    }
+    originalLog.apply(console, args);
+  };
+  
+  return () => {
+    console.error = originalError;
+    console.warn = originalWarn;
+    console.log = originalLog;
+  };
+}, []);
   const initializeChart = useCallback((chartConfig) => {
     const container = document.getElementById(`tradingview_${chartConfig.id}`)
     if (!container) return
@@ -300,14 +318,31 @@ const useTradingView = () => {
       show_popup_button: false,
       popup_width: "1000",
       popup_height: "650",
+      allow_symbol_change: false,
+      details: false,
       disabled_features: [
         "use_localstorage_for_settings",
         "header_widget_dom_node",
-        "popup_all_screens_tabs"
+        "popup_all_screens_tabs",
+        "support_portal",
+        "support_portal_problems",
+        "telemetry",
+        "prompts",
+        "header_compare",
+        "header_saveload",
+        "header_undo_redo",
+        "header_screenshot",
+        "header_settings",
+        "header_indicators",
+        "header_chart_type",
+        "header_interval_dialog_button",
+        "timeframes_toolbar",
+        "header_undo_redo"
       ],
       enabled_features: [
         "study_templates",
-        "hide_last_na_study_output"
+        "hide_last_na_study_output",
+        "side_toolbar_in_fullscreen_mode"
       ]
     })
 
@@ -465,7 +500,7 @@ export function TradingViewCharts() {
       {/* Grid de Gráficos Premium */}
       <div className="space-y-6">
         {rows.map((row, rowIndex) => (
-          <div key={rowIndex} className="grid grid-cols-3 gap-6">
+          <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {row.map((chart) => (
               <ChartCard
                 key={chart.id}

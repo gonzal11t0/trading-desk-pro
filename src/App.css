@@ -1,120 +1,7 @@
-/* src/App.css - VERSIÓN OPTIMIZADA */
-/* ===== NOTAS IMPORTANTES ===== */
-/* 1. Muchas clases pueden reemplazarse con utilidades de Tailwind */
-/* 2. Índice de clases únicas que SÍ vale la pena mantener: */
-/*    - .gradient-text-* (sombra de texto personalizada) */
-/*    - .shadow-glow-* (sombras personalizadas) */
-/*    - .border-gradient-* (bordes con gradiente) */
-/*    - .chart-loading (animación de carga única) */
-/*    - .glow-effect (efecto hover especial) */
-/*    - .bg-gradient-* (fondos personalizados) */
-/*    - .btn-terminal, .badge-* (componentes específicos) */
+/* App.css - VERSIÓN MINIMIZADA */
+/* SOLO mantén lo que NO se pueda hacer con Tailwind */
 
-/* ===== RESET Y BASE (ya en index.css) ===== */
-/* #root está en index.css - REMOVER */
-
-/* ===== LAYOUT PRINCIPAL ===== */
-/* CONSIDERAR: Usar w-[70%] y w-[30%] en Tailwind en lugar de estas clases */
-.w-7\/10 {
-  width: 70% !important;
-}
-
-.w-3\/10 {
-  width: 30% !important;
-}
-
-/* CONSIDERAR: Usar container de Tailwind o max-w-7xl mx-auto px-4 */
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-/* ===== COMPONENTES ESPECÍFICOS ===== */
-/* CONSIDERAR: Usar aspect-video de Tailwind (tailwind.config.js necesita extensión) */
-.aspect-video {
-  aspect-ratio: 16/9;
-  min-height: 120px;
-}
-
-/* ÚNICO: Scroll personalizado para cuando Tailwind no basta */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* ÚNICO: Efecto glass con backdrop-filter */
-.section-bg {
-  background-color: #1A1A1A !important;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-/* ÚNICO: Card terminal con hover personalizado */
-.terminal-card {
-  background-color: #1A1A1A !important;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.terminal-card:hover {
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-}
-
-/* ÚNICO: Valores con fuente monoespaciada y peso específico */
-.terminal-value {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-}
-
-/* ÚNICO: Colores personalizados para datos */
-.data-positive {
-  color: #00FF9D;
-}
-
-.data-negative {
-  color: #FF5E5E;
-}
-
-/* ===== COMPONENTES TRADINGVIEW ===== */
-.tradingview-widget-container {
-  min-height: 400px;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.tradingview-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-/* ÚNICO: Animación de carga para gráficos */
-.chart-loading {
-  background: linear-gradient(90deg, #1A1A1A 25%, #2A2A2A 50%, #1A1A1A 75%);
-  background-size: 200% 100%;
-  animation: loading 1.5s infinite;
-}
-
-@keyframes loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* ===== UTILIDADES ESPECIALES ===== */
-/* ÚNICO: Gradientes de texto personalizados */
+/* 1. Gradientes de texto (ÚNICO - Tailwind no tiene esto) */
 .gradient-text-primary {
   background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
   -webkit-background-clip: text;
@@ -122,139 +9,33 @@
   background-clip: text;
 }
 
-.gradient-text-success {
-  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.gradient-text-warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.gradient-text-danger {
-  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ÚNICO: Sombras con colores personalizados */
-.shadow-glow-blue {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
-}
-
-.shadow-glow-green {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
-}
-
-.shadow-glow-yellow {
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
-}
-
-.shadow-glow-cyan {
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
-}
-
-/* CONSIDERAR: Usar transition-* de Tailwind */
-.smooth-transition {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.smooth-transition-slow {
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ÚNICO: Bordes con gradiente */
-.border-gradient-blue {
-  border: 1px solid;
-  border-image: linear-gradient(135deg, #3b82f6, #06b6d4) 1;
-}
-
-.border-gradient-green {
-  border: 1px solid;
-  border-image: linear-gradient(135deg, #10b981, #34d399) 1;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .container {
-    padding: 0 0.5rem;
-  }
-  
-  .w-7\/10,
-  .w-3\/10 {
-    width: 100% !important;
-  }
-  
-  .tradingview-widget-container {
-    min-height: 300px;
-  }
-  
-  /* CONSIDERAR: Usar grid-cols-1 en Tailwind */
-  .grid-cols-3 {
-    grid-template-columns: 1fr !important;
-  }
-  
-  .mobile-stack {
-    flex-direction: column !important;
-  }
-  
-  .mobile-full {
-    width: 100% !important;
-    margin-bottom: 1rem;
-  }
-}
-
-@media (max-width: 1024px) {
-  .grid-cols-3 {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
-
-/* ===== COMPONENTES INTERACTIVOS ===== */
-/* ÚNICO: Botón con efectos específicos */
-.btn-interactive {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(26, 26, 26, 0.8);
+/* 2. Efectos glass específicos */
+.glass-effect {
   backdrop-filter: blur(10px);
+  background: rgba(26, 26, 26, 0.7);
 }
 
-.btn-interactive:hover {
-  transform: translateY(-1px);
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+/* 3. Scrollbar hide */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-.btn-interactive:active {
-  transform: translateY(0);
+/* 4. Animación loading específica para gráficos */
+@keyframes chart-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.chart-loading {
+  background: linear-gradient(90deg, #1A1A1A 25%, #2A2A2A 50%, #1A1A1A 75%);
+  background-size: 200% 100%;
+  animation: chart-loading 1.5s infinite;
 }
 
-/* ÚNICO: Animación de pulso */
-.loading-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* ÚNICO: Efecto de brillo al pasar mouse */
-.glow-effect {
-  position: relative;
-  overflow: hidden;
-}
-
+/* 5. Efecto glow hover específico */
 .glow-effect::before {
   content: '';
   position: absolute;
@@ -270,96 +51,6 @@
   );
   transition: left 0.5s;
 }
-
 .glow-effect:hover::before {
   left: 100%;
-}
-
-/* ===== FONDOS GRADIENTE ÚNICOS ===== */
-.bg-gradient-terminal {
-  background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
-}
-
-.bg-gradient-card {
-  background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(45, 45, 45, 0.7) 100%);
-}
-
-.bg-gradient-header {
-  background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(30, 30, 30, 0.9) 100%);
-}
-
-/* ÚNICO: Bordes con opacidad específica */
-.border-terminal {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.border-terminal-hover {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* ===== ANIMACIONES ÚNICAS ===== */
-.fade-in-up {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.heartbeat {
-  animation: heartbeat 2s ease-in-out infinite;
-}
-
-@keyframes heartbeat {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-}
-
-.spin-slow {
-  animation: spin 3s linear infinite;
-}
-
-/* KEYFRAMES spin ELIMINADO (estaba duplicado) */
-
-/* ===== SELECCIÓN DE TEXTO ===== */
-::selection {
-  background-color: #3b82f6;
-  color: white;
-}
-
-::-moz-selection {
-  background-color: #3b82f6;
-  color: white;
-}
-
-/* ÚNICO: Para textos con gradiente seleccionables */
-.gradient-selectable {
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.gradient-selectable::selection {
-  -webkit-text-fill-color: white;
-}
-
-.gradient-selectable::-moz-selection {
-  -webkit-text-fill-color: white;
-}
-
-/* ===== ADVERTENCIA: Selector global peligroso ===== */
-/* ¡CUIDADO! Esto afecta TODAS las tablas. Considerar hacerlo más específico */
-tr:hover {
-  background: linear-gradient(90deg, rgba(31, 41, 55, 0.3), rgba(17, 24, 39, 0.3)) !important;
 }

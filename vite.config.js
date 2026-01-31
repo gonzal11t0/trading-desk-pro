@@ -17,6 +17,36 @@ export default defineConfig({
     port: 5173,
     host: true,
     proxy: {
+       // BLOQUEADOR DE TRADINGVIEW - DEBE IR PRIMERO
+    '/support/support-portal-problems': {
+      target: 'http://localhost:5173', // Redirige a localhost (fallará silenciosamente)
+      changeOrigin: true,
+      router: () => 'http://localhost:5173', // Fuerza redirección a localhost
+      selfHandleResponse: true,
+      configure: (proxy) => {
+        proxy.on('proxyRes', (proxyRes, req, res) => {
+          // Devuelve una respuesta 200 vacía inmediatamente
+          res.writeHead(200, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          });
+          res.end(JSON.stringify({ blocked: true, message: 'TradingView bloqueado' }));
+        });
+      }
+    },
+    
+    '/telemetry.tradingview.com': {
+      target: 'http://localhost:5173',
+      changeOrigin: true,
+      router: () => 'http://localhost:5173',
+      selfHandleResponse: true,
+      configure: (proxy) => {
+        proxy.on('proxyRes', (proxyRes, req, res) => {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true }));
+        });
+      }
+    },
         '/api/coingecko': {
         target: 'https://api.coingecko.com/api/v3',
         changeOrigin: true,
@@ -86,11 +116,6 @@ export default defineConfig({
         target: 'https://www.youtube.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/youtube-proxy/, '')
-      },
-      '/api/markets': {
-        target: 'https://api.coingecko.com/api/v3',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/markets/, '')
       },
       '/api/argentina': {
         target: 'https://api.bluelytics.com.ar/v2',

@@ -1,4 +1,3 @@
-/* notice*/
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Clock, ExternalLink, TrendingUp, Zap, AlertTriangle, RefreshCw } from 'lucide-react'
 import { fetchLatestNews } from '../../api/newsApi'
@@ -22,137 +21,63 @@ const NewsItem = React.memo(({ news, index, totalItems, getSourceColor, formatTi
     window.open(news.url, '_blank', 'noopener,noreferrer')
   }, [news.url])
 
-  const handleMouseEnter = useCallback((e) => {
-    e.currentTarget.style.transform = 'scale(1.02)'
-  }, [])
-
-  const handleMouseLeave = useCallback((e) => {
-    e.currentTarget.style.transform = 'scale(1)'
-  }, [])
-
-  const handleTitleMouseEnter = useCallback((e) => {
-    e.currentTarget.style.color = '#f59e0b'
-  }, [])
-
-  const handleTitleMouseLeave = useCallback((e) => {
-    e.currentTarget.style.color = '#fbbf24'
-  }, [])
-
-  const handleCardMouseEnter = useCallback((e) => {
-    e.currentTarget.style.background = 'linear-gradient(to right, rgba(55, 65, 81, 0.3), rgba(31, 41, 55, 0.2))'
-    e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.3)'
-  }, [])
-
-  const handleCardMouseLeave = useCallback((e) => {
-    e.currentTarget.style.background = 'linear-gradient(to right, rgba(31, 41, 55, 0.2), rgba(17, 24, 39, 0.1))'
-    e.currentTarget.style.borderColor = 'rgba(55, 65, 81, 0.3)'
-  }, [])
-
   return (
     <div
       key={index}
-      style={{
-        cursor: 'pointer',
-        transition: 'all 0.3s ease'
-      }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      className="cursor-pointer transition-all duration-300 hover:scale-[1.02]"
       onClick={handleClick}
     >
-      <div style={{
-        background: 'linear-gradient(to right, rgba(31, 41, 55, 0.2), rgba(17, 24, 39, 0.1))',
-        borderRadius: '0.75rem',
-        border: '1px solid rgba(55, 65, 81, 0.3)',
-        padding: '1rem',
-        transition: 'all 0.3s ease'
-      }}
-      onMouseEnter={handleCardMouseEnter}
-      onMouseLeave={handleCardMouseLeave}
-      >
+      <div className="bg-gradient-to-r from-gray-800/20 to-gray-900/10 rounded-xl border border-gray-700/30 p-4 transition-all duration-300 hover:bg-gradient-to-r hover:from-gray-700/30 hover:to-gray-800/20 hover:border-cyan-500/30 min-w-0">
         
         {/* Header de Noticia */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor: sourceColor.dot
-            }}></div>
-            <span style={{
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              padding: '0.25rem 0.5rem',
-              borderRadius: '9999px',
-              backgroundColor: 'rgba(55, 65, 81, 0.5)',
-              color: '#d1d5db',
-              textTransform: 'uppercase'
-            }}>
+        <div className="flex items-start justify-between mb-3 min-w-0">
+          <div className="flex items-center gap-2">
+            <div 
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: sourceColor.dot }}
+            ></div>
+            <span className="text-xs font-semibold px-2 py-1 bg-gray-700/50 text-gray-300 rounded-full uppercase">
               {news.source.toUpperCase()}
             </span>
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-500 text-xs">
               {formatTimeAgo(news.time_published)}
             </span>
-            <ExternalLink style={{ 
-              width: '12px', 
-              height: '12px', 
-              color: '#6b7280',
-              opacity: 0,
-              transition: 'all 0.3s ease'
-            }} />
+            <ExternalLink className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
 
         {/* Título/Resumen de la Noticia */}
-        <h3 style={{
-          fontSize: '1.125rem',
-          fontWeight: 700,
-          marginBottom: '0.5rem',
-          lineHeight: '1.25',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-          color: '#fbbf24',
-          transition: 'color 0.3s ease'
-        }}
-        onMouseEnter={handleTitleMouseEnter}
-        onMouseLeave={handleTitleMouseLeave}
-        >
+        <h3 className="text-lg font-bold mb-2 line-clamp-2 leading-snug text-yellow-400 hover:text-yellow-300 transition-colors duration-300 group">
           {news.title}
         </h3>
 
         {/* Footer de Noticia */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: 500 }}>
+        <div className="flex items-center justify-between min-w-0">
+          <div className="flex items-center gap-3">
+            <span className="text-gray-400 text-xs font-medium">
               {news.category}
             </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#22c55e' }}>
-              <TrendingUp style={{ width: '12px', height: '12px' }} />
-              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>ACTUAL</span>
+            <div className="flex items-center gap-1 text-green-500">
+              <TrendingUp className="w-3 h-3" />
+              <span className="text-xs font-semibold">ACTUAL</span>
             </div>
           </div>
           
           {/* Indicador de fuente */}
-          <div style={{ display: 'flex', gap: '0.25rem' }}>
-            <div style={{ width: '6px', height: '6px', backgroundColor: '#22c55e', borderRadius: '50%' }}></div>
-            <div style={{ width: '6px', height: '6px', backgroundColor: '#3b82f6', borderRadius: '50%' }}></div>
+          <div className="flex gap-1">
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
           </div>
         </div>
       </div>
 
       {/* Separador elegante */}
       {index < totalItems - 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.75rem' }}>
-          <div style={{ 
-            width: '4rem', 
-            height: '1px', 
-            background: 'linear-gradient(to right, transparent, #4b5563, transparent)' 
-          }}></div>
+        <div className="flex justify-center mt-3">
+          <div className="w-16 h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent"></div>
         </div>
       )}
     </div>
@@ -161,33 +86,17 @@ const NewsItem = React.memo(({ news, index, totalItems, getSourceColor, formatTi
 
 // Componente para loading skeleton
 const LoadingSkeleton = React.memo(() => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: '1.5rem',
-      padding: '1rem',
-      background: 'linear-gradient(to right, rgba(31, 41, 55, 0.3), rgba(17, 24, 39, 0.2))',
-      borderRadius: '0.75rem',
-      border: '1px solid rgba(55, 65, 81, 0.3)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <RefreshCw style={{ width: '16px', height: '16px', color: '#3b82f6', animation: 'spin 1s linear infinite' }} />
-        <span style={{ color: 'white', fontWeight: 700, fontSize: '0.875rem' }}>CARGANDO NOTICIAS...</span>
+  <div className="flex flex-col gap-1">
+    <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-gray-800/30 to-gray-900/20 rounded-xl border border-gray-700/30">
+      <div className="flex items-center gap-3">
+        <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />
+        <span className="text-white font-bold text-sm">CARGANDO NOTICIAS...</span>
       </div>
     </div>
 
     {[1, 2, 3, 4, 5, 6].map((item) => (
-      <div key={item} style={{ opacity: 0.5, animation: 'pulse 2s infinite' }}>
-        <div style={{
-          background: 'linear-gradient(to right, rgba(31, 41, 55, 0.2), rgba(17, 24, 39, 0.1))',
-          borderRadius: '0.75rem',
-          border: '1px solid rgba(55, 65, 81, 0.3)',
-          padding: '1rem',
-          height: '6rem',
-          marginBottom: '0.75rem'
-        }}></div>
+      <div key={item} className="opacity-50 animate-pulse">
+        <div className="bg-gradient-to-r from-gray-800/20 to-gray-900/10 rounded-xl border border-gray-700/30 p-4 h-24 mb-3"></div>
       </div>
     ))}
   </div>
@@ -292,16 +201,6 @@ export function Notice() {
     }
   }, [isLoading, loadNews])
 
-  const handleRefreshMouseEnter = useCallback((e) => {
-    e.currentTarget.style.borderColor = 'rgba(75, 85, 99, 0.5)'
-    e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.5)'
-  }, [])
-
-  const handleRefreshMouseLeave = useCallback((e) => {
-    e.currentTarget.style.borderColor = 'rgba(55, 65, 81, 0.5)'
-    e.currentTarget.style.backgroundColor = 'rgba(31, 41, 55, 0.5)'
-  }, [])
-
   // Memoizar formatted time
   const formattedTime = useMemo(() => 
     lastUpdate.toLocaleTimeString('es-AR', { 
@@ -316,84 +215,56 @@ export function Notice() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+    <div className="flex flex-col gap-1 min-w-0">
       {/* Header Mejorado */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '1.5rem',
-        padding: '1rem',
-        background: 'linear-gradient(to right, rgba(31, 41, 55, 0.3), rgba(17, 24, 39, 0.2))',
-        borderRadius: '0.75rem',
-        border: '1px solid rgba(55, 65, 81, 0.3)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ position: 'relative' }}>
-            <div style={{
-              position: 'absolute',
-              width: '12px',
-              height: '12px',
-              backgroundColor: '#ef4444',
-              borderRadius: '50%',
-              animation: 'ping 1.5s infinite'
-            }}></div>
-            <div style={{
-              width: '12px',
-              height: '12px',
-              backgroundColor: '#ef4444',
-              borderRadius: '50%'
-            }}></div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 p-4 bg-gradient-to-r from-gray-800/30 to-gray-900/20 rounded-xl border border-gray-700/30 min-w-0">
+        <div className="flex items-center gap-3 mb-2 sm:mb-0">
+          <div className="relative">
+            <div className="absolute w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
           </div>
-          <span style={{ color: 'white', fontWeight: 700, fontSize: '0.875rem' }}>
+          <span className="text-white font-bold text-sm">
             NOTICIAS FINANCIERAS EN TIEMPO REAL
           </span>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ 
-            color: '#9ca3af', 
-            fontSize: '0.75rem', 
-            fontFamily: 'monospace'
-          }}>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="text-gray-400 text-xs font-mono">
             {formattedTime}
           </div>
           <button
             onClick={handleRefreshClick}
             disabled={isLoading}
-            style={{
-              padding: '0.375rem',
-              borderRadius: '0.5rem',
-              backgroundColor: 'rgba(31, 41, 55, 0.5)',
-              border: '1px solid rgba(55, 65, 81, 0.5)',
-              cursor: 'pointer',
-              transition: 'all 0.3s'
-            }}
-            onMouseEnter={handleRefreshMouseEnter}
-            onMouseLeave={handleRefreshMouseLeave}
+            className="p-1.5 rounded-lg bg-gray-800/50 border border-gray-600/50 hover:bg-gray-700/50 hover:border-gray-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <RefreshCw style={{ 
-              width: '16px', 
-              height: '16px', 
-              color: '#9ca3af',
-              animation: isLoading ? 'spin 1s linear infinite' : 'none'
-            }} />
+            <RefreshCw className={`w-4 h-4 text-gray-400 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
       {/* Lista de Noticias Mejorada */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div className="flex flex-col gap-3">
         {newsData.map((news, index) => (
-          <NewsItem
-            key={`${news.source}-${news.title.substring(0, 20)}-${index}`}
-            news={news}
-            index={index}
-            totalItems={newsData.length}
-            getSourceColor={getSourceColor}
-            formatTimeAgo={formatTimeAgo}
-          />
+          <div key={`${news.source}-${news.title.substring(0, 20)}-${index}`} className="group">
+            <NewsItem
+              news={news}
+              index={index}
+              totalItems={newsData.length}
+              getSourceColor={getSourceColor}
+              formatTimeAgo={formatTimeAgo}
+            />
+          </div>
         ))}
+      </div>
+
+      {/* Footer informativo */}
+      <div className="mt-4 pt-4 border-t border-gray-700/30">
+        <div className="text-gray-500 text-xs text-center">
+          <div className="flex items-center justify-center gap-2">
+            <Clock className="w-3 h-3" />
+            <span>Actualizado cada 5 minutos • Fuentes: Bloomberg, Reuters, Yahoo Finance</span>
+          </div>
+        </div>
       </div>
     </div>
   )

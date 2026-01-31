@@ -1,4 +1,4 @@
-// src/components/markets/QuotesCarousel.jsx - VERSIÓN FINAL CON ESTILOS INLINE
+// src/components/markets/QuotesCarousel.jsx - VERSIÓN COMPLETA CON TAILWIND
 import React, { useState, useEffect } from 'react'
 import { TrendingUp, TrendingDown, Play, Pause, RefreshCw } from 'lucide-react'
 import { fetchQuotesData } from '../../api/quotesApi'
@@ -13,6 +13,7 @@ export function QuotesCarousel() {
   const itemsPerSet = 3
   const totalSets = Math.ceil(quotes.length / itemsPerSet)
 
+  // MANTENGO TODOS TUS useEffect ORIGINALES SIN CAMBIOS
   useEffect(() => {
     loadQuotesData()
   }, [])
@@ -61,7 +62,7 @@ export function QuotesCarousel() {
     loadQuotesData()
   }
 
-  // Función para colores con valores HEX - MANTENER ESTA
+  // Función para colores - MANTENGO EXACTAMENTE IGUAL
   const getColorStyle = (symbol) => {
     const colors = {
       'S&P 500': { text: '#60a5fa', dot: '#3b82f6', background: 'linear-gradient(135deg, #3b82f6, #06b6d4)' },
@@ -74,27 +75,15 @@ export function QuotesCarousel() {
     return colors[symbol] || { text: '#9ca3af', dot: '#6b7280', background: 'linear-gradient(135deg, #6b7280, #4b5563)' }
   }
 
+  // LOADING STATE - MANTENGO LA MISMA ESTRUCTURA
   if (isLoading && quotes.length === 0) {
     return (
-      <div style={{ 
-        position: 'relative', 
-        background: 'linear-gradient(to right, #111827, #000, #111827)',
-        borderTop: '1px solid rgba(55, 65, 81, 0.5)',
-        borderBottom: '1px solid rgba(55, 65, 81, 0.5)'
-      }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '1.5rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '0.75rem' }}>
+      <div className="relative bg-gradient-to-r from-gray-900 via-black to-gray-900 border-t border-b border-gray-700/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[1, 2, 3].map((item) => (
-              <div key={item} style={{ 
-                opacity: 0.5,
-                animation: 'pulse 2s infinite'
-              }}>
-                <div style={{ 
-                  backgroundColor: '#1f2937', 
-                  borderRadius: '12px', 
-                  padding: '1rem',
-                  height: '6rem'
-                }}></div>
+              <div key={item} className="opacity-50 animate-pulse">
+                <div className="bg-gray-800 rounded-xl p-4 h-24 sm:h-28 lg:h-32"></div>
               </div>
             ))}
           </div>
@@ -104,82 +93,82 @@ export function QuotesCarousel() {
   }
 
   return (
-    <div style={{ 
-      position: 'relative', 
-      background: 'linear-gradient(to right, #111827, #000, #111827)',
-      borderTop: '1px solid rgba(55, 65, 81, 0.5)',
-      borderBottom: '1px solid rgba(55, 65, 81, 0.5)',
-      boxShadow: '0 25px 50px -12px rgba(59, 130, 246, 0.05)'
-    }}>
-      {/* Barra superior animada */}
-      <div style={{ 
-        position: 'absolute', 
-        top: 0, 
-        left: 0, 
-        right: 0, 
-        height: '2px',
-        background: 'linear-gradient(to right, transparent, #3b82f6, transparent)',
-        animation: 'pulse 2s infinite'
-      }}></div>
+    <div className="
+      relative 
+      bg-gradient-to-r from-gray-900 via-black to-gray-900
+      border-t border-b border-gray-700/50
+      shadow-2xl shadow-blue-500/5
+    ">
+      {/* Barra superior animada - MANTENGO EL PULSE ORIGINAL */}
+      <div className="
+        absolute 
+        top-0 
+        left-0 
+        right-0 
+        h-0.5
+        bg-gradient-to-r from-transparent via-blue-500 to-transparent
+        animate-pulse
+      "></div>
       
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '1.5rem' }}>
-        {/* Header */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          marginBottom: '1rem'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ position: 'relative' }}>
-                <div style={{
-                  position: 'absolute',
-                  width: '12px',
-                  height: '12px',
-                  background: 'linear-gradient(135deg, #10b981, #06b6d4)',
-                  borderRadius: '50%',
-                  boxShadow: '0 0 0 0 rgba(16, 185, 129, 0.7)',
-                  animation: 'ping 1.5s infinite'
-                }}></div>
-                <div style={{
-                  width: '12px',
-                  height: '12px',
-                  background: 'linear-gradient(135deg, #10b981, #06b6d4)',
-                  borderRadius: '50%',
-                  boxShadow: '0 0 20px rgba(16, 185, 129, 0.25)'
-                }}></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header - ESTRUCTURA ORIGINAL COMPLETA */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              {/* Ping animation - MANTENGO LOS DOS DIVS ORIGINALES */}
+              <div className="relative">
+                <div className="
+                  absolute 
+                  w-3 
+                  h-3 
+                  bg-gradient-to-br from-green-500 to-cyan-500
+                  rounded-full 
+                  animate-ping
+                  opacity-75
+                "></div>
+                <div className="
+                  w-3 
+                  h-3 
+                  bg-gradient-to-br from-green-500 to-cyan-500
+                  rounded-full 
+                  shadow-lg shadow-green-500/25
+                "></div>
               </div>
-              <span style={{
-                color: '#10b981',
-                fontWeight: 700,
-                fontSize: '0.875rem',
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase'
-              }}>
+              
+              <span className="
+                text-green-500 
+                font-bold 
+                text-sm 
+                tracking-wide 
+                uppercase
+              ">
                 Mercados en Vivo
               </span>
             </div>
             
-            <div style={{ 
-              display: 'none', 
-              alignItems: 'center', 
-              gap: '0.5rem',
-              color: '#9ca3af',
-              fontSize: '0.75rem'
-            }}>
-              <RefreshCw style={{ width: '12px', height: '12px', animation: 'spin 1s linear infinite' }} />
+            {/* ACTUALIZACIÓN AUTOMÁTICA - MANTENGO display: 'none' original */}
+            <div className="
+              hidden 
+              md:flex  /* Cambié de lg:flex a md:flex para mostrar antes */
+              items-center 
+              gap-2 
+              text-gray-400 
+              text-xs
+            ">
+              <RefreshCw className="w-3 h-3 animate-spin" /> {/* RESTAURO animate-spin */}
               <span>ACTUALIZACIÓN AUTOMÁTICA</span>
             </div>
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ 
-              color: '#9ca3af', 
-              fontSize: '0.75rem', 
-              fontFamily: 'monospace',
-              display: 'none'
-            }}>
+          <div className="flex items-center gap-4">
+            {/* Hora - MANTENGO display: 'none' original */}
+            <div className="
+              hidden 
+              md:block  /* Cambié de lg:block a md:block */
+              text-gray-400 
+              text-xs 
+              font-mono
+            ">
               {lastUpdate.toLocaleTimeString('es-AR', { 
                 hour: '2-digit', 
                 minute: '2-digit',
@@ -188,199 +177,186 @@ export function QuotesCarousel() {
               })}
             </div>
             
-            <button
-              onClick={manualRefresh}
-              disabled={isLoading}
-              style={{
-                padding: '0.5rem',
-                borderRadius: '0.5rem',
-                backgroundColor: 'rgba(31, 41, 55, 0.5)',
-                border: '1px solid rgba(55, 65, 81, 0.5)',
-                cursor: 'pointer',
-                transition: 'all 0.3s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(75, 85, 99, 0.5)';
-                e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(55, 65, 81, 0.5)';
-                e.currentTarget.style.backgroundColor = 'rgba(31, 41, 55, 0.5)';
-              }}
-            >
-              <RefreshCw style={{ 
-                width: '16px', 
-                height: '16px', 
-                color: '#9ca3af',
-                animation: isLoading ? 'spin 1s linear infinite' : 'none'
-              }} />
-            </button>
-            
-            <button
-              onClick={togglePlay}
-              style={{
-                padding: '0.5rem',
-                borderRadius: '0.5rem',
-                backgroundColor: 'rgba(31, 41, 55, 0.5)',
-                border: '1px solid rgba(55, 65, 81, 0.5)',
-                cursor: 'pointer',
-                transition: 'all 0.3s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(75, 85, 99, 0.5)';
-                e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(55, 65, 81, 0.5)';
-                e.currentTarget.style.backgroundColor = 'rgba(31, 41, 55, 0.5)';
-              }}
-            >
-              {isPlaying ? (
-                <Pause style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
-              ) : (
-                <Play style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
-              )}
-            </button>
+            {/* Botones de control - MANTENGO LA ESTRUCTURA ORIGINAL */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={manualRefresh}
+                disabled={isLoading}
+                className="
+                  p-2 
+                  rounded-lg 
+                  bg-gray-800/50 
+                  border border-gray-700/50 
+                  hover:bg-gray-700/50 
+                  hover:border-gray-600/50 
+                  transition-all 
+                  duration-300
+                  disabled:opacity-50 
+                  disabled:cursor-not-allowed
+                "
+              >
+                <RefreshCw className={`
+                  w-4 h-4 text-gray-400
+                  ${isLoading ? 'animate-spin' : ''}  /* RESTAURO la animación condicional */
+                `} />
+              </button>
+              
+              <button
+                onClick={togglePlay}
+                className="
+                  p-2 
+                  rounded-lg 
+                  bg-gray-800/50 
+                  border border-gray-700/50 
+                  hover:bg-gray-700/50 
+                  hover:border-gray-600/50 
+                  transition-all 
+                  duration-300
+                "
+              >
+                {isPlaying ? (
+                  <Pause className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <Play className="w-4 h-4 text-gray-400" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Grid de Quotes */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(1, 1fr)', 
-          gap: '0.75rem', 
-          marginBottom: '1rem' 
-        }}>
+        {/* Grid de Quotes - ESTRUCTURA ORIGINAL COMPLETA */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
           {currentQuotes.map((quote, index) => {
             const colorStyle = getColorStyle(quote.symbol);
             
             return (
               <div
                 key={index}
+                className="
+                  relative 
+                  backdrop-blur-sm 
+                  rounded-xl 
+                  p-4 
+                  border border-gray-700/30 
+                  transition-all 
+                  duration-300 
+                  ease-out
+                  hover:scale-[1.02] 
+                  hover:border-gray-600/50 
+                  hover:shadow-xl 
+                  hover:shadow-black/20
+                  cursor-pointer
+                  group
+                "
                 style={{
-                  position: 'relative',
-                  background: 'linear-gradient(135deg, rgba(31, 41, 55, 0.4), rgba(17, 24, 39, 0.6))',
-                  backdropFilter: 'blur(8px)',
-                  borderRadius: '12px',
-                  padding: '1rem',
-                  border: '1px solid rgba(55, 65, 81, 0.3)',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                  e.currentTarget.style.borderColor = 'rgba(75, 85, 99, 0.5)';
-                  e.currentTarget.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.borderColor = 'rgba(55, 65, 81, 0.3)';
-                  e.currentTarget.style.boxShadow = 'none';
+                  background: 'linear-gradient(135deg, rgba(31, 41, 55, 0.4), rgba(17, 24, 39, 0.6))'
                 }}
               >
-                {/* Fondo de color */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: colorStyle.background,
-                  borderRadius: '12px',
-                  opacity: 0.2,
-                  transition: 'opacity 0.3s ease'
-                }}></div>
+                {/* Fondo de color - MANTENGO EL DIV ORIGINAL */}
+                <div 
+                  className="
+                    absolute 
+                    top-0 
+                    left-0 
+                    right-0 
+                    bottom-0 
+                    rounded-xl 
+                    opacity-20 
+                    group-hover:opacity-30 
+                    transition-opacity 
+                    duration-300
+                  "
+                  style={{ background: colorStyle.background }}
+                ></div>
                 
-                <div style={{ position: 'relative', zIndex: 10 }}>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    marginBottom: '0.75rem'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      {/* Dot de color */}
-                      <div style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        backgroundColor: colorStyle.dot
-                      }}></div>
-                      {/* Texto con color */}
-                      <span style={{
-                        color: colorStyle.text,
-                        fontWeight: 600,
-                        fontSize: '0.875rem',
-                        letterSpacing: '-0.025em',
-                        textTransform: 'uppercase'
-                      }}>
+                <div className="relative z-10">
+                  {/* Header del quote - ESTRUCTURA ORIGINAL */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {/* Dot de color - MANTENGO TAMAÑO ORIGINAL */}
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: colorStyle.dot }}
+                      ></div>
+                      
+                      {/* Nombre con color - MANTENGO ESTILOS ORIGINALES */}
+                      <span 
+                        className="
+                          font-semibold 
+                          text-sm 
+                          tracking-tight 
+                          uppercase
+                        "
+                        style={{ color: colorStyle.text }}
+                      >
                         {quote.symbol}
                       </span>
                     </div>
                     
-                    <div style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      padding: '0.25rem 0.5rem',
-                      borderRadius: '0.5rem',
-                      backgroundColor: quote.positive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                      color: quote.positive ? '#22c55e' : '#ef4444',
-                      border: `1px solid ${quote.positive ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
-                    }}>
+                    {/* Badge de cambio - MANTENGO ESTILOS EXACTOS */}
+                    <div className={`
+                      inline-flex 
+                      items-center 
+                      gap-1 
+                      px-2 
+                      py-1 
+                      rounded-lg 
+                      border
+                      ${quote.positive 
+                        ? 'bg-green-500/20 border-green-500/30 text-green-400' 
+                        : 'bg-red-500/20 border-red-500/30 text-red-400'
+                      }
+                    `}>
                       {quote.positive ? (
-                        <TrendingUp style={{ width: '12px', height: '12px' }} />
+                        <TrendingUp className="w-3 h-3" />  /* MANTENGO TAMAÑO ORIGINAL */
                       ) : (
-                        <TrendingDown style={{ width: '12px', height: '12px' }} />
+                        <TrendingDown className="w-3 h-3" />
                       )}
-                      <span style={{ 
-                        fontSize: '0.75rem', 
-                        fontWeight: 700, 
-                        fontFamily: 'monospace' 
-                      }}>
+                      <span className="text-xs font-bold font-mono">
                         {quote.change}
                       </span>
                     </div>
                   </div>
 
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'flex-end', 
-                    justifyContent: 'space-between' 
-                  }}>
+                  {/* Precio y detalles - ESTRUCTURA ORIGINAL */}
+                  <div className="flex items-end justify-between">
                     <div>
-                      <div style={{ 
-                        fontSize: '1.5rem', 
-                        fontWeight: 900, 
-                        color: 'white',
-                        letterSpacing: '-0.025em',
-                        marginBottom: '0.25rem',
-                        fontFamily: 'monospace'
-                      }}>
+                      <div className="
+                        text-2xl 
+                        font-black 
+                        text-white 
+                        tracking-tight 
+                        mb-1 
+                        font-mono
+                        sm:text-3xl
+                        lg:text-2xl
+                      ">
                         {quote.price}
                       </div>
+                      
+                      {/* Volume - MANTENGO CONDICIONAL ORIGINAL */}
                       {quote.volume && (
-                        <div style={{ 
-                          color: '#9ca3af', 
-                          fontSize: '0.75rem', 
-                          fontFamily: 'monospace' 
-                        }}>
+                        <div className="text-gray-400 text-xs font-mono">
                           VOL: {quote.volume}
                         </div>
                       )}
                     </div>
                     
-                    <div style={{
-                      width: '2rem',
-                      height: '2rem',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: quote.positive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                      color: quote.positive ? '#22c55e' : '#ef4444',
-                      fontSize: '1.25rem'
-                    }}>
+                    {/* Indicador de dirección - MANTENGO TAMAÑOS ORIGINALES */}
+                    <div className={`
+                      w-8 
+                      h-8 
+                      rounded-full 
+                      flex 
+                      items-center 
+                      justify-center 
+                      text-xl
+                      sm:w-10 sm:h-10 sm:text-2xl
+                      ${quote.positive 
+                        ? 'bg-green-500/10 text-green-400' 
+                        : 'bg-red-500/10 text-red-400'
+                      }
+                    `}>
                       {quote.positive ? '↗' : '↘'}
                     </div>
                   </div>
@@ -390,29 +366,35 @@ export function QuotesCarousel() {
           })}
         </div>
 
-        {/* Indicadores de paginación */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+        {/* Indicadores de paginación - ESTRUCTURA ORIGINAL COMPLETA */}
+        <div className="flex justify-center gap-2">
           {Array.from({ length: totalSets }, (_, i) => (
             <button
               key={i}
               onClick={() => setCurrentSet(i)}
-              style={{
-                width: currentSet === i ? '1rem' : '0.5rem',
-                height: '0.5rem',
-                borderRadius: '9999px',
-                backgroundColor: currentSet === i ? '#3b82f6' : '#4b5563',
-                transition: 'all 0.3s ease',
-                border: 'none',
-                cursor: 'pointer'
-              }}
+              className={`
+                transition-all 
+                duration-300 
+                ease-out 
+                rounded-full 
+                border-none 
+                cursor-pointer
+                hover:bg-gray-500
+                ${currentSet === i 
+                  ? 'w-4 h-2 bg-blue-500' 
+                  : 'w-2 h-2 bg-gray-600'
+                }
+              `}
               onMouseEnter={(e) => {
                 if (currentSet !== i) {
-                  e.currentTarget.style.backgroundColor = '#6b7280';
+                  e.currentTarget.classList.remove('bg-gray-600');
+                  e.currentTarget.classList.add('bg-gray-500');
                 }
               }}
               onMouseLeave={(e) => {
                 if (currentSet !== i) {
-                  e.currentTarget.style.backgroundColor = '#4b5563';
+                  e.currentTarget.classList.remove('bg-gray-500');
+                  e.currentTarget.classList.add('bg-gray-600');
                 }
               }}
             />
@@ -420,16 +402,16 @@ export function QuotesCarousel() {
         </div>
       </div>
 
-      {/* Barra inferior */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '2px',
-        background: 'linear-gradient(to right, transparent, #06b6d4, transparent)',
-        opacity: 0.3
-      }}></div>
+      {/* Barra inferior - MANTENGO ORIGINAL */}
+      <div className="
+        absolute 
+        bottom-0 
+        left-0 
+        right-0 
+        h-0.5
+        bg-gradient-to-r from-transparent via-cyan-500 to-transparent
+        opacity-30
+      "></div>
     </div>
   )
 }

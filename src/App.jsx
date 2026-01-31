@@ -14,6 +14,7 @@ import { TradingViewCharts } from './components/charts/TradingViewCharts'
 import TreemapDashboard from './components/charts/TreemapDashboard'
 import EconomicDataBlock from './components/markets/EconomicDataBlock'
 import AdSpace from './components/ads/AdSpace'
+
 import { FloatingEduButton, MacroExplainer } from './components/markets/MacroExplainer'
 import { 
   Users,
@@ -249,8 +250,11 @@ const LoginPage = () => {
 // ============================================
 // DASHBOARD PRINCIPAL
 // ============================================
+// ============================================
+// DASHBOARD PRINCIPAL (SOLO MODIFICANDO EconomicDataBlock)
+// ============================================
 const DashboardPage = () => {
-  const { isAdmin} = useAuth();
+  const { isAdmin } = useAuth();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   // Panel admin SOLO visible si:
@@ -260,17 +264,17 @@ const DashboardPage = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 ">
+      <div className="container mx-auto px-4">
         
         {/* === BOTÓN PARA ACTIVAR PANEL ADMIN (SOLO PARA ADMIN) === */}
         {isAdmin && !showAdminPanel && (
           <div className="mb-4 flex justify-end">
-<button
-  onClick={() => setShowAdminPanel(true)}
-  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm rounded-lg hover:opacity-90 transition-opacity"
->
-  🔓 Mostrar Panel de Administración
-</button>
+            <button
+              onClick={() => setShowAdminPanel(true)}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm rounded-lg hover:opacity-90 transition-opacity"
+            >
+              🔓 Mostrar Panel de Administración
+            </button>
           </div>
         )}
 
@@ -290,36 +294,39 @@ const DashboardPage = () => {
           </div>
         )}
 
-        <div className="mb-8 border-b-35 border-transparent">
+        <div className="mb-8">
           <QuotesCarousel />
         </div>
         
-        <div className="flex flex-row gap-6 ">
+        {/* CONTENEDOR PRINCIPAL CON COLUMNAS 70%/30% */}
+        <div className="flex flex-col xl:flex-row gap-6">
           
           {/* COLUMNA IZQUIERDA (70%) */}
-          <div className="w-7/10 border-r-12 border-transparent border-b-25 border-transparent">
-            <LiveStreamsGrid />
-            
-            {/* 📊 INDICADORES ECONÓMICOS */}
-            <EconomicIndicators />
-            
-            {/* ⭐⭐ ADSPACE - JUSTO AQUÍ ⭐⭐ */}
-            <AdSpace />
-            
-            <FinancialDashboard/>
-            <div className="w-3/10 ml-12 pl-12 border-b-25 border-transparent"></div>
-            <EconomicDataBlock/>
+          <div className="xl:w-[70%] min-w-0">
+            <div className="space-y-6">
+              <LiveStreamsGrid />
+              <EconomicIndicators />
+              <AdSpace />
+              <FinancialDashboard />
+            </div>
           </div>
           
           {/* COLUMNA DERECHA (30%) */}
-          <div className="w-3/10 ml-12 pl-12 border-b-25 border-transparent">
+          <div className="xl:w-[30%] min-w-0 space-y-6">
             <Notice /> 
             <TreemapDashboard />
           </div>
         </div>
         
-        {/* GRAFICOS TRADINGVIEW (debajo de AdSpace) */}
-        <TradingViewCharts />
+        {/* EconomicDataBlock - 100% ANCHO TOTAL (FUERA DEL FLEX) */}
+        <div className="w-full min-w-0 mt-6">
+          <EconomicDataBlock />
+        </div>
+        
+        {/* GRAFICOS TRADINGVIEW - 100% ANCHO TOTAL */}
+        <div className="w-full min-w-0 mt-6">
+          <TradingViewCharts />
+        </div>
       </div>
     </MainLayout>
   );

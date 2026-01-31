@@ -1,21 +1,25 @@
+/* index.css - VERSIÓN COMPLETA CORREGIDA */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #000000 !important;
-  color: #EAEAEA;
-  font-family: 'JetBrains Mono', monospace;
-  margin: 0;
-  overflow-x: hidden;
+@layer base {
+  /* ESTILOS QUE DEFINÍAN TU DISEÑO ORIGINAL */
+  body {
+    @apply bg-black text-[#EAEAEA]; /* Color exacto que tenías */
+    font-family: 'JetBrains Mono', monospace !important; /* Esta fuente SÍ era importante */
+    margin: 0;
+    overflow-x: hidden;
+  }
+  
+  html, #root {
+    @apply bg-black;
+  }
 }
 
-html, #root {
-  background-color: #000000 !important;
-}
-
+/* SCROLLBAR - MANTENER IGUAL */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -33,7 +37,15 @@ html, #root {
 ::-webkit-scrollbar-thumb:hover {
   background: #0066FF;
 }
-/* Agregar estas animaciones al final del archivo */
+
+/* ANIMACIONES - RESTAURAR */
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
 
 @keyframes fadeInUp {
   from {
@@ -53,12 +65,4 @@ html, #root {
   to {
     opacity: 1;
   }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
 }

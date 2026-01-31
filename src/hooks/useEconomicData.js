@@ -35,7 +35,6 @@ export const useEconomicData = () => {
         lastUpdate: new Date().toISOString()
       });
       
-      console.log(`✅ useEconomicData: ${bcraData.length} indicadores BCRA cargados`);
       
     } catch (error) {
       console.error('❌ Error fetching economic data:', error);
