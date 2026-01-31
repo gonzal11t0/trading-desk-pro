@@ -118,13 +118,11 @@ const MainLayout = ({ children, showHeader = true }) => {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <div className={`w-2 h-2 rounded-full ${timeLeft > 300 ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`} />
-                    <span className="text-gray-300">
-                      Sesión: <span className="font-bold">{formatTime(timeLeft)}</span>
-                    </span>
+                   
                   </div>
                   <span className="text-gray-500">|</span>
                   <span className="text-gray-400">
-                    Usuario: <span className="text-blue-400">{isAuthenticated ? userRole === 'admin' ? '👑 Admin' : '👤 Cliente' : 'No autenticado'}</span>
+                     <span className="text-blue-400">{isAuthenticated ? userRole === 'admin' ? '👑 Admin' : '👤 Cliente' : 'No autenticado'}</span>
                   </span>
                 </div>
                 
