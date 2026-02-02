@@ -18,7 +18,13 @@ const initialUserDatabase = {
     active: true,
     createdAt: '2024-01-01'
   },
-  
+  "ZW1haWw9Y2xpZW50ZUxlb0BlbXByZXNhLmNvbSZwYXNzPUxlb0lvbEAh":{
+        role:'client',
+        name:'Leo',
+        plan:'basic',
+        active: true,
+        createdAt: '2026-02-02'
+    }
 };
 
 // ============================================

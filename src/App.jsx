@@ -92,17 +92,6 @@ const MainLayout = ({ children, showHeader = true }) => {
     return () => clearInterval(interval);
   }, [getSessionTimeLeft]);
 
-  const formatTime = (seconds) => {
-    if (seconds >= 3600) {
-      const hours = Math.floor(seconds / 3600);
-      const mins = Math.floor((seconds % 3600) / 60);
-      return `${hours}h ${mins}m`;
-    } else if (seconds >= 60) {
-      return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-    }
-    return `${seconds}s`;
-  };
-
   return (
     <div className="min-h-screen bg-black text-white font-mono">
       {/* Floating Education Button */}

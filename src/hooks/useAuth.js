@@ -68,6 +68,11 @@ export const useAuth = () => {
           role: 'admin',
           name: 'Administrador',
           plan: 'enterprise'
+        },
+        "ZW1haWw9Y2xpZW50ZUxlb0BlbXByZXNhLmNvbSZwYXNzPUxlb0lvbEAh":{
+        role:'client',
+        name:'Leo',
+        plan:'basic'
         }
       };
 
