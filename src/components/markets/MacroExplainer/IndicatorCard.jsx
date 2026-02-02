@@ -6,162 +6,127 @@ const IndicatorCard = ({ indicator }) => {
 
   const getRelationshipIcon = (rel) => {
     switch (rel) {
-      case 'directa': return <TrendingUp style={{ width: '16px', height: '16px', color: '#059669' }} />; // Verde
-      case 'inversa': return <TrendingDown style={{ width: '16px', height: '16px', color: '#dc2626' }} />; // Rojo
-      default: return <Link style={{ width: '16px', height: '16px', color: '#3b82f6' }} />; // Azul
+      case 'directa': 
+        return <TrendingUp className="w-4 h-4 text-green-600" />;
+      case 'inversa': 
+        return <TrendingDown className="w-4 h-4 text-red-600" />;
+      default: 
+        return <Link className="w-4 h-4 text-blue-500" />;
     }
   };
 
   const getCategoryColor = (cat) => {
     const colors = {
-      'Monetario': { bg: '#dbeafe', text: '#1d4ed8', border: '#93c5fd' }, // Azul
-      'Inflación': { bg: '#fee2e2', text: '#dc2626', border: '#fca5a5' }, // Rojo
-      'Tipo de Cambio': { bg: '#d1fae5', text: '#059669', border: '#6ee7b7' }, // Verde
-      'Riesgo': { bg: '#ede9fe', text: '#7c3aed', border: '#a78bfa' }, // Violeta
-      'Mercado': { bg: '#fef3c7', text: '#d97706', border: '#fbbf24' }, // Amarillo
-      'Real': { bg: '#cffafe', text: '#0891b2', border: '#67e8f9' }, // Cian
-      'Internacional': { bg: '#fce7f3', text: '#db2777', border: '#f9a8d4' }, // Rosa
-      'Fiscal': { bg: '#ffedd5', text: '#ea580c', border: '#fdba74' } // Naranja
+      'Monetario': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-300' },
+      'Inflación': { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-300' },
+      'Tipo de Cambio': { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-300' },
+      'Riesgo': { bg: 'bg-violet-50', text: 'text-violet-600', border: 'border-violet-300' },
+      'Mercado': { bg: 'bg-yellow-50', text: 'text-yellow-600', border: 'border-yellow-300' },
+      'Real': { bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-300' },
+      'Internacional': { bg: 'bg-pink-50', text: 'text-pink-600', border: 'border-pink-300' },
+      'Fiscal': { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-300' }
     };
-    return colors[cat] || { bg: '#f3f4f6', text: '#374151', border: '#d1d5db' };
+    return colors[cat] || { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-300' };
   };
 
   const categoryColor = getCategoryColor(indicator.categoria);
 
   return (
-    <div style={{
-      backgroundColor: '#ffffff',
-      borderRadius: '16px',
-      padding: '24px',
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      border: `1px solid ${categoryColor.border}`,
-      maxWidth: '800px',
-      margin: '0 auto'
-    }}>
+    <div className={`
+      bg-white rounded-2xl p-6 
+      shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]
+      border max-w-4xl mx-auto
+      ${categoryColor.border}
+    `}>
       {/* Header con título y categoría */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '24px',
-        paddingBottom: '16px',
-        borderBottom: '1px solid #e5e7eb'
-      }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <h3 style={{
-              fontSize: '24px',
-              fontWeight: 'bold',
-              color: '#111827', // Negro para el título
-              margin: 0
-            }}>
+      <div className="
+        flex flex-col md:flex-row justify-between items-start md:items-center 
+        gap-4 mb-6 pb-4 border-b border-gray-200
+      ">
+        <div className="flex-1">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">
+            <h3 className="
+              text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 
+              mb-2 md:mb-0
+            ">
               {indicator.nombre}
             </h3>
-            <span style={{
-              padding: '4px 12px',
-              borderRadius: '9999px',
-              backgroundColor: categoryColor.bg,
-              color: categoryColor.text,
-              fontSize: '14px',
-              fontWeight: 600,
-              border: `1px solid ${categoryColor.border}`
-            }}>
+            <span className={`
+              px-3 py-1 rounded-full text-sm font-semibold 
+              border inline-block w-fit
+              ${categoryColor.bg} ${categoryColor.text} ${categoryColor.border}
+            `}>
               {indicator.categoria}
             </span>
           </div>
-          <p style={{
-            fontSize: '14px',
-            color: '#6b7280', // Gris para info secundaria
-            margin: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div className="
+            flex flex-col sm:flex-row items-start sm:items-center 
+            gap-2 text-sm text-gray-500 flex-wrap
+          ">
+            <span className="flex items-center gap-1">
               📊 {indicator.fuente}
             </span>
-            <span>•</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span className="hidden sm:inline">•</span>
+            <span className="flex items-center gap-1">
               ⏰ {indicator.frecuencia}
             </span>
-            <span>•</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span className="hidden sm:inline">•</span>
+            <span className="flex items-center gap-1">
               📏 {indicator.unidad}
             </span>
-          </p>
+          </div>
         </div>
-        <div style={{
-          backgroundColor: '#f9fafb',
-          padding: '8px',
-          borderRadius: '8px',
-          border: '1px solid #e5e7eb'
-        }}>
-          <Info style={{ width: '20px', height: '20px', color: '#6b7280' }} />
+        <div className="
+          bg-gray-50 p-2 rounded-lg border border-gray-200 
+          self-start md:self-center
+        ">
+          <Info className="w-5 h-5 text-gray-500" />
         </div>
       </div>
 
       {/* Definición */}
-      <div style={{ marginBottom: '24px' }}>
-        <h4 style={{
-          fontSize: '16px',
-          fontWeight: 600,
-          color: '#374151', // Gris oscuro para subtítulo
-          marginBottom: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <span style={{ fontSize: '20px' }}>📘</span>
+      <div className="mb-6">
+        <h4 className="
+          text-base md:text-lg font-semibold text-gray-700 mb-3
+          flex items-center gap-2
+        ">
+          <span className="text-xl">📘</span>
           Definición
         </h4>
-        <div style={{
-          backgroundColor: '#f9fafb',
-          padding: '16px',
-          borderRadius: '12px',
-          borderLeft: `4px solid ${categoryColor.text}`
-        }}>
-          <p style={{
-            fontSize: '16px',
-            lineHeight: 1.6,
-            color: '#374151', // Texto oscuro sobre fondo claro
-            margin: 0
-          }}>
+        <div className={`
+          bg-gray-50 p-4 rounded-xl border-l-4
+          ${categoryColor.border}
+        `}>
+          <p className="
+            text-gray-700 text-sm md:text-base leading-relaxed 
+            md:leading-loose m-0
+          ">
             {indicator.definicion}
           </p>
         </div>
       </div>
 
       {/* Dos columnas: SUBE y BAJA */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '16px',
-        marginBottom: '24px'
-      }}>
+      <div className="
+        grid grid-cols-1 md:grid-cols-2 gap-4 mb-6
+      ">
         {/* Si SUBE */}
-        <div style={{
-          backgroundColor: '#f0fdf4',
-          padding: '16px',
-          borderRadius: '12px',
-          border: '1px solid #bbf7d0'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <TrendingUp style={{ width: '20px', height: '20px', color: '#059669' }} />
-            <h4 style={{
-              fontWeight: 'bold',
-              color: '#065f46', // Verde oscuro
-              margin: 0,
-              fontSize: '16px'
-            }}>Si SUBE</h4>
+        <div className="
+          bg-green-50 p-4 rounded-xl border border-green-200
+        ">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp className="w-5 h-5 text-green-600" />
+            <h4 className="
+              font-bold text-green-800 m-0 text-base md:text-lg
+            ">
+              Si SUBE
+            </h4>
           </div>
-          <ul style={{ paddingLeft: '20px', margin: 0 }}>
+          <ul className="pl-5 m-0 space-y-2">
             {indicator.interpretacion.sube.split(', ').map((item, idx) => (
-              <li key={idx} style={{
-                marginBottom: '8px',
-                fontSize: '14px',
-                lineHeight: 1.5,
-                color: '#374151' // Texto oscuro
-              }}>
+              <li key={idx} className="
+                text-gray-700 text-sm md:text-base leading-relaxed
+              ">
                 {item}
               </li>
             ))}
@@ -169,29 +134,22 @@ const IndicatorCard = ({ indicator }) => {
         </div>
 
         {/* Si BAJA */}
-        <div style={{
-          backgroundColor: '#fef2f2',
-          padding: '16px',
-          borderRadius: '12px',
-          border: '1px solid #fecaca'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <TrendingDown style={{ width: '20px', height: '20px', color: '#dc2626' }} />
-            <h4 style={{
-              fontWeight: 'bold',
-              color: '#991b1b', // Rojo oscuro
-              margin: 0,
-              fontSize: '16px'
-            }}>Si BAJA</h4>
+        <div className="
+          bg-red-50 p-4 rounded-xl border border-red-200
+        ">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingDown className="w-5 h-5 text-red-600" />
+            <h4 className="
+              font-bold text-red-800 m-0 text-base md:text-lg
+            ">
+              Si BAJA
+            </h4>
           </div>
-          <ul style={{ paddingLeft: '20px', margin: 0 }}>
+          <ul className="pl-5 m-0 space-y-2">
             {indicator.interpretacion.baja.split(', ').map((item, idx) => (
-              <li key={idx} style={{
-                marginBottom: '8px',
-                fontSize: '14px',
-                lineHeight: 1.5,
-                color: '#374151' // Texto oscuro
-              }}>
+              <li key={idx} className="
+                text-gray-700 text-sm md:text-base leading-relaxed
+              ">
                 {item}
               </li>
             ))}
@@ -200,44 +158,32 @@ const IndicatorCard = ({ indicator }) => {
       </div>
 
       {/* Relaciones */}
-      <div style={{ marginBottom: '24px' }}>
-        <h4 style={{
-          fontSize: '16px',
-          fontWeight: 600,
-          color: '#374151',
-          marginBottom: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <span style={{ fontSize: '20px' }}>🔗</span>
+      <div className="mb-6">
+        <h4 className="
+          text-base md:text-lg font-semibold text-gray-700 mb-3
+          flex items-center gap-2
+        ">
+          <span className="text-xl">🔗</span>
           Relaciones con otros indicadores
         </h4>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        <div className="
+          flex flex-wrap gap-2
+        ">
           {Object.entries(indicator.relaciones).map(([key, value]) => (
-            <div key={key} style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              backgroundColor: '#f8fafc',
-              padding: '8px 12px',
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0'
-            }}>
+            <div key={key} className="
+              flex items-center gap-2 bg-slate-50 px-3 py-2 
+              rounded-lg border border-slate-200
+            ">
               {getRelationshipIcon(value)}
-              <span style={{
-                fontSize: '14px',
-                fontWeight: 500,
-                color: '#1e293b', // Texto oscuro
-                textTransform: 'capitalize'
-              }}>
+              <span className="
+                text-sm md:text-base font-medium text-slate-800
+                capitalize
+              ">
                 {key.replace('_', ' ')}:
               </span>
-              <span style={{
-                fontSize: '14px',
-                color: '#64748b',
-                textTransform: 'capitalize'
-              }}>
+              <span className="
+                text-sm md:text-base text-slate-600 capitalize
+              ">
                 {value}
               </span>
             </div>
@@ -246,77 +192,50 @@ const IndicatorCard = ({ indicator }) => {
       </div>
 
       {/* Nota y detalles */}
-      <div style={{
-        paddingTop: '16px',
-        borderTop: '1px solid #e5e7eb'
-      }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '16px',
-          marginBottom: '16px'
-        }}>
+      <div className="pt-4 border-t border-gray-200">
+        <div className="
+          grid grid-cols-1 md:grid-cols-2 gap-4 mb-4
+        ">
           <div>
-            <span style={{
-              fontSize: '14px',
-              color: '#6b7280',
-              display: 'block',
-              marginBottom: '4px'
-            }}>
+            <span className="
+              text-sm text-gray-500 block mb-1
+            ">
               Unidad de medida:
             </span>
-            <p style={{
-              fontSize: '16px',
-              fontWeight: 500,
-              color: '#111827',
-              margin: 0
-            }}>
+            <p className="
+              text-gray-900 font-medium text-base md:text-lg m-0
+            ">
               {indicator.unidad}
             </p>
           </div>
           <div>
-            <span style={{
-              fontSize: '14px',
-              color: '#6b7280',
-              display: 'block',
-              marginBottom: '4px'
-            }}>
+            <span className="
+              text-sm text-gray-500 block mb-1
+            ">
               ID del indicador:
             </span>
-            <p style={{
-              fontFamily: 'monospace',
-              fontSize: '16px',
-              color: '#111827',
-              margin: 0,
-              backgroundColor: '#f9fafb',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              display: 'inline-block'
-            }}>
+            <p className="
+              font-mono text-gray-900 text-base md:text-lg m-0
+              bg-gray-50 px-2 py-1 rounded inline-block
+            ">
               {indicator.id}
             </p>
           </div>
         </div>
         
         {indicator.nota && (
-          <div style={{
-            marginTop: '16px',
-            padding: '12px 16px',
-            backgroundColor: '#eff6ff',
-            borderRadius: '8px',
-            borderLeft: `4px solid #3b82f6`
-          }}>
-            <p style={{
-              fontSize: '14px',
-              color: '#1e40af', // Azul oscuro
-              margin: 0,
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '8px'
-            }}>
-              <span style={{ fontSize: '16px' }}>💡</span>
+          <div className="
+            mt-4 p-3 md:p-4 bg-blue-50 rounded-lg 
+            border-l-4 border-blue-500
+          ">
+            <p className="
+              text-blue-900 text-sm md:text-base m-0
+              flex items-start gap-2
+            ">
+              <span className="text-lg">💡</span>
               <span>
-                <strong style={{ fontWeight: 600 }}>Nota importante:</strong> {indicator.nota}
+                <strong className="font-semibold">Nota importante:</strong>{' '}
+                {indicator.nota}
               </span>
             </p>
           </div>

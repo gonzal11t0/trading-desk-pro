@@ -47,14 +47,14 @@ const MacroExplainer = () => {
 
   // Iconos por categoría
   const categoryIcons = {
-    'Monetario': <DollarSign style={{ width: '18px', height: '18px' }} />,
-    'Inflación': <TrendingUp style={{ width: '18px', height: '18px' }} />,
-    'Tipo de Cambio': <DollarSign style={{ width: '18px', height: '18px' }} />,
-    'Riesgo': <BarChart3 style={{ width: '18px', height: '18px' }} />,
-    'Mercado': <PieChart style={{ width: '18px', height: '18px' }} />,
-    'Real': <Building style={{ width: '18px', height: '18px' }} />,
-    'Internacional': <Globe style={{ width: '18px', height: '18px' }} />,
-    'Fiscal': <Building style={{ width: '18px', height: '18px' }} />
+    'Monetario': <DollarSign className="w-4 h-4 md:w-5 md:h-5" />,
+    'Inflación': <TrendingUp className="w-4 h-4 md:w-5 md:h-5" />,
+    'Tipo de Cambio': <DollarSign className="w-4 h-4 md:w-5 md:h-5" />,
+    'Riesgo': <BarChart3 className="w-4 h-4 md:w-5 md:h-5" />,
+    'Mercado': <PieChart className="w-4 h-4 md:w-5 md:h-5" />,
+    'Real': <Building className="w-4 h-4 md:w-5 md:h-5" />,
+    'Internacional': <Globe className="w-4 h-4 md:w-5 md:h-5" />,
+    'Fiscal': <Building className="w-4 h-4 md:w-5 md:h-5" />
   };
 
   // Colores por categoría
@@ -87,6 +87,475 @@ const MacroExplainer = () => {
 
   return (
     <>
+      {/* Overlay */}
+      <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4 animate-fadeIn">
+        {/* Main Container */}
+        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-7xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-200 animate-slideUp">
+          {/* Header Premium */}
+          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 md:p-8 text-white relative overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(255,255,255,0.1)_0%,transparent_50%)]" />
+            
+            <div className="relative z-10">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-5 md:mb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6">
+                  <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <BookOpen className="w-6 h-6 md:w-7 md:h-7" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl md:text-2xl lg:text-3xl font-bold flex flex-col sm:flex-row sm:items-center gap-2 md:gap-3 mb-2">
+                      Guía de Indicadores Macroeconómicos
+                      <span className="text-sm font-normal bg-white/20 px-3 py-1 rounded-full inline-flex items-center gap-1.5 w-fit">
+                        <Zap className="w-3 h-3 md:w-4 md:h-4" />
+                        PRO
+                      </span>
+                    </h1>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-4 text-sm md:text-base opacity-90">
+                      <span className="flex items-center gap-1.5">
+                        <Target className="w-4 h-4 md:w-5 md:h-5" />
+                        {MACRO_INDICATORS.length} indicadores disponibles
+                      </span>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-4 h-4 md:w-5 md:h-5" />
+                        Actualizado hoy
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 md:gap-4">
+                  <button
+                    onClick={() => {}}
+                    className="bg-white/20 hover:bg-white/30 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl flex items-center gap-2 transition-all duration-200 text-sm md:text-base"
+                  >
+                    <Download className="w-4 h-4 md:w-5 md:h-5" />
+                    <span className="hidden sm:inline">PDF</span>
+                  </button>
+                  <button
+                    onClick={() => {}}
+                    className="bg-white/20 hover:bg-white/30 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg md:rounded-xl flex items-center gap-2 transition-all duration-200 text-sm md:text-base"
+                  >
+                    <Share2 className="w-4 h-4 md:w-5 md:h-5" />
+                    <span className="hidden sm:inline">Compartir</span>
+                  </button>
+                  <button
+                    onClick={closeExplainer}
+                    className="bg-white/20 hover:bg-white/30 text-white p-2 md:p-3 rounded-lg md:rounded-xl transition-all duration-200"
+                    aria-label="Cerrar"
+                  >
+                    <X className="w-5 h-5 md:w-6 md:h-6" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative max-w-2xl">
+                <div className={`relative bg-white/15 rounded-xl md:rounded-2xl border-2 transition-all duration-300 ${
+                  isSearchFocused ? 'border-white/50' : 'border-transparent'
+                } flex items-center`}>
+                  <Search className="w-4 h-4 md:w-5 md:h-5 text-white/70 absolute left-3 md:left-4" />
+                  <input
+                    ref={searchRef}
+                    type="text"
+                    placeholder="Buscar indicador (ej: Reservas, IPC, EMBI, Dólar Blue...)"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setIsSearchFocused(false)}
+                    className="w-full pl-10 md:pl-12 pr-10 md:pr-12 py-3 md:py-4 bg-transparent border-none text-white text-sm md:text-base placeholder-white/70 outline-none"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-3 md:right-4 bg-none border-none text-white/70 p-1 cursor-pointer"
+                    >
+                      <X className="w-4 h-4 md:w-5 md:h-5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex flex-1 overflow-hidden bg-gray-50">
+            {/* Sidebar - Categories */}
+            <div className="hidden lg:flex flex-col w-64 md:w-72 border-r border-gray-200 bg-white p-4 md:p-6 overflow-y-auto animate-slideInRight">
+              <div className="mb-6 md:mb-8">
+                <h3 className="text-xs md:text-sm font-semibold text-gray-600 mb-3 md:mb-4 flex items-center gap-2 uppercase tracking-wider">
+                  <Filter className="w-3 h-3 md:w-4 md:h-4 text-gray-500" />
+                  CATEGORÍAS
+                </h3>
+                <div className="space-y-1">
+                  <button
+                    onClick={() => setSelectedCategory('Todos')}
+                    className={`w-full text-left px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl text-sm md:text-base font-medium flex items-center gap-3 transition-all duration-200 ${
+                      selectedCategory === 'Todos' 
+                        ? 'bg-blue-50 text-blue-700' 
+                        : 'text-gray-800 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <Grid className={`w-4 h-4 md:w-5 md:h-5 ${
+                      selectedCategory === 'Todos' ? 'text-blue-600' : 'text-gray-500'
+                    }`} />
+                    <span>Todos los indicadores</span>
+                    <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
+                      selectedCategory === 'Todos' 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {MACRO_INDICATORS.length}
+                    </span>
+                  </button>
+                  
+                  {MACRO_CATEGORIES.map(cat => {
+                    const count = MACRO_INDICATORS.filter(ind => ind.categoria === cat).length;
+                    const color = categoryColors[cat];
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`w-full text-left px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl text-sm md:text-base font-medium flex items-center gap-3 transition-all duration-200 ${
+                          selectedCategory === cat 
+                            ? 'bg-gray-50' 
+                            : 'text-gray-800 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                        style={{
+                          backgroundColor: selectedCategory === cat ? color.light : undefined,
+                          color: selectedCategory === cat ? color.bg : undefined
+                        }}
+                      >
+                        <div style={{ color: selectedCategory === cat ? color.bg : '#6b7280' }}>
+                          {categoryIcons[cat]}
+                        </div>
+                        <span>{cat}</span>
+                        <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium ${
+                          selectedCategory === cat 
+                            ? 'text-white' 
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                        style={{
+                          backgroundColor: selectedCategory === cat ? color.bg : undefined
+                        }}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Popular Indicators */}
+              <div className="mb-6 md:mb-8">
+                <h3 className="text-xs md:text-sm font-semibold text-gray-600 mb-3 md:mb-4 flex items-center gap-2 uppercase tracking-wider">
+                  <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-gray-500" />
+                  MÁS CONSULTADOS
+                </h3>
+                <div className="space-y-2">
+                  {popularIndicators.map(ind => (
+                    <button
+                      key={ind.id}
+                      onClick={() => useEducationStore.getState().setActiveIndicator(ind.id)}
+                      className="w-full flex items-center gap-3 p-2.5 md:p-3 rounded-lg md:rounded-xl bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-all duration-200 text-left group"
+                    >
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{
+                          backgroundColor: categoryColors[ind.categoria].light,
+                          color: categoryColors[ind.categoria].bg
+                        }}
+                      >
+                        {categoryIcons[ind.categoria]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm md:text-base font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                          {ind.nombre}
+                        </div>
+                        <div className="text-xs text-gray-500 flex items-center gap-1 truncate">
+                          {ind.fuente} • {ind.frecuencia}
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Favorites */}
+              {favorites.length > 0 && (
+                <div>
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-600 mb-3 md:mb-4 flex items-center gap-2 uppercase tracking-wider">
+                    <Star className="w-3 h-3 md:w-4 md:h-4 text-yellow-500" />
+                    Mis Favoritos
+                  </h3>
+                  <div className="space-y-1.5">
+                    {favorites.slice(0, 3).map(favId => {
+                      const ind = MACRO_INDICATORS.find(i => i.id === favId);
+                      if (!ind) return null;
+                      return (
+                        <button
+                          key={favId}
+                          onClick={() => useEducationStore.getState().setActiveIndicator(favId)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg md:rounded-xl bg-yellow-50 hover:bg-yellow-100 transition-all duration-200 text-left"
+                        >
+                          <Star className="w-3.5 h-3.5 text-yellow-500 flex-shrink-0" />
+                          <span className="text-sm text-yellow-900 truncate">
+                            {ind.nombre}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Main Panel */}
+            <div className="flex-1 flex flex-col overflow-hidden bg-white">
+              {/* Toolbar */}
+              <div className="p-4 md:p-6 border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`px-3 md:px-4 py-2 rounded-lg md:rounded-xl flex items-center gap-2 transition-all duration-200 ${
+                        viewMode === 'grid' 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      <Grid className="w-4 h-4 md:w-5 md:h-5" />
+                      Grid
+                    </button>
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={`px-3 md:px-4 py-2 rounded-lg md:rounded-xl flex items-center gap-2 transition-all duration-200 ${
+                        viewMode === 'list' 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      <List className="w-4 h-4 md:w-5 md:h-5" />
+                      Lista
+                    </button>
+                  </div>
+                  
+                  {searchTerm && (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Info className="w-4 h-4" />
+                      {filteredIndicators.length} resultados para "{searchTerm}"
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex items-center gap-3 md:gap-4">
+                  <button
+                    onClick={closeExplainer}
+                    className="px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 hover:-translate-y-0.5 text-sm md:text-base"
+                  >
+                    Comenzar Exploración
+                  </button>
+                </div>
+              </div>
+
+              {/* Indicators Content */}
+              <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+                {activeIndicator ? (
+                  <div className="animate-fadeIn">
+                    <button
+                      onClick={() => useEducationStore.getState().setActiveIndicator(null)}
+                      className="mb-4 md:mb-6 text-blue-600 bg-blue-50 border-none px-4 py-2.5 rounded-lg md:rounded-xl cursor-pointer flex items-center gap-2 hover:bg-blue-100 transition-all duration-200 text-sm md:text-base"
+                    >
+                      <ChevronRight className="w-4 h-4 rotate-180" />
+                      Volver a la lista
+                    </button>
+                    <IndicatorCard indicator={activeIndicator} />
+                  </div>
+                ) : filteredIndicators.length > 0 ? (
+                  viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                      {filteredIndicators.map(indicator => {
+                        const color = categoryColors[indicator.categoria];
+                        return (
+                          <div
+                            key={indicator.id}
+                            onClick={() => useEducationStore.getState().setActiveIndicator(indicator.id)}
+                            className="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 cursor-pointer transition-all duration-300 border border-gray-200 hover:border-blue-300 hover:shadow-lg hover:-translate-y-1 animate-slideUp"
+                          >
+                            {/* Header */}
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex items-center gap-3 md:gap-4">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center"
+                                  style={{
+                                    backgroundColor: color.light,
+                                    color: color.bg
+                                  }}
+                                >
+                                  {categoryIcons[indicator.categoria]}
+                                </div>
+                                <div>
+                                  <h3 className="text-sm md:text-base lg:text-lg font-semibold text-gray-900 mb-1">
+                                    {indicator.nombre}
+                                  </h3>
+                                  <span className="text-xs px-2 py-1 rounded-full font-medium"
+                                    style={{
+                                      backgroundColor: color.light,
+                                      color: color.bg
+                                    }}
+                                  >
+                                    {indicator.categoria}
+                                  </span>
+                                </div>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleFavorite(indicator.id);
+                                }}
+                                className={`bg-none border-none p-1 cursor-pointer ${
+                                  favorites.includes(indicator.id) ? 'text-yellow-500' : 'text-gray-300'
+                                } hover:text-yellow-500 transition-colors`}
+                              >
+                                <Star className="w-4 h-4 md:w-5 md:h-5" />
+                              </button>
+                            </div>
+
+                            {/* Description */}
+                            <p className="text-gray-600 text-xs md:text-sm leading-relaxed mb-4 line-clamp-2">
+                              {indicator.definicion}
+                            </p>
+
+                            {/* Footer */}
+                            <div className="pt-3 md:pt-4 border-t border-gray-100 flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className="text-xs text-gray-500 flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {indicator.frecuencia}
+                                </span>
+                                <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                                  {indicator.fuente}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 text-blue-600 text-sm font-medium">
+                                Ver detalles
+                                <ChevronRight className="w-4 h-4" />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {filteredIndicators.map(indicator => {
+                        const color = categoryColors[indicator.categoria];
+                        return (
+                          <div
+                            key={indicator.id}
+                            onClick={() => useEducationStore.getState().setActiveIndicator(indicator.id)}
+                            className="bg-white rounded-lg md:rounded-xl p-4 cursor-pointer transition-all duration-200 border border-gray-200 hover:bg-gray-50 hover:translate-x-1 flex items-center gap-4"
+                          >
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0"
+                              style={{
+                                backgroundColor: color.light,
+                                color: color.bg
+                              }}
+                            >
+                              {categoryIcons[indicator.categoria]}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                                <h3 className="text-sm md:text-base font-semibold text-gray-900 truncate">
+                                  {indicator.nombre}
+                                </h3>
+                                <span className="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0"
+                                  style={{
+                                    backgroundColor: color.light,
+                                    color: color.bg
+                                  }}
+                                >
+                                  {indicator.categoria}
+                                </span>
+                              </div>
+                              <p className="text-gray-500 text-xs md:text-sm line-clamp-1">
+                                {indicator.definicion}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-4 flex-shrink-0">
+                              <div className="text-right">
+                                <div className="text-xs text-gray-500 flex items-center gap-1 justify-end">
+                                  <Clock className="w-3 h-3" />
+                                  {indicator.frecuencia}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {indicator.fuente}
+                                </div>
+                              </div>
+                              <ChevronRight className="w-5 h-5 text-gray-400" />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )
+                ) : (
+                  <div className="text-center py-12 md:py-16 lg:py-24 text-gray-600">
+                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 text-gray-400">
+                      <Search className="w-8 h-8 md:w-10 md:h-10" />
+                    </div>
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-semibold text-gray-700 mb-2 md:mb-3">
+                      No se encontraron indicadores
+                    </h3>
+                    <p className="text-sm md:text-base text-gray-500 max-w-md mx-auto mb-6 md:mb-8">
+                      Intenta con otros términos de búsqueda o selecciona una categoría diferente
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSearchTerm('');
+                        setSelectedCategory('Todos');
+                      }}
+                      className="px-6 py-3 rounded-lg md:rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 hover:-translate-y-0.5 text-sm md:text-base"
+                    >
+                      Mostrar todos los indicadores
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="p-4 md:p-6 border-t border-gray-200 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-6">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Eye className="w-4 h-4" />
+                <span>Útil para: <strong className="text-gray-800">Inversores · Estudiantes · Analistas</strong></span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Bookmark className="w-4 h-4" />
+                <span>Guardado automáticamente</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 md:gap-4">
+              <button
+                onClick={() => window.open('https://www.bcra.gob.ar', '_blank')}
+                className="px-3 md:px-4 py-2 rounded-lg md:rounded-xl border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 flex items-center gap-2 transition-all duration-200 text-sm md:text-base"
+              >
+                <ExternalLink className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="hidden sm:inline">BCRA Oficial</span>
+              </button>
+              <button
+                onClick={closeExplainer}
+                className="px-4 md:px-6 py-2.5 md:py-3 rounded-lg md:rounded-xl bg-gray-100 text-gray-600 font-semibold hover:bg-gray-200 transition-all duration-200 text-sm md:text-base"
+              >
+                Cerrar Guía
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Add CSS animations */}
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; }
@@ -103,1100 +572,18 @@ const MacroExplainer = () => {
           to { transform: translateX(0); opacity: 1; }
         }
         
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-        
-        .animate-fade-in {
+        .animate-fadeIn {
           animation: fadeIn 0.3s ease-out;
         }
         
-        .animate-slide-up {
+        .animate-slideUp {
           animation: slideUp 0.4s ease-out;
         }
         
-        .animate-slide-in-right {
+        .animate-slideInRight {
           animation: slideInRight 0.4s ease-out;
         }
-        
-        .animate-pulse-slow {
-          animation: pulse 2s infinite ease-in-out;
-        }
-        
-        .glass-effect {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .dark-glass {
-          background: rgba(15, 23, 42, 0.95);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .hover-lift {
-          transition: all 0.3s ease;
-        }
-        
-        .hover-lift:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
-        }
-        
-        .gradient-text {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        
-        .scrollbar-thin {
-          scrollbar-width: thin;
-          scrollbar-color: #cbd5e1 transparent;
-        }
-        
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 6px;
-        }
-        
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 3px;
-        }
-        
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
       `}</style>
-
-      <div style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 60,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '16px',
-        animation: 'fadeIn 0.3s ease-out'
-      }}>
-        <div style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '24px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-          width: '100%',
-          maxWidth: '1200px',
-          maxHeight: '90vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          border: '1px solid #e5e7eb',
-          animation: 'slideUp 0.4s ease-out'
-        }}>
-          {/* Header Premium */}
-          <div style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            padding: '24px 32px',
-            color: 'white',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            {/* Patrón de fondo */}
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0,
-              backgroundImage: 'radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)',
-            }} />
-            
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '20px',
-              position: 'relative',
-              zIndex: 1
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  padding: '12px',
-                  borderRadius: '14px',
-                  backdropFilter: 'blur(10px)'
-                }}>
-                  <BookOpen style={{ width: '28px', height: '28px' }} />
-                </div>
-                <div>
-                  <h1 style={{
-                    fontSize: '28px',
-                    fontWeight: 'bold',
-                    margin: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px'
-                  }}>
-                    Guía de Indicadores Macroeconómicos
-                    <span style={{
-                      fontSize: '14px',
-                      fontWeight: 'normal',
-                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                      padding: '4px 12px',
-                      borderRadius: '9999px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}>
-                      <Zap style={{ width: '14px', height: '14px' }} />
-                      PRO
-                    </span>
-                  </h1>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    marginTop: '8px',
-                    fontSize: '14px',
-                    opacity: 0.9
-                  }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Target style={{ width: '16px', height: '16px' }} />
-                      {MACRO_INDICATORS.length} indicadores disponibles
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Clock style={{ width: '16px', height: '16px' }} />
-                      Actualizado hoy
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <button
-                  onClick={() => {}}
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    color: 'white',
-                    padding: '10px 16px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
-                >
-                  <Download style={{ width: '18px', height: '18px' }} />
-                  PDF
-                </button>
-                <button
-                  onClick={() => {}}
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    color: 'white',
-                    padding: '10px 16px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
-                >
-                  <Share2 style={{ width: '18px', height: '18px' }} />
-                  Compartir
-                </button>
-                <button
-                  onClick={closeExplainer}
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    color: 'white',
-                    padding: '10px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
-                  aria-label="Cerrar"
-                >
-                  <X style={{ width: '24px', height: '24px' }} />
-                </button>
-              </div>
-            </div>
-
-            {/* Barra de búsqueda premium */}
-            <div style={{
-              position: 'relative',
-              maxWidth: '600px',
-              marginTop: '8px',
-              zIndex: 1
-            }}>
-              <div style={{
-                position: 'relative',
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                borderRadius: '14px',
-                border: isSearchFocused ? '2px solid rgba(255, 255, 255, 0.5)' : '2px solid transparent',
-                transition: 'all 0.3s',
-                display: 'flex',
-                alignItems: 'center'
-              }}>
-                <Search style={{
-                  width: '20px',
-                  height: '20px',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  marginLeft: '16px',
-                  position: 'absolute',
-                  left: 0
-                }} />
-                <input
-                  ref={searchRef}
-                  type="text"
-                  placeholder="Buscar indicador (ej: Reservas, IPC, EMBI, Dólar Blue...)"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  style={{
-                    width: '100%',
-                    padding: '16px 16px 16px 48px',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    color: 'white',
-                    fontSize: '16px',
-                    outline: 'none'
-                  }}
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    style={{
-                      position: 'absolute',
-                      right: '16px',
-                      background: 'none',
-                      border: 'none',
-                      color: 'rgba(255, 255, 255, 0.7)',
-                      cursor: 'pointer',
-                      padding: '4px'
-                    }}
-                  >
-                    <X style={{ width: '20px', height: '20px' }} />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Contenido principal */}
-          <div style={{
-            display: 'flex',
-            flex: 1,
-            overflow: 'hidden',
-            backgroundColor: '#f8fafc'
-          }}>
-{/* Panel lateral - Categorías */}
-<div style={{
-  width: '280px',
-  borderRight: '1px solid #e5e7eb',
-  backgroundColor: '#ffffff',
-  padding: '24px',
-  overflowY: 'auto',
-  animation: 'slideInRight 0.4s ease-out'
-}} className="scrollbar-thin">
-  <div style={{ marginBottom: '32px' }}>
-    <h3 style={{
-      fontSize: '14px',
-      fontWeight: 600,
-      color: '#4b5563', // Gris oscuro
-      marginBottom: '16px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em'
-    }}>
-      <Filter style={{ width: '16px', height: '16px', color: '#6b7280' }} />
-      CATEGORÍAS
-    </h3>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <button
-        onClick={() => setSelectedCategory('Todos')}
-        style={{
-          width: '100%',
-          textAlign: 'left',
-          padding: '12px 16px',
-          borderRadius: '12px',
-          fontSize: '14px',
-          fontWeight: 500,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          transition: 'all 0.2s',
-          backgroundColor: selectedCategory === 'Todos' ? '#eff6ff' : 'transparent',
-          color: selectedCategory === 'Todos' ? '#1d4ed8' : '#1f2937', // Texto oscuro
-          border: 'none',
-          cursor: 'pointer'
-        }}
-        onMouseEnter={(e) => {
-          if (selectedCategory !== 'Todos') {
-            e.currentTarget.style.backgroundColor = '#f9fafb';
-            e.currentTarget.style.color = '#111827';
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (selectedCategory !== 'Todos') {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#1f2937';
-          }
-        }}
-      >
-        <Grid style={{ 
-          width: '18px', 
-          height: '18px',
-          color: selectedCategory === 'Todos' ? '#1d4ed8' : '#6b7280'
-        }} />
-        <span>Todos los indicadores</span>
-        <span style={{
-          marginLeft: 'auto',
-          fontSize: '12px',
-          backgroundColor: selectedCategory === 'Todos' ? '#3b82f6' : '#004fecff',
-          color: selectedCategory === 'Todos' ? 'white' : '#374151', // Texto oscuro
-          padding: '2px 8px',
-          borderRadius: '9999px',
-          fontWeight: 500
-        }}>
-          {MACRO_INDICATORS.length}
-        </span>
-      </button>
-      
-      {MACRO_CATEGORIES.map(cat => {
-        const count = MACRO_INDICATORS.filter(ind => ind.categoria === cat).length;
-        const color = categoryColors[cat];
-        return (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            style={{
-              width: '100%',
-              textAlign: 'left',
-              padding: '12px 16px',
-              borderRadius: '12px',
-              fontSize: '14px',
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              transition: 'all 0.2s',
-              backgroundColor: selectedCategory === cat ? color.light : 'transparent',
-              color: selectedCategory === cat ? color.bg : '#1f2937', // Texto oscuro
-              border: 'none',
-              cursor: 'pointer'
-            }}
-            onMouseEnter={(e) => {
-              if (selectedCategory !== cat) {
-                e.currentTarget.style.backgroundColor = '#f9fafb';
-                e.currentTarget.style.color = '#111827';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (selectedCategory !== cat) {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = '#1f2937';
-              }
-            }}
-          >
-            <div style={{
-              color: selectedCategory === cat ? color.bg : '#6b7280' // Gris para iconos inactivos
-            }}>
-              {categoryIcons[cat]}
-            </div>
-            <span>{cat}</span>
-            <span style={{
-              marginLeft: 'auto',
-              fontSize: '12px',
-              backgroundColor: selectedCategory === cat ? color.bg : '#f3f4f6',
-              color: selectedCategory === cat ? 'white' : '#374151', // Texto oscuro
-              padding: '2px 8px',
-              borderRadius: '9999px',
-              fontWeight: 500
-            }}>
-              {count}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  </div>
-
-  {/* Indicadores Populares */}
-  <div style={{ marginBottom: '32px' }}>
-    <h3 style={{
-      fontSize: '14px',
-      fontWeight: 600,
-      color: '#4b5563', // Gris oscuro
-      marginBottom: '16px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em'
-    }}>
-      <TrendingUp style={{ width: '16px', height: '16px', color: '#6b7280' }} />
-      MÁS CONSULTADOS
-    </h3>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {popularIndicators.map(ind => (
-        <button
-          key={ind.id}
-          onClick={() => useEducationStore.getState().setActiveIndicator(ind.id)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '10px 12px',
-            borderRadius: '10px',
-            backgroundColor: '#f9fafb',
-            border: '1px solid #e5e7eb',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            textAlign: 'left'
-          }}
-          className="hover-lift"
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#f3f4f6';
-            e.currentTarget.style.borderColor = categoryColors[ind.categoria].bg;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#f9fafb';
-            e.currentTarget.style.borderColor = '#e5e7eb';
-          }}
-        >
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
-            backgroundColor: categoryColors[ind.categoria].light,
-            color: categoryColors[ind.categoria].bg,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            {categoryIcons[ind.categoria]}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#111827', // Casi negro
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}>
-              {ind.nombre}
-            </div>
-            <div style={{
-              fontSize: '11px',
-              color: '#6b7280', // Gris medio
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              marginTop: '2px'
-            }}>
-              {ind.fuente} • {ind.frecuencia}
-            </div>
-          </div>
-          <ChevronRight style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
-        </button>
-      ))}
-    </div>
-
-
-              </div>
-
-              {/* Favoritos */}
-              {favorites.length > 0 && (
-                <div>
-                  <h3 style={{
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    color: '#64748b',
-                    marginBottom: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em'
-                  }}>
-                    <Star style={{ width: '16px', height: '16px', color: '#f59e0b' }} />
-                    Mis Favoritos
-                  </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {favorites.slice(0, 3).map(favId => {
-                      const ind = MACRO_INDICATORS.find(i => i.id === favId);
-                      if (!ind) return null;
-                      return (
-                        <button
-                          key={favId}
-                          onClick={() => useEducationStore.getState().setActiveIndicator(favId)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            padding: '8px 12px',
-                            borderRadius: '8px',
-                            backgroundColor: '#fffbeb',
-                            border: 'none',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            textAlign: 'left'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef3c7'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fffbeb'}
-                        >
-                          <Star style={{ width: '14px', height: '14px', color: '#f59e0b', flexShrink: 0 }} />
-                          <span style={{
-                            fontSize: '13px',
-                            color: '#92400e',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}>
-                            {ind.nombre}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Panel principal */}
-            <div style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-              backgroundColor: '#ffffff'
-            }}>
-              {/* Barra de herramientas */}
-              <div style={{
-                padding: '20px 24px',
-                borderBottom: '1px solid #e5e7eb',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                backgroundColor: '#ffffff'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={() => setViewMode('grid')}
-                      style={{
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        backgroundColor: viewMode === 'grid' ? '#3b82f6' : '#f1f5f9',
-                        color: viewMode === 'grid' ? 'white' : '#64748b',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      <Grid style={{ width: '16px', height: '16px' }} />
-                      Grid
-                    </button>
-                    <button
-                      onClick={() => setViewMode('list')}
-                      style={{
-                        padding: '8px 12px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        backgroundColor: viewMode === 'list' ? '#3b82f6' : '#f1f5f9',
-                        color: viewMode === 'list' ? 'white' : '#64748b',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      <List style={{ width: '16px', height: '16px' }} />
-                      Lista
-                    </button>
-                  </div>
-                  
-                  {searchTerm && (
-                    <span style={{
-                      fontSize: '14px',
-                      color: '#64748b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}>
-                      <Info style={{ width: '16px', height: '16px' }} />
-                      {filteredIndicators.length} resultados para "{searchTerm}"
-                    </span>
-                  )}
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <button
-                    onClick={() => window.print()}
-                    style={{
-                      padding: '8px 16px',
-                      borderRadius: '8px',
-                      border: '1px solid #e5e7eb',
-                      backgroundColor: 'white',
-                      color: '#475569',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                  >
-                    <Download style={{ width: '16px', height: '16px' }} />
-                    Exportar
-                  </button>
-                  <button
-                    onClick={closeExplainer}
-                    style={{
-                      padding: '10px 20px',
-                      borderRadius: '10px',
-                      border: 'none',
-                      background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                      color: 'white',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                  >
-                    Comenzar Exploración
-                  </button>
-                </div>
-              </div>
-
-              {/* Contenido de indicadores */}
-              <div style={{
-                flex: 1,
-                overflowY: 'auto',
-                padding: '24px',
-                backgroundColor: '#f8fafc'
-              }} className="scrollbar-thin">
-                {activeIndicator ? (
-                  <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
-                    <button
-                      onClick={() => useEducationStore.getState().setActiveIndicator(null)}
-                      style={{
-                        marginBottom: '20px',
-                        color: '#3b82f6',
-                        backgroundColor: '#eff6ff',
-                        border: 'none',
-                        padding: '10px 16px',
-                        borderRadius: '10px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
-                    >
-                      <ChevronRight style={{ transform: 'rotate(180deg)', width: '16px', height: '16px' }} />
-                      Volver a la lista
-                    </button>
-                    <IndicatorCard indicator={activeIndicator} />
-                  </div>
-                ) : filteredIndicators.length > 0 ? (
-                  viewMode === 'grid' ? (
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                      gap: '20px'
-                    }}>
-                      {filteredIndicators.map(indicator => {
-                        const color = categoryColors[indicator.categoria];
-                        return (
-                          <div
-                            key={indicator.id}
-                            onClick={() => useEducationStore.getState().setActiveIndicator(indicator.id)}
-                            style={{
-                              backgroundColor: 'white',
-                              borderRadius: '16px',
-                              padding: '20px',
-                              cursor: 'pointer',
-                              transition: 'all 0.3s ease',
-                              border: '1px solid #e5e7eb',
-                              position: 'relative',
-                              animation: 'slideUp 0.4s ease-out'
-                            }}
-                            className="hover-lift"
-                            onMouseEnter={(e) => e.currentTarget.style.borderColor = color.bg}
-                            onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
-                          >
-                            {/* Encabezado */}
-                            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{
-                                  width: '40px',
-                                  height: '40px',
-                                  borderRadius: '12px',
-                                  backgroundColor: color.light,
-                                  color: color.bg,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
-                                }}>
-                                  {categoryIcons[indicator.categoria]}
-                                </div>
-                                <div>
-                                  <h3 style={{
-                                    fontSize: '16px',
-                                    fontWeight: 600,
-                                    color: '#1e293b',
-                                    margin: 0
-                                  }}>
-                                    {indicator.nombre}
-                                  </h3>
-                                  <span style={{
-                                    fontSize: '12px',
-                                    color: color.bg,
-                                    backgroundColor: color.light,
-                                    padding: '2px 8px',
-                                    borderRadius: '9999px',
-                                    fontWeight: 500
-                                  }}>
-                                    {indicator.categoria}
-                                  </span>
-                                </div>
-                              </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleFavorite(indicator.id);
-                                }}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  color: favorites.includes(indicator.id) ? '#f59e0b' : '#cbd5e1',
-                                  cursor: 'pointer',
-                                  padding: '4px'
-                                }}
-                              >
-                                <Star style={{ width: '18px', height: '18px' }} />
-                              </button>
-                            </div>
-
-                            {/* Descripción */}
-                            <p style={{
-                              fontSize: '14px',
-                              color: '#0a5de2ff',
-                              lineHeight: 1.5,
-                              marginBottom: '16px',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden'
-                            }}>
-                              {indicator.definicion}
-                            </p>
-
-                            {/* Footer */}
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              paddingTop: '16px',
-                              borderTop: '1px solid #f1f5f9'
-                            }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <span style={{
-                                  fontSize: '12px',
-                                  color: '#64748b',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '4px'
-                                }}>
-                                  <Clock style={{ width: '12px', height: '12px' }} />
-                                  {indicator.frecuencia}
-                                </span>
-                                <span style={{
-                                  fontSize: '12px',
-                                  color: '#0067f8ff',
-                                  backgroundColor: '#f1f5f9',
-                                  padding: '2px 8px',
-                                  borderRadius: '4px'
-                                }}>
-                                  {indicator.fuente}
-                                </span>
-                              </div>
-                              <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                color: '#3b82f6',
-                                fontSize: '14px',
-                                fontWeight: 500
-                              }}>
-                                Ver detalles
-                                <ChevronRight style={{ width: '16px', height: '16px' }} />
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {filteredIndicators.map(indicator => {
-                        const color = categoryColors[indicator.categoria];
-                        return (
-                          <div
-                            key={indicator.id}
-                            onClick={() => useEducationStore.getState().setActiveIndicator(indicator.id)}
-                            style={{
-                              backgroundColor: 'white',
-                              borderRadius: '12px',
-                              padding: '16px 20px',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s',
-                              border: '1px solid #e5e7eb',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '16px'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#f8fafc';
-                              e.currentTarget.style.transform = 'translateX(4px)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = 'white';
-                              e.currentTarget.style.transform = 'translateX(0)';
-                            }}
-                          >
-                            <div style={{
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '10px',
-                              backgroundColor: color.light,
-                              color: color.bg,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0
-                            }}>
-                              {categoryIcons[indicator.categoria]}
-                            </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-                                <h3 style={{
-                                  fontSize: '16px',
-                                  fontWeight: 600,
-                                  color: '#1e293b',
-                                  margin: 0
-                                }}>
-                                  {indicator.nombre}
-                                </h3>
-                                <span style={{
-                                  fontSize: '12px',
-                                  color: color.bg,
-                                  backgroundColor: color.light,
-                                  padding: '2px 8px',
-                                  borderRadius: '9999px',
-                                  fontWeight: 500
-                                }}>
-                                  {indicator.categoria}
-                                </span>
-                              </div>
-                              <p style={{
-                                fontSize: '14px',
-                                color: '#64748b',
-                                margin: 0,
-                                display: '-webkit-box',
-                                WebkitLineClamp: 1,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden'
-                              }}>
-                                {indicator.definicion}
-                              </p>
-                            </div>
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '16px',
-                              flexShrink: 0
-                            }}>
-                              <div style={{ textAlign: 'right' }}>
-                                <div style={{
-                                  fontSize: '12px',
-                                  color: '#64748b',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  justifyContent: 'flex-end'
-                                }}>
-                                  <Clock style={{ width: '12px', height: '12px' }} />
-                                  {indicator.frecuencia}
-                                </div>
-                                <div style={{
-                                  fontSize: '12px',
-                                  color: '#64748b',
-                                  marginTop: '4px'
-                                }}>
-                                  {indicator.fuente}
-                                </div>
-                              </div>
-                              <ChevronRight style={{ width: '20px', height: '20px', color: '#94a3b8' }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )
-                ) : (
-                  <div style={{
-                    textAlign: 'center',
-                    padding: '60px 20px',
-                    color: '#006affff'
-                  }}>
-                    <div style={{
-                      width: '80px',
-                      height: '80px',
-                      backgroundColor: '#f1f5f9',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 20px',
-                      color: '#94a3b8'
-                    }}>
-                      <Search style={{ width: '36px', height: '36px' }} />
-                    </div>
-                    <h3 style={{
-                      fontSize: '20px',
-                      fontWeight: 600,
-                      color: '#475569',
-                      marginBottom: '12px'
-                    }}>
-                      No se encontraron indicadores
-                    </h3>
-                    <p style={{
-                      fontSize: '16px',
-                      color: '#64748b',
-                      maxWidth: '400px',
-                      margin: '0 auto 24px'
-                    }}>
-                      Intenta con otros términos de búsqueda o selecciona una categoría diferente
-                    </p>
-                    <button
-                      onClick={() => {
-                        setSearchTerm('');
-                        setSelectedCategory('Todos');
-                      }}
-                      style={{
-                        padding: '12px 24px',
-                        borderRadius: '10px',
-                        border: 'none',
-                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                        color: 'white',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                      onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                    >
-                      Mostrar todos los indicadores
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div style={{
-            padding: '16px 32px',
-            borderTop: '1px solid #e5e7eb',
-            backgroundColor: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#64748b' }}>
-                <Eye style={{ width: '16px', height: '16px' }} />
-                <span>Útil para: <strong style={{ color: '#1e293b' }}>Inversores · Estudiantes · Analistas</strong></span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#64748b' }}>
-                <Bookmark style={{ width: '16px', height: '16px' }} />
-                <span>Guardado automáticamente</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <button
-                onClick={() => window.open('https://www.bcra.gob.ar', '_blank')}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  backgroundColor: 'white',
-                  color: '#475569',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s',
-                  fontSize: '14px'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-              >
-                <ExternalLink style={{ width: '16px', height: '16px' }} />
-                BCRA Oficial
-              </button>
-              <button
-                onClick={closeExplainer}
-                style={{
-                  padding: '10px 24px',
-                  borderRadius: '10px',
-                  border: 'none',
-                  backgroundColor: '#f1f5f9',
-                  color: '#475569',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
-              >
-                Cerrar Guía
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </>
   );
 };
