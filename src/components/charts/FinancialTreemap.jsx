@@ -52,6 +52,8 @@ const FinancialTreemap = ({
   className = "",
   onBlockClick
 }) => {
+    const safeData = Array.isArray(data) ? data : [];
+
   const gridStyle = useMemo(() => {
     if (data.length === 0) return {};
     const rows = Math.ceil(data.length / columns);
@@ -60,7 +62,7 @@ const FinancialTreemap = ({
       gridTemplateRows: `repeat(${rows}, 1fr)`,
       gap: '0.75rem'
     };
-  }, [data.length, columns]);
+  }, [safeData.length, columns]);
 
   if (data.length === 0) {
     return (
