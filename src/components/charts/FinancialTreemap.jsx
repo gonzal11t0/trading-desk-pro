@@ -1,59 +1,41 @@
 import React, { useMemo } from 'react';
 
-// En TreemapBlock.jsx - CORREGIDO
 const TreemapBlock = React.memo(({ item, onClick }) => {
-  // VALIDACIÓN: Asegurar que item y variation existan
-  if (!item || typeof item.variation === 'undefined') {
-    console.warn('Invalid item in TreemapBlock:', item);
-    return (
-      <div className="min-w-0 flex flex-col justify-center items-center p-3 md:p-4 rounded-lg bg-gradient-to-br from-gray-700 to-gray-800">
-        <div className="text-lg md:text-xl font-bold truncate w-full text-center text-gray-300">
-          ERROR
-        </div>
-        <div className="text-sm md:text-base mt-1 text-gray-500">
-          Dato inválido
-        </div>
-      </div>
-    );
-  }
-
-  // Asegurar que variation sea un número
-  const variation = Number(item.variation) || 0;
-  const variationFormatted = `${variation > 0 ? '+' : ''}${variation.toFixed(2)}%`;
+  const variationFormatted = `${item.variation > 0 ? '+' : ''}${item.variation.toFixed(2)}%`;
   
   const colorClass = useMemo(() => {
-    if (variation > 2) return 'bg-gradient-to-br from-green-600 to-green-700';
-    if (variation > 0.5) return 'bg-gradient-to-br from-green-500/90 to-green-600/90';
-    if (variation < -2) return 'bg-gradient-to-br from-red-600 to-red-700';
-    if (variation < -0.5) return 'bg-gradient-to-br from-red-500/90 to-red-600/90';
-    if (variation > 0) return 'bg-gradient-to-br from-blue-600/90 to-blue-700/90';
+    if (item.variation > 2) return 'bg-gradient-to-br from-green-600 to-green-700';
+    if (item.variation > 0.5) return 'bg-gradient-to-br from-green-500/90 to-green-600/90';
+    if (item.variation < -2) return 'bg-gradient-to-br from-red-600 to-red-700';
+    if (item.variation < -0.5) return 'bg-gradient-to-br from-red-500/90 to-red-600/90';
+    if (item.variation > 0) return 'bg-gradient-to-br from-blue-600/90 to-blue-700/90';
     return 'bg-gradient-to-br from-gray-700 to-gray-800';
-  }, [variation]);
+  }, [item.variation]);
 
   const textColorClass = useMemo(() => {
-    if (variation > 2) return 'text-green-100';
-    if (variation > 0.5) return 'text-green-100';
-    if (variation < -2) return 'text-red-100';
-    if (variation < -0.5) return 'text-red-100';
-    if (variation > 0) return 'text-blue-100';
+    if (item.variation > 2) return 'text-green-100';
+    if (item.variation > 0.5) return 'text-green-100';
+    if (item.variation < -2) return 'text-red-100';
+    if (item.variation < -0.5) return 'text-red-100';
+    if (item.variation > 0) return 'text-blue-100';
     return 'text-gray-300';
-  }, [variation]);
+  }, [item.variation]);
 
   const variationColorClass = useMemo(() => {
-    if (variation >= 0) return 'text-green-300 font-semibold';
+    if (item.variation >= 0) return 'text-green-300 font-semibold';
     return 'text-red-300 font-semibold';
-  }, [variation]);
+  }, [item.variation]);
 
   return (
     <div
       className={`min-w-0 flex flex-col justify-center items-center p-3 md:p-4 rounded-lg 
                  cursor-pointer transition-all duration-200 hover:scale-[1.02] 
                  hover:shadow-xl hover:brightness-110 active:scale-[0.98] ${colorClass}`}
-      title={`${item.ticker || 'N/A'}: ${variationFormatted}`}
+      title={`${item.ticker}: ${variationFormatted}`}
       onClick={() => onClick?.(item)}
     >
       <div className={`text-lg md:text-xl font-bold truncate w-full text-center ${textColorClass}`}>
-        {item.ticker || '???'}
+        {item.ticker}
       </div>
       <div className={`text-sm md:text-base mt-1 ${variationColorClass}`}>
         {variationFormatted}
@@ -70,8 +52,6 @@ const FinancialTreemap = ({
   className = "",
   onBlockClick
 }) => {
-    const safeData = Array.isArray(data) ? data : [];
-
   const gridStyle = useMemo(() => {
     if (data.length === 0) return {};
     const rows = Math.ceil(data.length / columns);
@@ -80,7 +60,7 @@ const FinancialTreemap = ({
       gridTemplateRows: `repeat(${rows}, 1fr)`,
       gap: '0.75rem'
     };
-  }, [safeData.length, columns]);
+  }, [data.length, columns]);
 
   if (data.length === 0) {
     return (
