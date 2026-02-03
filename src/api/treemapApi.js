@@ -74,49 +74,66 @@ export const treemapApi = {
  */
 async function fetchFMPBatch(symbols, type) {
   try {
-    // ENDPOINT CORRECTO: usar /stable/ en lugar de /api/v3/
     const symbolsParam = symbols.slice(0, 10).join(',');
-    const endpoint = `https://financialmodelingprep.com/stable/quote/${symbolsParam}?apikey=${FMP_API_KEY}`;
     
-    console.log(`📡 Fetching ${type} from FMP:`, endpoint);
-    
-    const response = await axios.get(endpoint, {
-      timeout: 10000,
-      headers: {
-        'Accept': 'application/json',
-        'apikey': FMP_API_KEY
-      }
-    });
-
-    if (!response.data || response.data.length === 0) {
-      throw new Error('No data returned from FMP');
+    // Verificar si estamos en desarrollo o producción
+    if (import.meta.env.DEV) {
+      // Desarrollo: llamar directo a FMP
+      const endpoint = `https://financialmodelingprep.com/stable/quote/${symbolsParam}?apikey=${FMP_API_KEY}`;
+      console.log(`📡 Dev: Fetching ${type} from FMP directly`);
+      
+      const response = await axios.get(endpoint, {
+        timeout: 10000,
+        headers: { 'apikey': FMP_API_KEY }
+      });
+      
+      return transformFMPData(response.data);
+      
+    } else {
+      // Producción (Vercel): usar nuestro proxy
+      const endpoint = `${window.location.origin}/api/fmp-proxy?symbols=${symbolsParam}&type=quote`;
+      console.log(`🌐 Prod: Fetching ${type} via proxy`);
+      
+      const response = await axios.get(endpoint, {
+        timeout: 10000
+      });
+      
+      return transformFMPData(response.data);
     }
-
-    // Transformar datos de FMP al formato esperado
-    return response.data.map(item => ({
-      ticker: item.symbol,
-      variation: item.changePercent || 0,
-      price: item.price || 0,
-      previousClose: item.previousClose || item.price,
-      marketCap: item.marketCap || 0,
-      volume: item.volume || 0,
-      dayHigh: item.dayHigh || item.price,
-      dayLow: item.dayLow || item.price,
-      updatedAt: new Date().toISOString(),
-      source: 'fmp',
-      name: item.name || item.symbol
-    }));
     
   } catch (error) {
     console.error(`Error fetching ${type} batch:`, error.message);
     
     // Fallback a datos mock
     if (type === 'leader') {
+      console.log('🔄 Falling back to mock leader data');
       return getMockLeaderPanel();
     } else {
+      console.log('🔄 Falling back to mock cedears data');
       return getMockCedears();
     }
   }
+}
+
+// Función auxiliar para transformar datos
+function transformFMPData(fmpData) {
+  if (!fmpData || fmpData.length === 0) {
+    throw new Error('No data returned from FMP');
+  }
+  
+  return fmpData.map(item => ({
+    ticker: item.symbol,
+    variation: item.changePercent || 0,
+    price: item.price || 0,
+    previousClose: item.previousClose || item.price,
+    marketCap: item.marketCap || 0,
+    volume: item.volume || 0,
+    dayHigh: item.dayHigh || item.price,
+    dayLow: item.dayLow || item.price,
+    updatedAt: new Date().toISOString(),
+    source: 'fmp-realtime', // <-- Cambiado para identificar datos reales
+    name: item.name || item.symbol
+  }));
 }
 
 /**
