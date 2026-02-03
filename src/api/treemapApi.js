@@ -1,32 +1,13 @@
-// src/api/treemapApi.js 
-
+// src/api/treemapApi.js - VERSIÓN CORRECTA Y LIMPIA
 import axios from 'axios';
 
+const FMP_API_KEY = import.meta.env.VITE_FMP_KEY || '0GPS5760CgTF3sDOzQUTRZgMY2GUJvrA';
 const CACHE_DURATION = 180000; // 3 minutos
 let cache = {};
 
-// Configuración dinámica de proxy - CORREGIDO
-const getProxyConfig = (symbol, isDevelopment) => {
-  if (isDevelopment) {
-    // En desarrollo, usar corsproxy.io
-    const proxyUrl = 'https://corsproxy.io/?';
-    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d`;
-    return {
-      url: proxyUrl + encodeURIComponent(targetUrl),
-      requiresProcessing: false
-    };
-  } else {
-    // En producción, usar nuestro propio proxy
-    return {
-      url: `${window.location.origin}/api/yahoo-proxy?symbol=${symbol}`,
-      requiresProcessing: false
-    };
-  }
-};
-
 export const treemapApi = {
   /**
-   * Obtiene datos del panel líder argentino
+   * Obtiene datos del panel líder argentino usando FMP
    */
   getLeaderPanel: async () => {
     const cacheKey = 'leaderPanel';
@@ -35,13 +16,13 @@ export const treemapApi = {
     }
 
     const symbols = [
-      'GGAL.BA', 'YPFD.BA', 'PAMP.BA', 'CEPU.BA', 
-      'BMA.BA', 'LOMA.BA', 'CRES.BA', 'EDN.BA',
-      'TXAR.BA', 'MIRG.BA'
+      'GGAL', 'YPFD', 'PAMP', 'CEPU', 
+      'BMA', 'LOMA', 'CRES', 'EDN',
+      'TXAR', 'MIRG'
     ];
 
     try {
-      const data = await fetchYahooFinanceBatch(symbols);
+      const data = await fetchFMPBatch(symbols, 'leader');
       cache[cacheKey] = { data, timestamp: Date.now() };
       return data;
     } catch (error) {
@@ -51,7 +32,7 @@ export const treemapApi = {
   },
 
   /**
-   * Obtiene datos de CEDEARs
+   * Obtiene datos de CEDEARs usando FMP
    */
   getCedears: async () => {
     const cacheKey = 'cedears';
@@ -66,7 +47,7 @@ export const treemapApi = {
     ];
 
     try {
-      const data = await fetchYahooFinanceBatch(symbols);
+      const data = await fetchFMPBatch(symbols, 'cedears');
       cache[cacheKey] = { data, timestamp: Date.now() };
       return data;
     } catch (error) {
@@ -75,16 +56,10 @@ export const treemapApi = {
     }
   },
 
-  /**
-   * Limpiar caché
-   */
   clearCache: () => {
     cache = {};
   },
 
-  /**
-   * Obtener estado del caché
-   */
   getCacheStatus: () => {
     return {
       leaderPanel: cache['leaderPanel'] ? 'cached' : 'empty',
@@ -95,95 +70,52 @@ export const treemapApi = {
 };
 
 /**
- * Obtener datos de Yahoo Finance por lotes
+ * Obtener datos de FMP por lotes - ENDPOINT CORRECTO
  */
-async function fetchYahooFinanceBatch(symbols) {
-  const isDevelopment = import.meta.env.DEV;
-  const results = [];
-  
-  // Limitar a 5 símbolos simultáneos para evitar rate limiting
-  const batchSize = 5;
-  const batches = [];
-  
-  for (let i = 0; i < symbols.length; i += batchSize) {
-    batches.push(symbols.slice(i, i + batchSize));
-  }
-  
-  for (const batch of batches) {
-    const promises = batch.map(symbol => fetchSingleSymbol(symbol, isDevelopment));
-    const batchResults = await Promise.allSettled(promises);
-    
-    for (const result of batchResults) {
-      if (result.status === 'fulfilled' && result.value) {
-        results.push(result.value);
-      }
-    }
-    
-    // Pequeña pausa entre batches
-    if (!isDevelopment) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-  }
-  
-  return results.filter(item => item !== null);
-}
-
-/**
- * Obtener un solo símbolo - CORREGIDO
- */
-async function fetchSingleSymbol(symbol, isDevelopment) {
+async function fetchFMPBatch(symbols, type) {
   try {
-    const proxyConfig = getProxyConfig(symbol, isDevelopment);
+    // ENDPOINT CORRECTO: usar /stable/ en lugar de /api/v3/
+    const symbolsParam = symbols.slice(0, 10).join(',');
+    const endpoint = `https://financialmodelingprep.com/stable/quote/${symbolsParam}?apikey=${FMP_API_KEY}`;
     
-    const response = await axios.get(proxyConfig.url, {
-      timeout: 8000,
-      headers: isDevelopment ? {} : {
+    console.log(`📡 Fetching ${type} from FMP:`, endpoint);
+    
+    const response = await axios.get(endpoint, {
+      timeout: 10000,
+      headers: {
         'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0'
+        'apikey': FMP_API_KEY
       }
     });
 
-    // Procesar respuesta según el proxy usado
-    let data;
-    if (proxyConfig.requiresProcessing && response.data?.contents) {
-      data = JSON.parse(response.data.contents);
-    } else {
-      data = response.data;
+    if (!response.data || response.data.length === 0) {
+      throw new Error('No data returned from FMP');
     }
 
-    if (!data?.chart?.result) {
-      console.warn(`No data for ${symbol}`);
-      return null;
-    }
-
-    const result = data.chart.result[0];
-    const meta = result.meta;
-    
-    if (!meta || meta.regularMarketPrice === undefined) {
-      return null;
-    }
-    
-    const cleanTicker = symbol.replace('.BA', '');
-    const previousClose = meta.chartPreviousClose || meta.previousClose || meta.regularMarketPrice;
-    const currentPrice = meta.regularMarketPrice;
-    const changePercent = previousClose ? 
-      ((currentPrice - previousClose) / previousClose) * 100 : 0;
-
-    return {
-      ticker: cleanTicker,
-      variation: parseFloat(changePercent.toFixed(2)),
-      price: currentPrice,
-      previousClose: previousClose,
-      marketCap: meta.marketCap || 0,
-      volume: meta.regularMarketVolume || 0,
-      updatedAt: new Date(meta.regularMarketTime * 1000).toISOString(),
-      exchange: symbol.includes('.BA') ? 'BYMA' : 'NYSE/NASDAQ',
-      source: 'yahoo'
-    };
+    // Transformar datos de FMP al formato esperado
+    return response.data.map(item => ({
+      ticker: item.symbol,
+      variation: item.changePercent || 0,
+      price: item.price || 0,
+      previousClose: item.previousClose || item.price,
+      marketCap: item.marketCap || 0,
+      volume: item.volume || 0,
+      dayHigh: item.dayHigh || item.price,
+      dayLow: item.dayLow || item.price,
+      updatedAt: new Date().toISOString(),
+      source: 'fmp',
+      name: item.name || item.symbol
+    }));
     
   } catch (error) {
-    console.error(`Error fetching ${symbol}:`, error.message);
-    return null;
+    console.error(`Error fetching ${type} batch:`, error.message);
+    
+    // Fallback a datos mock
+    if (type === 'leader') {
+      return getMockLeaderPanel();
+    } else {
+      return getMockCedears();
+    }
   }
 }
 
@@ -251,44 +183,7 @@ export const getAllTreemapData = async () => {
 };
 
 /**
- * Función para obtener datos de un símbolo específico
- */
-export const getSymbolData = async (symbol) => {
-  try {
-    const proxyUrl = 'https://corsproxy.io/?';
-    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d`;
-    
-    const response = await axios.get(proxyUrl + encodeURIComponent(targetUrl), {
-      timeout: 8000
-    });
-
-    if (!response.data?.chart?.result?.[0]?.meta) {
-      return getMockSymbolData(symbol);
-    }
-
-    const meta = response.data.chart.result[0].meta;
-    const previousClose = meta.chartPreviousClose || meta.previousClose || meta.regularMarketPrice;
-    const changePercent = ((meta.regularMarketPrice - previousClose) / previousClose) * 100;
-
-    return {
-      ticker: symbol.replace('.BA', ''),
-      variation: parseFloat(changePercent.toFixed(2)),
-      price: meta.regularMarketPrice,
-      previousClose,
-      marketCap: meta.marketCap || 0,
-      volume: meta.regularMarketVolume || 0,
-      dayHigh: meta.dayHigh || meta.regularMarketPrice,
-      dayLow: meta.dayLow || meta.regularMarketPrice,
-      updatedAt: new Date(meta.regularMarketTime * 1000).toISOString(),
-      source: 'yahoo'
-    };
-  } catch {
-    return getMockSymbolData(symbol);
-  }
-};
-
-/**
- * Datos mock para un símbolo específico
+ * Datos mock para un símbolo específico (para compatibilidad)
  */
 function getMockSymbolData(symbol) {
   const mockData = {
@@ -315,8 +210,7 @@ function getMockSymbolData(symbol) {
 export default {
   ...treemapApi,
   getAllTreemapData,
-  getSymbolData,
-  fetchSingleSymbol,
   getMockLeaderPanel,
-  getMockCedears
+  getMockCedears,
+  getMockSymbolData
 };
