@@ -250,7 +250,6 @@ function getMockSymbolData(symbol) {
     source: 'mock'
   };
 }
-
 export default {
   ...treemapApi,
   getAllTreemapData,
