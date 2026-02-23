@@ -264,4 +264,4 @@ const TreemapDashboard = () => {
   );
 };
 
-export default TreemapDashboard;
+export default TreemapDashboard;"// £ltima correcci¢n TEA" 
