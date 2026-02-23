@@ -245,14 +245,12 @@ const TreemapDashboard = () => {
           </div>
         </div>
 
-      </div> {/* Fin del contenedor vertical */}
-
-      {/* Footer informativo */}
+      </div> 
       <div className="mt-6 pt-4 border-t border-gray-700/30">
         <div className="text-xs text-gray-500 space-y-1">
           <div className="flex items-start gap-1.5">
             <div className="w-1 h-1 rounded-full bg-gray-500 mt-1"></div>
-            <span>Los porcentajes de gastos son referenciales seg√∫n BYMA</span>
+            <span>Los porcentajes de gastos son referenciales seg√∫n BYMA.</span>
           </div>
           <div className="flex items-start gap-1.5">
             <div className="w-1 h-1 rounded-full bg-gray-500 mt-1"></div>
@@ -264,4 +262,4 @@ const TreemapDashboard = () => {
   );
 };
 
-export default TreemapDashboard;"// £ltima correcci¢n TEA" 
+export default TreemapDashboard;
