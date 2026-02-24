@@ -129,7 +129,7 @@ const EmpresaCard = ({ empresa }) => {
           </button>
           <button className="p-3 bg-gray-700/30 hover:bg-gray-700/50 rounded-lg transition-all hover:scale-110 border border-gray-600/30 group">
             <Download className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
-          </button>
+          /</button>
         </div>
       </div>
 
