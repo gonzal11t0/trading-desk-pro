@@ -152,32 +152,19 @@ export default defineConfig({
         manualChunks(id) {
           // Chunking optimizado para React 19
           if (id.includes('node_modules')) {
-            // React 19 core (nuevo)
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react'
-            }
-            // Gráficos pesados
-            if (id.includes('recharts') || id.includes('tradingview')) {
-              return 'vendor-charts'
-            }
-            // Estado y data
-            if (id.includes('@tanstack') || id.includes('zustand')) {
-              return 'vendor-state'
-            }
-            // UI y formularios
-            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@dnd-kit')) {
-              return 'vendor-ui'
-            }
-            // Iconos
-            if (id.includes('lucide')) {
-              return 'vendor-icons'
-            }
-            // HTTP y utilities
-            if (id.includes('axios') || id.includes('crypto-js') || id.includes('rss-parser')) {
-              return 'vendor-utils'
-            }
-            return 'vendor-other'
-          }
+  // Chunks específicos por librería
+  if (id.includes('jspdf')) return 'vendor-pdf'
+  if (id.includes('recharts')) return 'vendor-charts'
+  if (id.includes('@dnd-kit')) return 'vendor-dnd'
+  if (id.includes('axios')) return 'vendor-http'
+  if (id.includes('crypto-js')) return 'vendor-crypto'
+  if (id.includes('rss-parser')) return 'vendor-rss'
+  if (id.includes('zod')) return 'vendor-zod'
+  if (id.includes('react-hook-form')) return 'vendor-forms'
+  
+  // Todo lo demás, partido por tamaño
+  return 'vendor-misc'
+}
           
           // Chunking por funcionalidad de la app
           if (id.includes('/src/components/charts/')) {
