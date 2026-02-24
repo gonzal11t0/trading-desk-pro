@@ -1,15 +1,14 @@
-// src/components/premium/EmpresaCard.jsx
+// src/components/premium/LetraCard.jsx
 import React, { useState } from 'react';
 import { TrendingUp, TrendingDown, Download, Bell } from 'lucide-react';
 import BotonFavorito from './BotonFavorito';
 import ModalAlerta from './ModalAlerta';
-import ModalAnalisis from './ModalAnalisis';
+import ModalLetra from './ModalLetra';
 
-const EmpresaCard = ({ empresa }) => {
+const LetraCard = ({ letra }) => {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modalAlertaAbierto, setModalAlertaAbierto] = useState(false);
-  
-  // Determinar color según variación
+
   const getVariacionColor = (valor) => {
     if (valor > 0) return 'text-green-400';
     if (valor < 0) return 'text-red-400';
@@ -25,15 +24,15 @@ const EmpresaCard = ({ empresa }) => {
   return (
     <>
       <div className="bg-gray-800/30 rounded-xl p-5 border border-gray-700/50 hover:border-yellow-700/50 transition">
-        {/* Header de la empresa con favoritos y alertas */}
+        {/* Header de la letra con favoritos y alertas */}
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-xl font-bold text-white">{empresa.ticker}</h3>
-            <p className="text-sm text-gray-400">Último balance: {empresa.ultimoBalance}</p>
+            <h3 className="text-xl font-bold text-white">{letra.ticker}</h3>
+            <p className="text-sm text-gray-400">{letra.nombre} • {letra.tipo}</p>
           </div>
           
           <div className="flex items-center gap-2">
-            <BotonFavorito tipo="balances" ticker={empresa.ticker} size="sm" />
+            <BotonFavorito tipo="letras" ticker={letra.ticker} size="sm" />
             
             <button
               onClick={() => setModalAlertaAbierto(true)}
@@ -50,62 +49,44 @@ const EmpresaCard = ({ empresa }) => {
         </div>
 
         {/* Grid de indicadores */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div>
-            <p className="text-xs text-gray-500 mb-1">Ingresos</p>
+            <p className="text-xs text-gray-500 mb-1">Precio</p>
             <div className="flex items-center gap-1">
-              <span className="text-white font-semibold">{empresa.ingresos}</span>
-              <span className={getVariacionColor(empresa.varIngresos)}>
-                {empresa.varIngresos > 0 ? '+' : ''}{empresa.varIngresos}%
+              <span className="text-white font-semibold">${letra.precio.toFixed(2)}</span>
+              <span className={getVariacionColor(letra.varPrecio)}>
+                {letra.varPrecio > 0 ? '+' : ''}{letra.varPrecio}%
               </span>
-              {getVariacionIcon(empresa.varIngresos)}
+              {getVariacionIcon(letra.varPrecio)}
             </div>
           </div>
           
           <div>
-            <p className="text-xs text-gray-500 mb-1">EBITDA</p>
-            <div className="flex items-center gap-1">
-              <span className="text-white font-semibold">{empresa.ebitda}</span>
-              <span className={getVariacionColor(empresa.varEbitda)}>
-                {empresa.varEbitda > 0 ? '+' : ''}{empresa.varEbitda}%
-              </span>
-              {getVariacionIcon(empresa.varEbitda)}
-            </div>
+            <p className="text-xs text-gray-500 mb-1">TNA</p>
+            <span className="text-white font-semibold">{letra.tna}%</span>
           </div>
           
           <div>
-            <p className="text-xs text-gray-500 mb-1">Deuda</p>
-            <div className="flex items-center gap-1">
-              <span className="text-white font-semibold">{empresa.deuda}</span>
-              <span className={getVariacionColor(empresa.varDeuda)}>
-                {empresa.varDeuda > 0 ? '+' : ''}{empresa.varDeuda}%
-              </span>
-              {getVariacionIcon(empresa.varDeuda)}
-            </div>
+            <p className="text-xs text-gray-500 mb-1">TEA</p>
+            <span className="text-white font-semibold">{letra.tea}%</span>
           </div>
           
           <div>
-            <p className="text-xs text-gray-500 mb-1">PER</p>
-            <div className="flex items-center gap-1">
-              <span className="text-white font-semibold">{empresa.per}</span>
-              <span className={getVariacionColor(empresa.varPer)}>
-                {empresa.varPer > 0 ? '+' : ''}{empresa.varPer}%
-              </span>
-              {getVariacionIcon(empresa.varPer)}
-            </div>
+            <p className="text-xs text-gray-500 mb-1">Plazo</p>
+            <span className="text-white font-semibold">{letra.plazo} días</span>
           </div>
         </div>
 
         {/* Análisis rápido */}
         <div className="bg-gray-900/50 rounded-lg p-3 mb-4 border-l-4 border-yellow-500">
-          <p className="text-sm text-gray-300">{empresa.analisis}</p>
+          <p className="text-sm text-gray-300">{letra.analisis}</p>
         </div>
 
         {/* Botones de acción */}
         <div className="flex gap-2">
           <button
             onClick={() => setModalAbierto(true)}
-            className="flex-1 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 py-2 rounded-lg transition flex items-center justify-center gap-2"
+            className="flex-1 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 py-2 rounded-lg transition"
           >
             Ver análisis completo
           </button>
@@ -116,10 +97,10 @@ const EmpresaCard = ({ empresa }) => {
       </div>
 
       {/* Modal de análisis */}
-      <ModalAnalisis 
+      <ModalLetra 
         isOpen={modalAbierto}
         onClose={() => setModalAbierto(false)}
-        empresa={empresa}
+        letra={letra}
       />
 
       {/* Modal de alerta */}
@@ -127,14 +108,15 @@ const EmpresaCard = ({ empresa }) => {
         isOpen={modalAlertaAbierto}
         onClose={() => setModalAlertaAbierto(false)}
         instrumento={{
-          tipo: 'balances',
-          ticker: empresa.ticker,
-          nombre: empresa.ticker,
-          precio: parseFloat(empresa.per)
+          tipo: 'letras',
+          ticker: letra.ticker,
+          nombre: letra.nombre,
+          precio: letra.precio
         }}
+        
       />
     </>
   );
 };
 
-export default EmpresaCard;
+export default LetraCard;

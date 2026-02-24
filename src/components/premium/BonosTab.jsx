@@ -1,8 +1,8 @@
 // src/components/premium/BonosTab.jsx
-import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, Download, Calculator } from 'lucide-react';
-import ModalBono from './ModalBono';
-
+import React, { useMemo, useState } from 'react';
+import BonoCard from './BonoCard';
+import { usePremiumStore } from '../../stores/premiumStore';
+import { Star } from 'lucide-react';
 // Datos simulados de bonos
 const bonos = [
   {
@@ -86,110 +86,60 @@ const bonos = [
 ];
 
 const BonosTab = () => {
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [bonoSeleccionado, setBonoSeleccionado] = useState(null);
-
-  const abrirModal = (bono) => {
-    setBonoSeleccionado(bono);
-    setModalAbierto(true);
-  };
-
-  const getVariacionColor = (valor) => {
-    if (valor > 0) return 'text-green-400';
-    if (valor < 0) return 'text-red-400';
-    return 'text-gray-400';
-  };
-
-  const getVariacionIcon = (valor) => {
-    if (valor > 0) return <TrendingUp className="w-4 h-4 text-green-400" />;
-    if (valor < 0) return <TrendingDown className="w-4 h-4 text-red-400" />;
-    return null;
-  };
+  const [soloFavoritos, setSoloFavoritos] = useState(false);
+  const { favoritos } = usePremiumStore();
+  
+  const bonosFiltrados = useMemo(() => {
+    let filtrados = [...bonos];
+    
+    if (soloFavoritos) {
+      filtrados = filtrados.filter(bono => 
+        favoritos.bonos?.includes(bono.ticker)
+      );
+    }
+    
+    return filtrados.sort((a, b) => {
+      const aFav = favoritos.bonos?.includes(a.ticker);
+      const bFav = favoritos.bonos?.includes(b.ticker);
+      if (aFav && !bFav) return -1;
+      if (!aFav && bFav) return 1;
+      return 0;
+    });
+  }, [bonos, favoritos.bonos, soloFavoritos]);
 
   return (
     <div className="space-y-4">
-      {bonos.map(bono => (
-        <div key={bono.ticker} className="bg-gray-800/30 rounded-xl p-5 border border-gray-700/50 hover:border-yellow-700/50 transition">
-          {/* Header del bono */}
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-xl font-bold text-white">{bono.ticker}</h3>
-              <p className="text-sm text-gray-400">{bono.nombre} • {bono.tipo}</p>
-            </div>
-            <span className="text-xs bg-yellow-600/20 text-yellow-400 px-2 py-1 rounded">
-              PREMIUM
-            </span>
-          </div>
+      <div className="flex justify-end mb-2">
+        <button
+          onClick={() => setSoloFavoritos(!soloFavoritos)}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition ${
+            soloFavoritos 
+              ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/30' 
+              : 'bg-gray-800/50 text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          <Star className={`w-4 h-4 ${soloFavoritos ? 'fill-yellow-400' : ''}`} />
+          {soloFavoritos ? 'Mostrando favoritos' : 'Mostrar solo favoritos'}
+        </button>
+      </div>
 
-          {/* Grid de indicadores */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            <div>
-              <p className="text-xs text-gray-500 mb-1">Precio</p>
-              <div className="flex items-center gap-1">
-                <span className="text-white font-semibold">${bono.precio.toFixed(2)}</span>
-                <span className={getVariacionColor(bono.varPrecio)}>
-                  {bono.varPrecio > 0 ? '+' : ''}{bono.varPrecio}%
-                </span>
-                {getVariacionIcon(bono.varPrecio)}
-              </div>
-            </div>
-            
-            <div>
-              <p className="text-xs text-gray-500 mb-1">TIR</p>
-              <div className="flex items-center gap-1">
-                <span className="text-white font-semibold">{bono.tir}%</span>
-                <span className={getVariacionColor(bono.varTir)}>
-                  {bono.varTir > 0 ? '+' : ''}{bono.varTir}pp
-                </span>
-                {getVariacionIcon(bono.varTir)}
-              </div>
-            </div>
-            
-            <div>
-              <p className="text-xs text-gray-500 mb-1">Duración</p>
-              <span className="text-white font-semibold">{bono.duracion} años</span>
-            </div>
-            
-            <div>
-              <p className="text-xs text-gray-500 mb-1">Cupón</p>
-              <span className="text-white font-semibold">{bono.cupon}%</span>
-            </div>
-          </div>
-
-          {/* Análisis rápido */}
-          <div className="bg-gray-900/50 rounded-lg p-3 mb-4 border-l-4 border-yellow-500">
-            <p className="text-sm text-gray-300">{bono.analisis}</p>
-          </div>
-
-          {/* Botones de acción */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => abrirModal(bono)}
-              className="flex-1 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 py-2 rounded-lg transition flex items-center justify-center gap-2"
-            >
-              <Calculator className="w-4 h-4" />
-              Ver análisis completo
-            </button>
-            <button className="p-2 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition">
-              <Download className="w-4 h-4 text-gray-300" />
-            </button>
-          </div>
+      {bonosFiltrados.length === 0 ? (
+        <div className="text-center py-8 bg-gray-800/30 rounded-xl">
+          <Star className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-400">No hay favoritos aún</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Hacé clic en la ⭐ de cualquier bono para agregarlo
+          </p>
         </div>
-      ))}
+      ) : (
+        bonosFiltrados.map(bono => (
+          <BonoCard key={bono.ticker} bono={bono} />
+        ))
+      )}
       
-      {/* Botón para cargar más */}
       <button className="w-full py-3 bg-gray-800/50 hover:bg-gray-800 rounded-lg text-gray-400 transition">
         Cargar más bonos...
       </button>
-
-      {/* Modal de análisis */}
-      {bonoSeleccionado && (
-        <ModalBono 
-          isOpen={modalAbierto}
-          onClose={() => setModalAbierto(false)}
-          bono={bonoSeleccionado}
-        />
-      )}
     </div>
   );
 };

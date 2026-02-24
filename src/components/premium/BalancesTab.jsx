@@ -1,8 +1,9 @@
 // src/components/premium/BalancesTab.jsx
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import EmpresaCard from './EmpresaCard';
-
-// Datos simulados (después vendrán de una API)
+import { usePremiumStore } from '../../stores/premiumStore';
+import { Star } from 'lucide-react';
+// Datos simulados
 const empresas = [
   {
     ticker: 'YPF',
@@ -71,13 +72,63 @@ const empresas = [
 ];
 
 const BalancesTab = () => {
+  const [soloFavoritos, setSoloFavoritos] = useState(false);
+  const { favoritos } = usePremiumStore();
+  
+  // Filtrar y ordenar empresas
+  const empresasFiltradas = useMemo(() => {
+    let filtradas = [...empresas];
+    
+    // Filtrar solo favoritos si está activado
+    if (soloFavoritos) {
+      filtradas = filtradas.filter(emp => 
+        favoritos.balances?.includes(emp.ticker)
+      );
+    }
+    
+    // Ordenar: primero favoritos, luego el resto
+    return filtradas.sort((a, b) => {
+      const aFav = favoritos.balances?.includes(a.ticker);
+      const bFav = favoritos.balances?.includes(b.ticker);
+      
+      if (aFav && !bFav) return -1;
+      if (!aFav && bFav) return 1;
+      return 0;
+    });
+  }, [empresas, favoritos.balances, soloFavoritos]);
+
   return (
     <div className="space-y-4">
-      {empresas.map(empresa => (
-        <EmpresaCard key={empresa.ticker} empresa={empresa} />
-      ))}
+      {/* Filtro de favoritos */}
+      <div className="flex justify-end mb-2">
+        <button
+          onClick={() => setSoloFavoritos(!soloFavoritos)}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition ${
+            soloFavoritos 
+              ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/30' 
+              : 'bg-gray-800/50 text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          <Star className={`w-4 h-4 ${soloFavoritos ? 'fill-yellow-400' : ''}`} />
+          {soloFavoritos ? 'Mostrando favoritos' : 'Mostrar solo favoritos'}
+        </button>
+      </div>
+
+      {/* Lista de empresas */}
+      {empresasFiltradas.length === 0 ? (
+        <div className="text-center py-8 bg-gray-800/30 rounded-xl">
+          <Star className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+          <p className="text-gray-400">No hay favoritos aún</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Hacé clic en la ⭐ de cualquier empresa para agregarla
+          </p>
+        </div>
+      ) : (
+        empresasFiltradas.map(empresa => (
+          <EmpresaCard key={empresa.ticker} empresa={empresa} />
+        ))
+      )}
       
-      {/* Botón para cargar más */}
       <button className="w-full py-3 bg-gray-800/50 hover:bg-gray-800 rounded-lg text-gray-400 transition">
         Cargar más empresas...
       </button>
