@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, TrendingDown, BarChart3, Download } from 'lucide-react';
 import ModalAnalisis from './ModalAnalisis';
+import { exportarEmpresaPDF } from '../../utils/pdfExport';
 
 const EmpresaCard = ({ empresa }) => {
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -94,7 +95,11 @@ const EmpresaCard = ({ empresa }) => {
             <BarChart3 className="w-4 h-4" />
             Ver análisis completo
           </button>
-          <button className="p-2 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition">
+          <button 
+            onClick={() => exportarEmpresaPDF(empresa)}
+            className="p-2 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition"
+            title="Exportar PDF"
+          >
             <Download className="w-4 h-4 text-gray-300" />
           </button>
         </div>

@@ -1,6 +1,7 @@
 // src/components/premium/ModalAnalisis.jsx
 import React from 'react';
 import { X, TrendingUp, TrendingDown, Download, Calculator } from 'lucide-react';
+import { exportarEmpresaPDF } from '../../utils/pdfExport';
 
 const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   if (!isOpen) return null;
@@ -127,7 +128,10 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
 
           {/* Botones de acción */}
           <div className="flex gap-3 pt-4">
-            <button className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition flex items-center justify-center gap-2">
+            <button 
+              onClick={() => exportarEmpresaPDF(empresa)}
+              className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition flex items-center justify-center gap-2"
+            >
               <Download className="w-4 h-4" />
               Exportar PDF
             </button>

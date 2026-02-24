@@ -1,6 +1,7 @@
 // src/components/premium/ModalBono.jsx
 import React, { useState } from 'react';
 import { X, TrendingUp, TrendingDown, Download, Calculator, Calendar } from 'lucide-react';
+import { exportarEmpresaPDF } from '../../utils/pdfExport';
 
 const ModalBono = ({ isOpen, onClose, bono }) => {
   const [montoInversion, setMontoInversion] = useState(1000000);
@@ -152,10 +153,13 @@ const ModalBono = ({ isOpen, onClose, bono }) => {
 
           {/* Botones de acción */}
           <div className="flex gap-3 pt-4">
-            <button className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition flex items-center justify-center gap-2">
-              <Download className="w-4 h-4" />
-              Exportar PDF
-            </button>
+            <button 
+  onClick={() => exportarEmpresaPDF(bono)}
+  className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition flex items-center justify-center gap-2"
+>
+  <Download className="w-4 h-4" />
+  Exportar PDF
+</button>
             <button className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg transition">
               Ver histórico
             </button>
