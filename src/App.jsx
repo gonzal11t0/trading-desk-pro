@@ -1,5 +1,6 @@
+// App.jsx - Versión completa y corregida
 import React, { useState, useEffect } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import LoginModal from './components/layout/LoginModal'
 
@@ -15,6 +16,11 @@ import TreemapDashboard from './components/charts/TreemapDashboard'
 import EconomicDataBlock from './components/markets/EconomicDataBlock'
 import AdSpace from './components/ads/AdSpace'
 
+// Nuevos componentes premium
+import AnalisisPremiumPage from './pages/AnalisisPremiumPage'
+import UpgradePage from './pages/UpgradePage'
+import PremiumGuard from './components/premium/PremiumGuard'
+
 import { FloatingEduButton, MacroExplainer } from './components/markets/MacroExplainer'
 import { 
   Users,
@@ -29,8 +35,10 @@ import {
   Copy,
   Plus,
   Trash2,
-  AlertCircle
-} from 'lucide-react';
+  AlertCircle,
+  Crown
+} from 'lucide-react'
+
 // Componente de gestión de usuarios (solo para admin)
 import UserManagement from './components/admin/UserManagement'
 
@@ -40,8 +48,8 @@ import './App.css'
 // COMPONENTE PROTECTED ROUTE
 // ============================================
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
-  const { isAuthenticated, isAdmin, isChecking } = useAuth();
-  const location = useLocation();
+  const { isAuthenticated, isAdmin, isChecking } = useAuth()
+  const location = useLocation()
 
   // Mientras verifica
   if (isChecking) {
@@ -52,13 +60,13 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
           <p className="mt-4 text-gray-400 font-mono">Verificando sesión...</p>
         </div>
       </div>
-    );
+    )
   }
 
   // Si no está autenticado
   if (!isAuthenticated) {
-    sessionStorage.setItem('redirectAfterLogin', location.pathname);
-    return <Navigate to="/login" replace />;
+    sessionStorage.setItem('redirectAfterLogin', location.pathname)
+    return <Navigate to="/login" replace />
   }
 
   // Si requiere admin pero no lo es
@@ -71,26 +79,26 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
           <p className="text-gray-400">No tienes permisos de administrador.</p>
         </div>
       </div>
-    );
+    )
   }
 
-  return children;
-};
+  return children
+}
 
 // ============================================
 // COMPONENTE MAIN LAYOUT
 // ============================================
 const MainLayout = ({ children, showHeader = true }) => {
-  const { isAuthenticated, userRole, logout, getSessionTimeLeft } = useAuth();
-  const [timeLeft, setTimeLeft] = useState(getSessionTimeLeft());
+  const { isAuthenticated, userRole, logout, getSessionTimeLeft } = useAuth()
+  const [timeLeft, setTimeLeft] = useState(getSessionTimeLeft())
 
   // Actualizar tiempo de sesión
   useEffect(() => {
     const interval = setInterval(() => {
-      setTimeLeft(getSessionTimeLeft());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [getSessionTimeLeft]);
+      setTimeLeft(getSessionTimeLeft())
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [getSessionTimeLeft])
 
   return (
     <div className="min-h-screen bg-black text-white font-mono">
@@ -98,7 +106,7 @@ const MainLayout = ({ children, showHeader = true }) => {
       <FloatingEduButton />
       <MacroExplainer />
 
-      {/* Header con info de sesión */}
+      {/* Header con info de sesión y navegación */}
       {showHeader && (
         <>
           <div className="bg-gray-900/80 border-b border-gray-800">
@@ -107,12 +115,33 @@ const MainLayout = ({ children, showHeader = true }) => {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <div className={`w-2 h-2 rounded-full ${timeLeft > 300 ? 'bg-green-500' : 'bg-yellow-500 animate-pulse'}`} />
-                   
                   </div>
                   <span className="text-gray-500">|</span>
                   <span className="text-gray-400">
-                     <span className="text-blue-400">{isAuthenticated ? userRole === 'admin' ? '👑 Admin' : '👤 Cliente' : 'No autenticado'}</span>
+                    <span className="text-blue-400">
+                      {isAuthenticated ? userRole === 'admin' ? '👑 Admin' : '👤 Cliente' : 'No autenticado'}
+                    </span>
                   </span>
+                  
+                  {/* MENÚ DE NAVEGACIÓN */}
+                  <div className="flex items-center space-x-4 ml-4">
+                    <Link 
+                      to="/dashboard" 
+                      className="text-gray-300 hover:text-white transition px-3 py-1 rounded hover:bg-gray-800"
+                    >
+                      Dashboard
+                    </Link>
+                    
+                    {localStorage.getItem('esPremium') === 'true' && (
+                      <Link 
+                        to="/analisis-premium" 
+                        className="text-yellow-400 hover:text-yellow-300 font-semibold flex items-center gap-1 transition px-3 py-1 rounded hover:bg-yellow-900/20"
+                      >
+                        <Crown className="w-4 h-4" />
+                        Análisis Premium
+                      </Link>
+                    )}
+                  </div>
                 </div>
                 
                 {isAuthenticated && (
@@ -133,22 +162,19 @@ const MainLayout = ({ children, showHeader = true }) => {
       {/* Contenido principal */}
       {children}
     </div>
-  );
-};
+  )
+}
 
 // ============================================
 // PÁGINA DE LOGIN
 // ============================================
-// ============================================
-// PÁGINA DE LOGIN - VERSIÓN CORREGIDA (POSICIÓN VERTICAL)
-// ============================================
 const LoginPage = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth()
 
   if (isAuthenticated) {
-    const redirectTo = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
-    sessionStorage.removeItem('redirectAfterLogin');
-    return <Navigate to={redirectTo} replace />;
+    const redirectTo = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
+    sessionStorage.removeItem('redirectAfterLogin')
+    return <Navigate to={redirectTo} replace />
   }
 
   return (
@@ -156,11 +182,11 @@ const LoginPage = () => {
       minHeight: '100vh',
       backgroundColor: '#000000',
       display: 'flex',
-      alignItems: 'flex-start', // Cambiado de 'center' a 'flex-start'
+      alignItems: 'flex-start',
       justifyContent: 'center',
       position: 'relative',
       overflow: 'hidden',
-      paddingTop: '10vh' // Añadir padding top para subirlo
+      paddingTop: '10vh'
     }}>
       
       {/* Efectos de fondo */}
@@ -177,22 +203,22 @@ const LoginPage = () => {
         zIndex: 1
       }}></div>
       
-      {/* Contenedor principal - SUBIDO */}
+      {/* Contenedor principal */}
       <div style={{
         position: 'relative',
         zIndex: 10,
         width: '100%',
         maxWidth: '420px',
         padding: '0 1rem',
-        marginTop: '5vh' // Margen superior para ajustar posición
+        marginTop: '5vh'
       }}>
         <LoginModal />
       </div>
       
-      {/* Dashboard en segundo plano (bloqueado) - REBAJADO */}
+      {/* Dashboard en segundo plano */}
       <div style={{
         position: 'absolute',
-        top: '40vh', // Comienza más abajo
+        top: '40vh',
         left: 0,
         right: 0,
         bottom: 0,
@@ -201,12 +227,10 @@ const LoginPage = () => {
         pointerEvents: 'none',
         zIndex: 0
       }}>
-        {/* Contenido simplificado del dashboard */}
         <div style={{
           backgroundColor: '#000',
           height: '100%'
         }}>
-          {/* Solo líneas básicas */}
           <div style={{
             height: '60px',
             backgroundColor: 'rgba(30, 41, 59, 0.3)',
@@ -231,29 +255,24 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // ============================================
 // DASHBOARD PRINCIPAL
 // ============================================
-// ============================================
-// DASHBOARD PRINCIPAL (SOLO MODIFICANDO EconomicDataBlock)
-// ============================================
 const DashboardPage = () => {
-  const { isAdmin } = useAuth();
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const { isAdmin } = useAuth()
+  const [showAdminPanel, setShowAdminPanel] = useState(false)
 
-  // Panel admin SOLO visible si:
-  // 1. Es admin
-  // 2. Y activó manualmente el panel
-  const shouldShowAdminPanel = isAdmin && showAdminPanel;
+  // Panel admin SOLO visible si es admin y activó manualmente
+  const shouldShowAdminPanel = isAdmin && showAdminPanel
 
   return (
     <MainLayout>
       <div className="container mx-auto px-4">
         
-        {/* === BOTÓN PARA ACTIVAR PANEL ADMIN (SOLO PARA ADMIN) === */}
+        {/* BOTÓN PARA ACTIVAR PANEL ADMIN (SOLO PARA ADMIN) */}
         {isAdmin && !showAdminPanel && (
           <div className="mb-4 flex justify-end">
             <button
@@ -265,7 +284,7 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* === PANEL DE ADMINISTRACIÓN (SOLO SI ESTÁ ACTIVADO) === */}
+        {/* PANEL DE ADMINISTRACIÓN (SOLO SI ESTÁ ACTIVADO) */}
         {shouldShowAdminPanel && (
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -305,7 +324,7 @@ const DashboardPage = () => {
           </div>
         </div>
         
-        {/* EconomicDataBlock - 100% ANCHO TOTAL (FUERA DEL FLEX) */}
+        {/* EconomicDataBlock - 100% ANCHO TOTAL */}
         <div className="w-full min-w-0 mt-6">
           <EconomicDataBlock />
         </div>
@@ -316,8 +335,8 @@ const DashboardPage = () => {
         </div>
       </div>
     </MainLayout>
-  );
-};
+  )
+}
 
 // ============================================
 // PÁGINA 404
@@ -328,16 +347,16 @@ const NotFoundPage = () => (
       <div className="text-center font-mono">
         <h1 className="text-6xl font-bold text-gray-300 mb-4">404</h1>
         <p className="text-xl text-gray-400 mb-8">Página no encontrada</p>
-        <a 
-          href="/dashboard" 
+        <Link 
+          to="/dashboard" 
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
         >
           Volver al Dashboard
-        </a>
+        </Link>
       </div>
     </div>
   </MainLayout>
-);
+)
 
 // ============================================
 // COMPONENTE APP PRINCIPAL
@@ -373,11 +392,30 @@ function App() {
           </MainLayout>
         </ProtectedRoute>
       } />
+
+      {/* RUTAS PREMIUM */}
+      <Route path="/analisis-premium" element={
+        <ProtectedRoute>
+          <PremiumGuard>
+            <MainLayout>
+              <AnalisisPremiumPage />
+            </MainLayout>
+          </PremiumGuard>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/upgrade" element={
+        <ProtectedRoute>
+          <MainLayout>
+            <UpgradePage />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
       
       {/* Ruta 404 */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
-  );
+  )
 }
 
-export default App;
+export default App
