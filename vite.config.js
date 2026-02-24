@@ -146,6 +146,7 @@ export default defineConfig({
   },
   
   build: {
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -194,7 +195,6 @@ export default defineConfig({
     input: {
         main: './index.html'
       },
-    chunkSizeWarningLimit: 800,
     minify: 'terser',
     terserOptions: {
       compress: {
