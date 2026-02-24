@@ -145,43 +145,20 @@ export default defineConfig({
     }
   },
   
-  build: {
-    chunkSizeWarningLimit: 1000,
+ build: {
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Chunking optimizado para React 19
+          // Solo lo esencial para reducir el timeout
           if (id.includes('node_modules')) {
-  // Chunks específicos por librería
-  if (id.includes('jspdf')) return 'vendor-pdf'
-  if (id.includes('recharts')) return 'vendor-charts'
-  if (id.includes('@dnd-kit')) return 'vendor-dnd'
-  if (id.includes('axios')) return 'vendor-http'
-  if (id.includes('crypto-js')) return 'vendor-crypto'
-  if (id.includes('rss-parser')) return 'vendor-rss'
-  if (id.includes('zod')) return 'vendor-zod'
-  if (id.includes('react-hook-form')) return 'vendor-forms'
-  
-  // Todo lo demás, partido por tamaño
-  return 'vendor-misc'
-}
-          
-          // Chunking por funcionalidad de la app
-          if (id.includes('/src/components/charts/')) {
-            return 'chunk-charts'
-          }
-          if (id.includes('/src/components/markets/')) {
-            return 'chunk-markets'
-          }
-          if (id.includes('/src/components/news/')) {
-            return 'chunk-news'
+            if (id.includes('react')) return 'vendor-react'
+            if (id.includes('lucide')) return 'vendor-icons'
+            return 'vendor-other' // Un solo chunk grande pero más rápido de procesar
           }
         }
       }
     },
-    input: {
-        main: './index.html'
-      },
     minify: 'terser',
     terserOptions: {
       compress: {
