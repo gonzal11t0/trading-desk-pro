@@ -2,12 +2,14 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
-  "installCommand": "npm install --legacy-peer-deps",
-  "functions": {
-    "api/*.js": {
-      "maxDuration": 10,
-      "memory": 1024,
-      "includeFiles": "api/package.json"
-    }
-  }
+  "installCommand": "npm install",
+  "routes": [
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/upgrade", "dest": "/index.html" },
+    { "src": "/analisis-premium", "dest": "/index.html" },
+    { "src": "/dashboard", "dest": "/index.html" },
+    { "src": "/admin", "dest": "/index.html" },
+    { "src": "/login", "dest": "/index.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }
