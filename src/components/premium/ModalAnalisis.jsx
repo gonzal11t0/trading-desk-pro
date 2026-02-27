@@ -1,9 +1,10 @@
 // src/components/premium/ModalAnalisis.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, TrendingUp, TrendingDown, Download, Calculator, Calendar, Clock } from 'lucide-react';
 import { exportarEmpresaPDF } from '../../utils/pdfExport';
 import { BarChart3 } from 'lucide-react';
 import GraficoLinea from './GraficoLinea';
+import { empresasApi } from '../../../api/empresasApi';
 // Datos históricos simulados
 const datosHistoricos = {
   // Energía
@@ -88,7 +89,29 @@ const datosGenericos = [
 const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   const [tabActiva, setTabActiva] = useState('actual');
   const [montoInversion, setMontoInversion] = useState(1000000);
+  const [empresaData, setEmpresaData] = useState(null);
+  const [loading, setLoading] = useState(true);
   
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const data = await empresasApi.getCompanyData(empresa.ticker);
+        setEmpresaData(data);
+        console.log('✅ Datos cargados:', data);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (isOpen) {
+      fetchData();
+    }
+  }, [empresa.ticker, isOpen]);
+
+  // AHORA SÍ, después de todos los hooks, va el early return
   if (!isOpen) return null;
 
   // Obtener histórico de la empresa
