@@ -4,6 +4,8 @@
   "type": "module",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+     "vite": "npm:rolldown-vite@7.2.2",
+  "esbuild": "^0.25.2"
   }
 }
