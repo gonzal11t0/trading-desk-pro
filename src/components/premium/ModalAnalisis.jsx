@@ -6,31 +6,84 @@ import { BarChart3 } from 'lucide-react';
 import GraficoLinea from './GraficoLinea';
 // Datos históricos simulados
 const datosHistoricos = {
-  YPF: [
+  // Energía
+  YPFD: [
     { periodo: 'Dic 2025', ingresos: 4200, ebitda: 1100, deuda: 5300, per: 8.2 },
     { periodo: 'Sep 2025', ingresos: 3900, ebitda: 980, deuda: 5100, per: 7.9 },
     { periodo: 'Jun 2025', ingresos: 3600, ebitda: 890, deuda: 4900, per: 7.5 },
     { periodo: 'Mar 2025', ingresos: 3300, ebitda: 800, deuda: 4700, per: 7.1 }
   ],
-  PAMPA: [
+  PAMP: [
     { periodo: 'Dic 2025', ingresos: 2100, ebitda: 580, deuda: 3200, per: 6.5 },
     { periodo: 'Sep 2025', ingresos: 1950, ebitda: 520, deuda: 3350, per: 6.3 },
     { periodo: 'Jun 2025', ingresos: 1800, ebitda: 470, deuda: 3500, per: 6.0 },
     { periodo: 'Mar 2025', ingresos: 1650, ebitda: 420, deuda: 3650, per: 5.8 }
   ],
+  CEPU: [
+    { periodo: 'Dic 2025', ingresos: 580, ebitda: 250, deuda: 680, per: 6.8 },
+    { periodo: 'Sep 2025', ingresos: 540, ebitda: 230, deuda: 650, per: 6.6 },
+    { periodo: 'Jun 2025', ingresos: 500, ebitda: 210, deuda: 620, per: 6.4 },
+    { periodo: 'Mar 2025', ingresos: 460, ebitda: 190, deuda: 590, per: 6.2 }
+  ],
+  EDN: [
+    { periodo: 'Dic 2025', ingresos: 420, ebitda: 165, deuda: 720, per: 9.2 },
+    { periodo: 'Sep 2025', ingresos: 390, ebitda: 150, deuda: 680, per: 9.0 },
+    { periodo: 'Jun 2025', ingresos: 360, ebitda: 135, deuda: 640, per: 8.8 },
+    { periodo: 'Mar 2025', ingresos: 330, ebitda: 120, deuda: 600, per: 8.5 }
+  ],
+  
+  // Bancos
   GGAL: [
     { periodo: 'Dic 2025', ingresos: 1800, ebitda: 720, deuda: 2100, per: 7.8 },
     { periodo: 'Sep 2025', ingresos: 1650, ebitda: 650, deuda: 2000, per: 7.5 },
     { periodo: 'Jun 2025', ingresos: 1500, ebitda: 580, deuda: 1900, per: 7.2 },
     { periodo: 'Mar 2025', ingresos: 1350, ebitda: 510, deuda: 1800, per: 6.9 }
   ],
-  EDN: [
-    { periodo: 'Dic 2025', ingresos: 950, ebitda: 310, deuda: 1100, per: 9.2 },
-    { periodo: 'Sep 2025', ingresos: 890, ebitda: 290, deuda: 1050, per: 9.0 },
-    { periodo: 'Jun 2025', ingresos: 830, ebitda: 270, deuda: 1000, per: 8.8 },
-    { periodo: 'Mar 2025', ingresos: 770, ebitda: 250, deuda: 950, per: 8.5 }
+  BMA: [
+    { periodo: 'Dic 2025', ingresos: 1200, ebitda: 480, deuda: 1800, per: 6.2 },
+    { periodo: 'Sep 2025', ingresos: 1100, ebitda: 440, deuda: 1750, per: 6.0 },
+    { periodo: 'Jun 2025', ingresos: 1000, ebitda: 400, deuda: 1700, per: 5.8 },
+    { periodo: 'Mar 2025', ingresos: 900, ebitda: 360, deuda: 1650, per: 5.5 }
+  ],
+  
+  // Telecomunicaciones y gas
+  TECO2: [
+    { periodo: 'Dic 2025', ingresos: 950, ebitda: 410, deuda: 2200, per: 9.5 },
+    { periodo: 'Sep 2025', ingresos: 920, ebitda: 390, deuda: 2100, per: 9.3 },
+    { periodo: 'Jun 2025', ingresos: 890, ebitda: 370, deuda: 2000, per: 9.0 },
+    { periodo: 'Mar 2025', ingresos: 860, ebitda: 350, deuda: 1900, per: 8.8 }
+  ],
+  TGSU2: [
+    { periodo: 'Dic 2025', ingresos: 680, ebitda: 320, deuda: 980, per: 7.2 },
+    { periodo: 'Sep 2025', ingresos: 650, ebitda: 300, deuda: 1000, per: 7.0 },
+    { periodo: 'Jun 2025', ingresos: 620, ebitda: 280, deuda: 1020, per: 6.8 },
+    { periodo: 'Mar 2025', ingresos: 590, ebitda: 260, deuda: 1040, per: 6.5 }
+  ],
+  
+  // Industrial
+  ALUA: [
+    { periodo: 'Dic 2025', ingresos: 520, ebitda: 180, deuda: 450, per: 8.1 },
+    { periodo: 'Sep 2025', ingresos: 500, ebitda: 170, deuda: 440, per: 7.9 },
+    { periodo: 'Jun 2025', ingresos: 480, ebitda: 160, deuda: 430, per: 7.7 },
+    { periodo: 'Mar 2025', ingresos: 460, ebitda: 150, deuda: 420, per: 7.5 }
+  ],
+  
+  // Holding
+  COME: [
+    { periodo: 'Dic 2025', ingresos: 120, ebitda: 28, deuda: 95, per: 12.5 },
+    { periodo: 'Sep 2025', ingresos: 115, ebitda: 26, deuda: 92, per: 12.0 },
+    { periodo: 'Jun 2025', ingresos: 110, ebitda: 24, deuda: 89, per: 11.5 },
+    { periodo: 'Mar 2025', ingresos: 105, ebitda: 22, deuda: 86, per: 11.0 }
   ]
 };
+
+// Si no hay datos para un ticker, usar datos genéricos
+const datosGenericos = [
+  { periodo: 'Dic 2025', ingresos: 500, ebitda: 200, deuda: 800, per: 8.0 },
+  { periodo: 'Sep 2025', ingresos: 470, ebitda: 185, deuda: 780, per: 7.8 },
+  { periodo: 'Jun 2025', ingresos: 440, ebitda: 170, deuda: 760, per: 7.6 },
+  { periodo: 'Mar 2025', ingresos: 410, ebitda: 155, deuda: 740, per: 7.4 }
+];
 
 const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   const [tabActiva, setTabActiva] = useState('actual');
@@ -39,7 +92,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   if (!isOpen) return null;
 
   // Obtener histórico de la empresa
-  const historico = datosHistoricos[empresa.ticker] || [];
+const historico = datosHistoricos[empresa.ticker] || datosGenericos;
 
   // Calcular rendimiento estimado
   const rendimientoEstimado = montoInversion * (parseFloat(empresa.per) / 100);

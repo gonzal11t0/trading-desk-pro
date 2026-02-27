@@ -1,54 +1,95 @@
 // src/components/premium/ModalLetra.jsx
 import React, { useState } from 'react';
-import { X, TrendingUp, TrendingDown, Download, Calculator, Calendar, Clock } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Download, Calculator, Calendar, Clock, BarChart3 } from 'lucide-react';
 import { exportarLetraPDF } from '../../utils/pdfExport';
+import GraficoLinea from './GraficoLinea';
 
 // Datos históricos simulados para letras
 const datosHistoricosLetras = {
-  'LETRAS CAP': [
-    { periodo: 'Feb 2026', precio: 980.00, tna: 38.0, tea: 42.3, variacion: -1.2 },
-    { periodo: 'Ene 2026', precio: 992.00, tna: 37.0, tea: 41.0, variacion: -0.5 },
-    { periodo: 'Dic 2025', precio: 997.00, tna: 36.5, tea: 40.2, variacion: 0.2 },
-    { periodo: 'Nov 2025', precio: 995.00, tna: 36.8, tea: 40.8, variacion: 0.3 }
+  'S27F6': [
+    { periodo: 'Feb 2026', precio: 1202.40, tna: 38.0, tea: 42.3, variacion: -0.5 },
+    { periodo: 'Ene 2026', precio: 1208.50, tna: 37.5, tea: 41.8, variacion: 0.2 },
+    { periodo: 'Dic 2025', precio: 1206.00, tna: 37.8, tea: 42.0, variacion: 0.1 }
   ],
-  'LETRAS DIS': [
-    { periodo: 'Feb 2026', precio: 950.00, tna: 42.0, tea: 47.8, variacion: -1.5 },
-    { periodo: 'Ene 2026', precio: 964.00, tna: 41.0, tea: 46.5, variacion: -0.8 },
-    { periodo: 'Dic 2025', precio: 972.00, tna: 40.5, tea: 45.8, variacion: 0.1 },
-    { periodo: 'Nov 2025', precio: 971.00, tna: 40.3, tea: 45.5, variacion: 0.2 }
+  'S29Y6': [
+    { periodo: 'Feb 2026', precio: 1165.50, tna: 42.0, tea: 47.8, variacion: -0.8 },
+    { periodo: 'Ene 2026', precio: 1174.00, tna: 41.5, tea: 47.0, variacion: -0.3 },
+    { periodo: 'Dic 2025', precio: 1177.00, tna: 41.2, tea: 46.5, variacion: 0.2 }
   ],
-  LECAP: [
-    { periodo: 'Feb 2026', precio: 975.00, tna: 40.0, tea: 45.1, variacion: -0.8 },
-    { periodo: 'Ene 2026', precio: 983.00, tna: 39.0, tea: 43.8, variacion: -0.3 },
-    { periodo: 'Dic 2025', precio: 986.00, tna: 38.5, tea: 43.0, variacion: 0.1 },
-    { periodo: 'Nov 2025', precio: 985.00, tna: 38.3, tea: 42.8, variacion: 0.1 }
+  'S30N6': [
+    { periodo: 'Feb 2026', precio: 1002.50, tna: 40.0, tea: 45.1, variacion: -1.2 },
+    { periodo: 'Ene 2026', precio: 1014.00, tna: 39.5, tea: 44.5, variacion: -0.5 },
+    { periodo: 'Dic 2025', precio: 1019.00, tna: 39.0, tea: 44.0, variacion: 0.1 }
   ],
-  LECER: [
-    { periodo: 'Feb 2026', precio: 1012.50, tna: 22.0, tea: 24.5, variacion: 0.3 },
-    { periodo: 'Ene 2026', precio: 1009.00, tna: 21.5, tea: 23.9, variacion: 0.2 },
-    { periodo: 'Dic 2025', precio: 1007.00, tna: 21.0, tea: 23.3, variacion: 0.1 },
-    { periodo: 'Nov 2025', precio: 1006.00, tna: 20.8, tea: 23.0, variacion: 0.1 }
+  'X29Y6': [
+    { periodo: 'Feb 2026', precio: 1014.50, tna: 22.0, tea: 24.5, variacion: 0.3 },
+    { periodo: 'Ene 2026', precio: 1011.00, tna: 21.8, tea: 24.2, variacion: 0.2 },
+    { periodo: 'Dic 2025', precio: 1009.00, tna: 21.5, tea: 23.9, variacion: 0.1 }
+  ],
+  'X30N6': [
+    { periodo: 'Feb 2026', precio: 968.20, tna: 22.0, tea: 24.5, variacion: 0.2 },
+    { periodo: 'Ene 2026', precio: 966.00, tna: 21.8, tea: 24.2, variacion: 0.1 },
+    { periodo: 'Dic 2025', precio: 965.00, tna: 21.5, tea: 23.9, variacion: 0.0 }
+  ],
+  'TZX27': [
+    { periodo: 'Feb 2026', precio: 3058.00, tna: 24.0, tea: 26.8, variacion: 0.5 },
+    { periodo: 'Ene 2026', precio: 3042.00, tna: 23.8, tea: 26.5, variacion: 0.3 },
+    { periodo: 'Dic 2025', precio: 3033.00, tna: 23.5, tea: 26.2, variacion: 0.2 }
+  ],
+  'TZX28': [
+    { periodo: 'Feb 2026', precio: 2780.00, tna: 24.0, tea: 26.8, variacion: 0.4 },
+    { periodo: 'Ene 2026', precio: 2768.00, tna: 23.8, tea: 26.5, variacion: 0.2 },
+    { periodo: 'Dic 2025', precio: 2762.00, tna: 23.5, tea: 26.2, variacion: 0.1 }
+  ],
+  'M31G6': [
+    { periodo: 'Feb 2026', precio: 1067.00, tna: 36.0, tea: 40.2, variacion: -0.6 },
+    { periodo: 'Ene 2026', precio: 1073.00, tna: 35.5, tea: 39.5, variacion: -0.2 },
+    { periodo: 'Dic 2025', precio: 1075.00, tna: 35.2, tea: 39.0, variacion: 0.1 }
+  ],
+  'D27F6': [
+    { periodo: 'Feb 2026', precio: 128.00, tna: 32.0, tea: 35.5, variacion: 0.8 },
+    { periodo: 'Ene 2026', precio: 127.00, tna: 31.8, tea: 35.0, variacion: 0.4 },
+    { periodo: 'Dic 2025', precio: 126.50, tna: 31.5, tea: 34.5, variacion: 0.2 }
+  ],
+  'AO27': [
+    { periodo: 'Feb 2026', precio: 150.00, tna: 28.0, tea: 31.2, variacion: 0.5 },
+    { periodo: 'Ene 2026', precio: 149.20, tna: 27.8, tea: 31.0, variacion: 0.3 },
+    { periodo: 'Dic 2025', precio: 148.70, tna: 27.5, tea: 30.5, variacion: 0.2 }
   ]
 };
+
+// Datos genéricos por si falta algún ticker
+const datosGenericos = [
+  { periodo: 'Feb 2026', precio: 1000.00, tna: 30.0, tea: 33.0, variacion: 0.0 },
+  { periodo: 'Ene 2026', precio: 1000.00, tna: 30.0, tea: 33.0, variacion: 0.0 },
+  { periodo: 'Dic 2025', precio: 1000.00, tna: 30.0, tea: 33.0, variacion: 0.0 }
+];
 
 const ModalLetra = ({ isOpen, onClose, letra }) => {
   const [tabActiva, setTabActiva] = useState('actual');
   const [montoInversion, setMontoInversion] = useState(1000000);
   
-  if (!isOpen) return null;
+  if (!isOpen || !letra) return null;
 
   // Obtener histórico de la letra
-  const historico = datosHistoricosLetras[letra.ticker] || [];
+  const historico = datosHistoricosLetras[letra.ticker] || datosGenericos;
+
+  // Datos para el gráfico
+  const datosGrafico = historico.map(item => ({
+    periodo: item.periodo,
+    tna: item.tna,
+    tea: item.tea
+  }));
 
   // Cálculos para letras
-  const interesBruto = (montoInversion * letra.tna * letra.plazo) / (365 * 100);
+  const interesBruto = (montoInversion * (letra.tna || 0) * (letra.plazo || 30)) / (365 * 100);
   const comision = (montoInversion * 0.035) / 100;
   const derechos = (montoInversion * 0.004) / 100;
   const iva = comision * 0.21;
   const totalGastos = comision + derechos + iva;
   const interesNeto = interesBruto - totalGastos;
   const montoFinal = montoInversion + interesNeto;
-  const rendimientoPeriodo = (interesNeto / montoInversion) * 100;
+  const rendimientoPeriodo = interesNeto > 0 ? (interesNeto / montoInversion) * 100 : 0;
 
   // Comparación con inflación
   const inflacionMensual = 5;
@@ -73,13 +114,13 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
         <div className="flex border-b border-gray-700 px-4">
           <button
             onClick={() => setTabActiva('actual')}
-            className={`px-4 py-2 font-medium transition ${
+            className={`px-4 py-2 font-medium transition flex items-center gap-1 ${
               tabActiva === 'actual'
                 ? 'text-yellow-400 border-b-2 border-yellow-400'
                 : 'text-gray-400 hover:text-gray-300'
             }`}
           >
-            📊 Actual
+            <span>📊</span> Actual
           </button>
           <button
             onClick={() => setTabActiva('historico')}
@@ -92,6 +133,17 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
             <Clock className="w-4 h-4" />
             Histórico
           </button>
+          <button
+            onClick={() => setTabActiva('graficos')}
+            className={`px-4 py-2 font-medium transition flex items-center gap-1 ${
+              tabActiva === 'graficos'
+                ? 'text-yellow-400 border-b-2 border-yellow-400'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            Gráficos
+          </button>
         </div>
 
         {/* Contenido */}
@@ -103,7 +155,7 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-800/30 rounded-lg p-3">
                   <p className="text-xs text-gray-400 mb-1">Precio actual</p>
-                  <p className="text-xl font-bold text-white">${letra.precio.toFixed(2)}</p>
+                  <p className="text-xl font-bold text-white">${letra.precio?.toFixed(2)}</p>
                   <p className={`text-sm ${letra.varPrecio > 0 ? 'text-green-400' : 'text-red-400'}`}>
                     {letra.varPrecio > 0 ? '+' : ''}{letra.varPrecio}% vs ayer
                   </p>
@@ -217,7 +269,7 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : tabActiva === 'historico' ? (
             /* === TAB HISTÓRICO === */
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -270,6 +322,31 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
                   </div>
                 </div>
               )}
+            </div>
+          ) : (
+            /* === TAB GRÁFICOS === */
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-yellow-400" />
+                Evolución de tasas
+              </h3>
+              
+              <GraficoLinea
+                data={datosGrafico}
+                xKey="periodo"
+                lines={[
+                  { key: 'tna', name: 'TNA (%)', color: '#4ADE80' },
+                  { key: 'tea', name: 'TEA (%)', color: '#FBBF24' }
+                ]}
+              />
+              
+              <div className="bg-gray-800/30 rounded-lg p-4">
+                <p className="text-sm text-gray-300">
+                  Las tasas de {letra.ticker} han mostrado una tendencia 
+                  {historico[0]?.tna > historico[historico.length-1]?.tna ? ' alcista' : ' bajista'} 
+                  en los últimos meses.
+                </p>
+              </div>
             </div>
           )}
 
