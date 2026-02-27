@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { X, TrendingUp, TrendingDown, Download, Calculator, Calendar, Clock } from 'lucide-react';
 import { exportarBonoPDF } from '../../utils/pdfExport';
+import { BarChart3 } from 'lucide-react';
 
+import GraficoLinea from './GraficoLinea';
 // Datos históricos simulados para bonos
 const datosHistoricosBonos = {
   AL30: [
@@ -56,8 +58,12 @@ const ModalBono = ({ isOpen, onClose, bono }) => {
   const rendimientoEstimado = montoInversion * (bono.tir / 100);
   const inflacionProyectada = 40;
   const gananciaReal = rendimientoEstimado - (montoInversion * (inflacionProyectada / 100));
-
-  return (
+const datosGrafico = historico.map(item => ({
+  periodo: item.periodo,
+  precio: item.precio,
+  tir: item.tir
+}));
+return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
       <div className="bg-gray-900 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
         {/* Header */}
@@ -95,6 +101,17 @@ const ModalBono = ({ isOpen, onClose, bono }) => {
           >
             <Clock className="w-4 h-4" />
             Histórico
+          </button>
+          <button
+            onClick={() => setTabActiva('graficos')}
+            className={`px-4 py-2 font-medium transition flex items-center gap-1 ${
+              tabActiva === 'graficos'
+                ? 'text-yellow-400 border-b-2 border-yellow-400'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            Gráficos
           </button>
         </div>
 
@@ -220,7 +237,7 @@ const ModalBono = ({ isOpen, onClose, bono }) => {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : tabActiva === 'historico' ? (
             /* === TAB HISTÓRICO === */
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -272,9 +289,34 @@ const ModalBono = ({ isOpen, onClose, bono }) => {
                 </div>
               )}
             </div>
+          ) : (
+            /* === TAB GRÁFICOS === */
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-yellow-400" />
+                Evolución precio y TIR
+              </h3>
+              
+              <GraficoLinea
+                data={datosGrafico}
+                xKey="periodo"
+                lines={[
+                  { key: 'precio', name: 'Precio (USD)', color: '#4ADE80' },
+                  { key: 'tir', name: 'TIR (%)', color: '#FBBF24' }
+                ]}
+              />
+              
+              <div className="bg-gray-800/30 rounded-lg p-4">
+                <p className="text-sm text-gray-300">
+                  El precio del bono {bono.ticker} ha tenido una tendencia 
+                  {bono.varPrecio > 0 ? ' alcista' : ' bajista'}, 
+                  mientras que la TIR se ha movido en dirección opuesta.
+                </p>
+              </div>
+            </div>
           )}
 
-          {/* Botones de acción */}
+          {/* Botones de acción (siempre visibles) */}
           <div className="flex gap-3 pt-6 mt-4 border-t border-gray-700">
             <button 
               onClick={() => exportarBonoPDF(bono)}

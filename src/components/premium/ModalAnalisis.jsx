@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { X, TrendingUp, TrendingDown, Download, Calculator, Calendar, Clock } from 'lucide-react';
 import { exportarEmpresaPDF } from '../../utils/pdfExport';
-
+import { BarChart3 } from 'lucide-react';
+import GraficoLinea from './GraficoLinea';
 // Datos históricos simulados
 const datosHistoricos = {
   YPF: [
@@ -44,6 +45,13 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   const rendimientoEstimado = montoInversion * (parseFloat(empresa.per) / 100);
   const inflacionProyectada = 40;
   const gananciaReal = rendimientoEstimado - (montoInversion * (inflacionProyectada / 100));
+    
+const datosGrafico = historico.map(item => ({
+  periodo: item.periodo,
+  ingresos: item.ingresos,
+  ebitda: item.ebitda,
+  deuda: item.deuda
+}));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
@@ -83,6 +91,17 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
           >
             <Clock className="w-4 h-4" />
             Histórico
+          </button>
+          <button
+            onClick={() => setTabActiva('graficos')}
+            className={`px-4 py-2 font-medium transition flex items-center gap-1 ${
+              tabActiva === 'graficos'
+                ? 'text-yellow-400 border-b-2 border-yellow-400'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            Gráficos
           </button>
         </div>
 
@@ -207,7 +226,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : tabActiva === 'historico' ? (
             /* === TAB HISTÓRICO === */
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -259,6 +278,33 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                 </div>
               )}
             </div>
+          ) : (
+            /* === TAB GRÁFICOS === */
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-yellow-400" />
+                Evolución de indicadores
+              </h3>
+              
+              <GraficoLinea
+                data={datosGrafico}
+                xKey="periodo"
+                lines={[
+                  { key: 'ingresos', name: 'Ingresos (M)', color: '#4ADE80' },
+                  { key: 'ebitda', name: 'EBITDA (M)', color: '#FBBF24' },
+                  { key: 'deuda', name: 'Deuda (M)', color: '#F87171' }
+                ]}
+              />
+              
+              <div className="bg-gray-800/30 rounded-lg p-4">
+                <h4 className="font-medium text-white mb-2">📈 Análisis visual</h4>
+                <p className="text-sm text-gray-300">
+                  {empresa.ticker} muestra una tendencia {empresa.varIngresos > 0 ? 'positiva' : 'negativa'} en ingresos, 
+                  con EBITDA en {empresa.varEbitda > 0 ? 'crecimiento' : 'descenso'} y deuda 
+                  {empresa.varDeuda > 0 ? ' en aumento' : ' controlada'}.
+                </p>
+              </div>
+            </div>
           )}
 
           {/* Botones de acción (siempre visibles) */}
@@ -276,5 +322,6 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
     </div>
   );
 };
+
 
 export default ModalAnalisis;
