@@ -9,6 +9,14 @@ const BonoCard = ({ bono }) => {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modalAlertaAbierto, setModalAlertaAbierto] = useState(false);
 
+  // 👇 LOGS (solo para verificar que llega bien)
+  console.log('🎯 BonoCard recibió:', bono);
+
+  if (!bono) return null;
+
+  const variacion = bono.change ?? 0;
+  const variacionPorcentaje = variacion ? (variacion * 100).toFixed(2) : '0.00';
+
   const getVariacionColor = (valor) => {
     if (valor > 0) return 'text-green-400';
     if (valor < 0) return 'text-red-400';
@@ -24,16 +32,17 @@ const BonoCard = ({ bono }) => {
   return (
     <>
       <div className="bg-gray-800/30 rounded-xl p-5 border border-gray-700/50 hover:border-yellow-700/50 transition">
-        {/* Header del bono con favoritos y alertas */}
+        {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-xl font-bold text-white">{bono.ticker}</h3>
-            <p className="text-sm text-gray-400">{bono.nombre} • {bono.tipo}</p>
+            <h3 className="text-xl font-bold text-white">{bono.symbol || 'S/D'}</h3>
+            <p className="text-sm text-gray-400">
+              Vence: {bono.expiration ? new Date(bono.expiration).toLocaleDateString('es-AR') : 'N/A'}
+            </p>
           </div>
           
           <div className="flex items-center gap-2">
-            <BotonFavorito tipo="bonos" ticker={bono.ticker} size="sm" />
-            
+            <BotonFavorito tipo="bonos" ticker={bono.symbol} size="sm" />
             <button
               onClick={() => setModalAlertaAbierto(true)}
               className="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-yellow-400 transition"
@@ -41,7 +50,6 @@ const BonoCard = ({ bono }) => {
             >
               <Bell className="w-4 h-4" />
             </button>
-            
             <span className="text-xs bg-yellow-600/20 text-yellow-400 px-2 py-1 rounded">
               PREMIUM
             </span>
@@ -51,41 +59,38 @@ const BonoCard = ({ bono }) => {
         {/* Grid de indicadores */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div>
-            <p className="text-xs text-gray-500 mb-1">Precio</p>
+            <p className="text-xs text-gray-500 mb-1">Último</p>
             <div className="flex items-center gap-1">
-              <span className="text-white font-semibold">${bono.precio.toFixed(2)}</span>
-              <span className={getVariacionColor(bono.varPrecio)}>
-                {bono.varPrecio > 0 ? '+' : ''}{bono.varPrecio}%
+              <span className="text-white font-semibold">
+                ${bono.last ? bono.last.toFixed(2) : '0.00'}
               </span>
-              {getVariacionIcon(bono.varPrecio)}
+              <span className={getVariacionColor(variacion)}>
+                {variacionPorcentaje}%
+              </span>
+              {getVariacionIcon(variacion)}
             </div>
           </div>
           
           <div>
-            <p className="text-xs text-gray-500 mb-1">TIR</p>
-            <div className="flex items-center gap-1">
-              <span className="text-white font-semibold">{bono.tir}%</span>
-              <span className={getVariacionColor(bono.varTir)}>
-                {bono.varTir > 0 ? '+' : ''}{bono.varTir}pp
-              </span>
-              {getVariacionIcon(bono.varTir)}
-            </div>
+            <p className="text-xs text-gray-500 mb-1">Bid / Ask</p>
+            <span className="text-white font-semibold">
+              ${bono.bid ? bono.bid.toFixed(2) : '0.00'} / ${bono.ask ? bono.ask.toFixed(2) : '0.00'}
+            </span>
           </div>
           
           <div>
-            <p className="text-xs text-gray-500 mb-1">Duración</p>
-            <span className="text-white font-semibold">{bono.duracion} años</span>
+            <p className="text-xs text-gray-500 mb-1">Volumen</p>
+            <span className="text-white font-semibold">
+              {bono.volume ? bono.volume.toLocaleString() : '0'}
+            </span>
           </div>
           
           <div>
-            <p className="text-xs text-gray-500 mb-1">Cupón</p>
-            <span className="text-white font-semibold">{bono.cupon}%</span>
+            <p className="text-xs text-gray-500 mb-1">Apertura</p>
+            <span className="text-white font-semibold">
+              ${bono.open ? bono.open.toFixed(2) : '0.00'}
+            </span>
           </div>
-        </div>
-
-        {/* Análisis rápido */}
-        <div className="bg-gray-900/50 rounded-lg p-3 mb-4 border-l-4 border-yellow-500">
-          <p className="text-sm text-gray-300">{bono.analisis}</p>
         </div>
 
         {/* Botones de acción */}
@@ -115,9 +120,9 @@ const BonoCard = ({ bono }) => {
         onClose={() => setModalAlertaAbierto(false)}
         instrumento={{
           tipo: 'bonos',
-          ticker: bono.ticker,
-          nombre: bono.nombre,
-          precio: bono.precio
+          ticker: bono.symbol,
+          nombre: bono.symbol,
+          precio: bono.last || 0
         }}
       />
     </>

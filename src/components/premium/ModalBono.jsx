@@ -1,78 +1,128 @@
 // src/components/premium/ModalBono.jsx
 import React, { useState } from 'react';
-import { X, TrendingUp, TrendingDown, Download, Calculator, Calendar, Clock } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Download, Calculator, Calendar, Clock, BarChart3, AlertCircle } from 'lucide-react';
 import { exportarBonoPDF } from '../../utils/pdfExport';
-import { BarChart3 } from 'lucide-react';
-
 import GraficoLinea from './GraficoLinea';
-// Datos históricos simulados para bonos
+import { getBonoData } from '../../data/bonosData';
+
+// Datos históricos simulados (opcional)
 const datosHistoricosBonos = {
   AL30: [
-    { periodo: 'Feb 2026', precio: 42.50, tir: 15.2, variacion: -2.3 },
-    { periodo: 'Ene 2026', precio: 43.50, tir: 14.8, variacion: 1.2 },
-    { periodo: 'Dic 2025', precio: 43.00, tir: 15.0, variacion: -0.5 },
-    { periodo: 'Nov 2025', precio: 43.20, tir: 14.9, variacion: 0.8 }
-  ],
-  GD30: [
-    { periodo: 'Feb 2026', precio: 41.80, tir: 16.1, variacion: -1.8 },
-    { periodo: 'Ene 2026', precio: 42.60, tir: 15.7, variacion: 0.5 },
-    { periodo: 'Dic 2025', precio: 42.40, tir: 15.9, variacion: -0.3 },
-    { periodo: 'Nov 2025', precio: 42.50, tir: 15.8, variacion: 0.2 }
-  ],
-  AL35: [
-    { periodo: 'Feb 2026', precio: 38.20, tir: 17.5, variacion: -3.1 },
-    { periodo: 'Ene 2026', precio: 39.40, tir: 16.9, variacion: -1.0 },
-    { periodo: 'Dic 2025', precio: 39.80, tir: 16.7, variacion: 0.5 },
-    { periodo: 'Nov 2025', precio: 39.60, tir: 16.8, variacion: -0.2 }
-  ],
-  GD35: [
-    { periodo: 'Feb 2026', precio: 37.50, tir: 18.2, variacion: -2.7 },
-    { periodo: 'Ene 2026', precio: 38.50, tir: 17.6, variacion: -0.8 },
-    { periodo: 'Dic 2025', precio: 38.80, tir: 17.4, variacion: 0.3 },
-    { periodo: 'Nov 2025', precio: 38.70, tir: 17.5, variacion: -0.1 }
-  ],
-  'YPF 2029': [
-    { periodo: 'Feb 2026', precio: 68.30, tir: 9.8, variacion: 1.2 },
-    { periodo: 'Ene 2026', precio: 67.50, tir: 10.1, variacion: 0.8 },
-    { periodo: 'Dic 2025', precio: 67.00, tir: 10.3, variacion: 0.4 },
-    { periodo: 'Nov 2025', precio: 66.70, tir: 10.5, variacion: 0.2 }
-  ],
-  'PAMP 2028': [
-    { periodo: 'Feb 2026', precio: 72.10, tir: 8.5, variacion: 0.8 },
-    { periodo: 'Ene 2026', precio: 71.50, tir: 8.7, variacion: 0.5 },
-    { periodo: 'Dic 2025', precio: 71.20, tir: 8.9, variacion: 0.3 },
-    { periodo: 'Nov 2025', precio: 71.00, tir: 9.0, variacion: 0.1 }
+    { periodo: 'Feb 2026', precio: 86.48, tir: 15.2, variacion: -1.2 },
+    { periodo: 'Ene 2026', precio: 87.50, tir: 14.9, variacion: 0.8 },
+    { periodo: 'Dic 2025', precio: 86.80, tir: 15.0, variacion: -0.3 }
   ]
 };
 
 const ModalBono = ({ isOpen, onClose, bono }) => {
   const [tabActiva, setTabActiva] = useState('actual');
   const [montoInversion, setMontoInversion] = useState(1000000);
+  const [diasRestantes, setDiasRestantes] = useState(360);
   
-  if (!isOpen) return null;
+  if (!isOpen || !bono) return null;
 
-  // Obtener histórico del bono
-  const historico = datosHistoricosBonos[bono.ticker] || [];
+  // Obtener datos fijos del bono
+  const bonoInfo = getBonoData(bono.symbol);
 
-  // Calcular rendimiento estimado
-  const rendimientoEstimado = montoInversion * (bono.tir / 100);
-  const inflacionProyectada = 40;
-  const gananciaReal = rendimientoEstimado - (montoInversion * (inflacionProyectada / 100));
-const datosGrafico = historico.map(item => ({
-  periodo: item.periodo,
-  precio: item.precio,
-  tir: item.tir
-}));
-return (
+  // Calcular días hasta vencimiento
+  const calcularDias = () => {
+    if (!bono.expiration) return null;
+    const hoy = new Date();
+    const vencimiento = new Date(bono.expiration);
+    const diff = vencimiento - hoy;
+    return Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24)));
+  };
+
+  const diasReales = calcularDias();
+  const dias = diasRestantes || diasReales || 360;
+  const añosExactos = dias / 365;
+
+  // Datos del bono (con fallbacks)
+  const precioActual = bono.last || bono.precio || 0;
+  const tieneTir = bono.tir !== undefined && bono.tir !== null;
+  const tirValor = bono.tir;
+  
+  // Usar datos fijos
+  const valorNominal = bonoInfo.valorNominal;
+  const tasaCupon = bonoInfo.cupon;
+  const frecuencia = bonoInfo.frecuencia;
+  const moneda = bonoInfo.moneda;
+  
+  // Calcular cantidad de bonos según moneda
+  const cantidad = Math.floor(montoInversion / (moneda === 'USD' ? precioActual * 1200 : precioActual));
+  const valorInvertido = cantidad * (moneda === 'USD' ? precioActual * 1200 : precioActual);
+
+  // Ganancia por bono (si aplica)
+  const gananciaPorBono = valorNominal - precioActual;
+  const rendimientoTotal = gananciaPorBono * cantidad;
+  const rendimientoPorcentaje = valorInvertido > 0 ? (rendimientoTotal / valorInvertido) * 100 : 0;
+
+  // Calcular TIR de forma robusta (siempre entre -100% y +100%)
+const calcularTIR = () => {
+  if (!tasaCupon || precioActual <= 0) return null;
+  
+  const pagosPorAnio = {
+    'mensual': 12,
+    'semestral': 2,
+    'trimestral': 4,
+    'anual': 1
+  }[frecuencia] || 2;
+  
+  const pagoPeriodo = (valorNominal * tasaCupon / 100) / pagosPorAnio;
+  const pagoAnual = pagoPeriodo * pagosPorAnio;
+  
+  // Ganancia/pérdida anualizada por diferencia de precio
+  const gananciaAnual = (valorNominal - precioActual) / añosExactos;
+  
+  // Fórmula de aproximación de TIR (rendimiento corriente + ganancia de capital)
+  const tirAprox = ((pagoAnual + gananciaAnual) / ((precioActual + valorNominal) / 2)) * 100;
+  
+  // Acotar a valores razonables (-100% a +100%)
+  if (tirAprox > 100) return '>100%';
+  if (tirAprox < -100) return '<-100%';
+  
+  return tirAprox.toFixed(2) + '%';
+};
+
+  const tirCalculada = calcularTIR();
+  const tirMostrar = tieneTir ? tirValor : (tirCalculada ? `${tirCalculada}% (estimado)` : null);
+
+  // Pago por período según frecuencia
+  const calcularPagoPeriodo = () => {
+    if (!tasaCupon) return null;
+    const pagosPorAnio = {
+      'mensual': 12,
+      'semestral': 2,
+      'trimestral': 4,
+      'anual': 1
+    }[frecuencia] || 2;
+    
+    return (valorNominal * tasaCupon / 100) / pagosPorAnio;
+  };
+
+  const pagoPeriodo = calcularPagoPeriodo();
+
+  // Función para formatear número
+  const formatearNumero = (num) => {
+    if (num === undefined || num === null) return '—';
+    return num.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
       <div className="bg-gray-900 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
         {/* Header */}
         <div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 flex justify-between items-center">
           <div>
             <h2 className="text-xl font-bold text-white">
-              {bono.ticker} - {bono.nombre}
+              {bono.symbol} - Análisis Completo
             </h2>
-            <p className="text-sm text-gray-400">{bono.tipo}</p>
+            <p className="text-sm text-gray-400">
+              Vence: {bono.expiration ? new Date(bono.expiration).toLocaleDateString('es-AR') : 'N/A'} · {moneda}
+            </p>
+            {bonoInfo.observaciones && (
+              <p className="text-xs text-gray-500 mt-1">{bonoInfo.observaciones}</p>
+            )}
           </div>
           <button onClick={onClose} className="p-1 hover:bg-gray-800 rounded">
             <X className="w-5 h-5 text-gray-400" />
@@ -92,26 +142,15 @@ return (
             📊 Actual
           </button>
           <button
-            onClick={() => setTabActiva('historico')}
+            onClick={() => setTabActiva('calculadora')}
             className={`px-4 py-2 font-medium transition flex items-center gap-1 ${
-              tabActiva === 'historico'
+              tabActiva === 'calculadora'
                 ? 'text-yellow-400 border-b-2 border-yellow-400'
                 : 'text-gray-400 hover:text-gray-300'
             }`}
           >
-            <Clock className="w-4 h-4" />
-            Histórico
-          </button>
-          <button
-            onClick={() => setTabActiva('graficos')}
-            className={`px-4 py-2 font-medium transition flex items-center gap-1 ${
-              tabActiva === 'graficos'
-                ? 'text-yellow-400 border-b-2 border-yellow-400'
-                : 'text-gray-400 hover:text-gray-300'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4" />
-            Gráficos
+            <Calculator className="w-4 h-4" />
+            Calculadora
           </button>
         </div>
 
@@ -124,199 +163,206 @@ return (
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-800/30 rounded-lg p-3">
                   <p className="text-xs text-gray-400 mb-1">Precio actual</p>
-                  <p className="text-xl font-bold text-white">${bono.precio.toFixed(2)}</p>
-                  <p className={`text-sm ${bono.varPrecio > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {bono.varPrecio > 0 ? '+' : ''}{bono.varPrecio}% vs ayer
+                  <p className="text-xl font-bold text-white">
+                    {moneda === 'USD' ? 'U$S' : '$'}{formatearNumero(precioActual)}
+                  </p>
+                  <p className={`text-sm ${bono.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {bono.change ? (bono.change * 100).toFixed(2) : '0.00'}% vs ayer
                   </p>
                 </div>
+                <div className="flex items-center gap-2">
+  <span className="text-xl font-bold text-red-400">TIR muy negativa</span>
+  <div className="relative group">
+    <AlertCircle className="w-4 h-4 text-gray-400 cursor-help" />
+    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-xs text-gray-300 rounded opacity-0 group-hover:opacity-100 transition w-48 border border-gray-600">
+      El bono cotiza muy por encima de su valor nominal. La TIR real es fuertemente negativa.
+    </div>
+  </div>
+</div>
                 <div className="bg-gray-800/30 rounded-lg p-3">
                   <p className="text-xs text-gray-400 mb-1">TIR</p>
-                  <p className="text-xl font-bold text-green-400">{bono.tir}%</p>
-                  <p className={`text-sm ${bono.varTir > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {bono.varTir > 0 ? '+' : ''}{bono.varTir}pp
-                  </p>
+                  {tirMostrar ? (
+                    <p className="text-xl font-bold text-green-400">{tirMostrar}</p>
+                  ) : (
+                    <div className="flex items-center gap-1 text-yellow-400">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="text-sm">No disponible</span>
+                    </div>
+                  )}
                 </div>
+                
                 <div className="bg-gray-800/30 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-1">Duración</p>
-                  <p className="text-xl font-bold text-white">{bono.duracion} años</p>
+                  <p className="text-xs text-gray-400 mb-1">Días a vencimiento</p>
+                  <p className="text-xl font-bold text-white">{diasReales?.toLocaleString() || 'N/A'}</p>
                 </div>
+                
                 <div className="bg-gray-800/30 rounded-lg p-3">
                   <p className="text-xs text-gray-400 mb-1">Cupón</p>
-                  <p className="text-xl font-bold text-white">{bono.cupon}%</p>
-                  <p className="text-xs text-gray-400">Vence: {new Date(bono.fechaVencimiento).toLocaleDateString('es-AR')}</p>
+                  {tasaCupon ? (
+                    <p className="text-xl font-bold text-white">{tasaCupon}% {frecuencia}</p>
+                  ) : (
+                    <p className="text-sm text-gray-400">—</p>
+                  )}
                 </div>
               </div>
 
-              {/* Calculadora de rendimiento */}
+              {/* Resumen de inversión */}
               <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-yellow-400" />
-                  Calculadora de Rendimiento
-                </h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm text-gray-400 mb-1 block">Monto a invertir (ARS)</label>
-                    <input
-                      type="number"
-                      value={montoInversion}
-                      onChange={(e) => setMontoInversion(Number(e.target.value))}
-                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                      min="10000"
-                      step="10000"
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Rendimiento estimado ({bono.tir}% TIR):</span>
-                      <span className="text-green-400 font-semibold">
-                        ${rendimientoEstimado.toFixed(2)} ({((rendimientoEstimado / montoInversion) * 100).toFixed(2)}%)
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Inflación proyectada:</span>
-                      <span className="text-red-400">{inflacionProyectada}%</span>
-                    </div>
-                    <div className="h-px bg-gray-700 my-2"></div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-300 font-medium">Ganancia real:</span>
-                      <span className={gananciaReal > 0 ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}>
-                        ${gananciaReal.toFixed(2)} {gananciaReal > 0 ? '(positiva)' : '(negativa)'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Flujo de pagos */}
-              <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-yellow-400" />
-                  Próximos pagos
-                </h3>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between p-2 bg-gray-700/30 rounded">
-                    <span className="text-gray-300">15/05/2026</span>
-                    <span className="text-white font-semibold">${(montoInversion * (bono.cupon / 100) / 2).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between p-2 bg-gray-700/30 rounded">
-                    <span className="text-gray-300">15/11/2026</span>
-                    <span className="text-white font-semibold">${(montoInversion * (bono.cupon / 100) / 2).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between p-2 bg-gray-700/30 rounded">
-                    <span className="text-gray-300">15/05/2027</span>
-                    <span className="text-white font-semibold">${(montoInversion * (bono.cupon / 100) / 2).toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Análisis detallado */}
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">🔍 Análisis Detallado</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">📊 Detalles del bono</h3>
                 <div className="space-y-3">
-                  <div className="p-3 bg-gray-800/30 rounded">
-                    <p className="text-sm text-gray-300">
-                      <span className="text-yellow-400">• Rendimiento:</span> TIR de {bono.tir}% en USD, 
-                      {bono.tir > 15 ? ' superior a bonos comparables.' : ' en línea con el mercado.'}
-                    </p>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Valor nominal:</span>
+                    <span className="text-white font-semibold">
+                      {moneda === 'USD' ? 'U$S' : '$'}{formatearNumero(valorNominal)}
+                    </span>
                   </div>
-                  <div className="p-3 bg-gray-800/30 rounded">
-                    <p className="text-sm text-gray-300">
-                      <span className="text-yellow-400">• Duración:</span> {bono.duracion} años. 
-                      {bono.duracion > 5 ? ' Alta sensibilidad a tasas.' : ' Moderada sensibilidad.'}
-                    </p>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Precio actual:</span>
+                    <span className="text-white font-semibold">
+                      {moneda === 'USD' ? 'U$S' : '$'}{formatearNumero(precioActual)}
+                    </span>
                   </div>
-                  <div className="p-3 bg-gray-800/30 rounded">
-                    <p className="text-sm text-gray-300">
-                      <span className="text-yellow-400">• Riesgo:</span> {bono.tipo === 'Soberano USD' ? 'Riesgo país' : 'Riesgo corporativo'}. 
-                      {bono.tir > 16 ? ' Alto rendimiento, alto riesgo.' : ' Riesgo moderado.'}
-                    </p>
-                  </div>
+                  {tasaCupon && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Pago periódico:</span>
+                      <span className="text-green-400 font-semibold">
+                        {moneda === 'USD' ? 'U$S' : '$'}{formatearNumero(pagoPeriodo)} ({frecuencia})
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          ) : tabActiva === 'historico' ? (
-            /* === TAB HISTÓRICO === */
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-yellow-400" />
-                Evolución Mensual
-              </h3>
 
-              {/* Tabla histórica */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-700">
-                      <th className="text-left py-3 px-2 text-gray-400">Período</th>
-                      <th className="text-right py-3 px-2 text-gray-400">Precio (USD)</th>
-                      <th className="text-right py-3 px-2 text-gray-400">TIR (%)</th>
-                      <th className="text-right py-3 px-2 text-gray-400">Variación</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {historico.map((item, index) => (
-                      <tr key={index} className="border-b border-gray-800 hover:bg-gray-800/30">
-                        <td className="py-3 px-2 text-white font-medium">{item.periodo}</td>
-                        <td className="text-right py-3 px-2 text-green-400">${item.precio.toFixed(2)}</td>
-                        <td className="text-right py-3 px-2 text-blue-400">{item.tir}%</td>
-                        <td className={`text-right py-3 px-2 ${item.variacion > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {item.variacion > 0 ? '+' : ''}{item.variacion}%
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Análisis de tendencia */}
-              {historico.length > 1 && (
+              {/* Próximos pagos (solo si hay cupón) */}
+              {tasaCupon && pagoPeriodo && (
                 <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700">
-                  <h4 className="font-semibold text-white mb-3">📈 Análisis de Tendencia</h4>
-                  <div className="space-y-2 text-sm text-gray-300">
-                    <p>
-                      • <span className="text-yellow-400">Precio:</span> {historico[0].precio > historico[historico.length-1].precio ? 'Caída' : 'Aumento'} del {Math.abs(((historico[0].precio - historico[historico.length-1].precio) / historico[historico.length-1].precio * 100)).toFixed(1)}% en los últimos 3 meses
-                    </p>
-                    <p>
-                      • <span className="text-yellow-400">TIR:</span> {historico[0].tir > historico[historico.length-1].tir ? 'Aumento' : 'Reducción'} de {Math.abs(historico[0].tir - historico[historico.length-1].tir).toFixed(1)} puntos porcentuales
-                    </p>
-                    <p>
-                      • <span className="text-yellow-400">Tendencia:</span> {historico[0].tir > historico[historico.length-1].tir ? 'Bonos más riesgosos' : 'Bonos más caros'} que hace 3 meses
-                    </p>
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-yellow-400" />
+                    Próximos pagos
+                  </h3>
+                  
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {[1, 2, 3, 4].map((i) => {
+                      const fecha = new Date();
+                      if (frecuencia === 'mensual') fecha.setMonth(fecha.getMonth() + i);
+                      else if (frecuencia === 'semestral') fecha.setMonth(fecha.getMonth() + i * 6);
+                      else if (frecuencia === 'trimestral') fecha.setMonth(fecha.getMonth() + i * 3);
+                      
+                      return (
+                        <div key={i} className="flex justify-between p-2 bg-gray-700/30 rounded">
+                          <span className="text-gray-300">{fecha.toLocaleDateString('es-AR')}</span>
+                          <span className="text-white font-semibold">
+                            {moneda === 'USD' ? 'U$S' : '$'}{formatearNumero(pagoPeriodo)}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            /* === TAB GRÁFICOS === */
+            /* === TAB CALCULADORA === */
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-yellow-400" />
-                Evolución precio y TIR
+                <Calculator className="w-5 h-5 text-yellow-400" />
+                Calculadora de inversión
               </h3>
-              
-              <GraficoLinea
-                data={datosGrafico}
-                xKey="periodo"
-                lines={[
-                  { key: 'precio', name: 'Precio (USD)', color: '#4ADE80' },
-                  { key: 'tir', name: 'TIR (%)', color: '#FBBF24' }
-                ]}
-              />
-              
-              <div className="bg-gray-800/30 rounded-lg p-4">
-                <p className="text-sm text-gray-300">
-                  El precio del bono {bono.ticker} ha tenido una tendencia 
-                  {bono.varPrecio > 0 ? ' alcista' : ' bajista'}, 
-                  mientras que la TIR se ha movido en dirección opuesta.
-                </p>
+
+              <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700">
+                <div className="space-y-4">
+                  {/* Monto a invertir */}
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">
+                      Monto a invertir ({moneda === 'USD' ? 'USD' : 'ARS'})
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={montoInversion.toLocaleString('es-AR')}
+                      onChange={(e) => {
+                        const valor = e.target.value.replace(/\./g, '').replace(/,/g, '');
+                        if (!isNaN(valor) && valor !== '') {
+                          setMontoInversion(Number(valor));
+                        }
+                      }}
+                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                    />
+                  </div>
+
+                  {/* Días hasta vencimiento */}
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Días hasta vencimiento</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={diasRestantes.toLocaleString('es-AR')}
+                      onChange={(e) => {
+                        const valor = e.target.value.replace(/\./g, '');
+                        if (!isNaN(valor) && valor !== '') {
+                          setDiasRestantes(Number(valor));
+                        }
+                      }}
+                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
+                    />
+                    {diasReales && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        * Vencimiento real: {diasReales} días ({new Date(bono.expiration).toLocaleDateString('es-AR')})
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Resultados */}
+                  <div className="bg-gray-900/50 rounded-lg p-4 space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Cantidad de bonos:</span>
+                      <span className="text-white font-bold">{cantidad}</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Inversión total:</span>
+                      <span className="text-white font-bold">
+                        {moneda === 'USD' ? 'U$S' : '$'}{formatearNumero(valorInvertido)}
+                      </span>
+                    </div>
+                    
+                    {tasaCupon && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Ingreso anual por cupones:</span>
+                        <span className="text-green-400 font-bold">
+                          {moneda === 'USD' ? 'U$S' : '$'}{formatearNumero(cantidad * (valorNominal * tasaCupon / 100))}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Valor nominal al vencimiento:</span>
+                      <span className="text-green-400 font-bold">
+                        {moneda === 'USD' ? 'U$S' : '$'}{formatearNumero(cantidad * valorNominal)}
+                      </span>
+                    </div>
+                    
+                    {tirMostrar && (
+                      <>
+                        <div className="h-px bg-gray-700 my-2"></div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-300 font-medium">TIR:</span>
+                          <span className="text-yellow-400 font-bold">{tirMostrar}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-gray-500">
+                    * Cálculo basado en datos fijos del bono. No incluye comisiones ni impuestos.
+                    {!tasaCupon && ' Cupón no disponible para este bono.'}
+                  </p>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Botones de acción (siempre visibles) */}
+          {/* Botones de acción */}
           <div className="flex gap-3 pt-6 mt-4 border-t border-gray-700">
             <button 
               onClick={() => exportarBonoPDF(bono)}

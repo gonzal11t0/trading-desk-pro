@@ -1,7 +1,6 @@
 // src/api/empresasApi.js
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-console.log('🔍 API_URL siendo usada:', API_URL); // ← AGREGÁ ESTO
 
 export const empresasApi = {
   getCompanyData: async (ticker) => {
