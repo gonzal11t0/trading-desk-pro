@@ -34,7 +34,7 @@ app.get('/api/company/:ticker', async (req, res) => {
     // Para datos históricos (si los necesitás)
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - 12);
+    startDate.setMonth(startDate.getMonth() - 3);
     
     const historical = await yahooFinance.historical(ticker, {
       period1: startDate,
