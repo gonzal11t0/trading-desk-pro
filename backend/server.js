@@ -77,8 +77,24 @@ app.get('/api/bonos', (req, res) => {
     }
   });
 });
-
-// Mismo para letras después
+// backend/server.js
+app.get('/api/letras', (req, res) => {
+  const scriptPath = path.join(__dirname, 'scripts', 'get_letras.py');
+  
+  exec(`python "${scriptPath}"`, (error, stdout, stderr) => {
+    if (error) {
+      console.error('Error ejecutando script:', error);
+      return res.status(500).json({ error: stderr });
+    }
+    
+    try {
+      const data = JSON.parse(stdout);
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: 'Error parseando JSON' });
+    }
+  });
+});
 
 app.listen(3001, () => {
   console.log('✅ Backend (v3) corriendo en http://localhost:3001');

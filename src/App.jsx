@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import LoginModal from './components/layout/LoginModal'
+import { Toaster, toast } from "react-hot-toast";
+import { usePremiumStore } from './stores/premiumStore' // 👈 IMPORTAR STORE
+import { playAttention, playAlert } from "simple-notification-sounds";
 
 // Tus componentes existentes
 import { TradingHeader } from './components/layout/TradingHeader'
@@ -51,7 +54,6 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { isAuthenticated, isAdmin, isChecking } = useAuth()
   const location = useLocation()
 
-  // Mientras verifica
   if (isChecking) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -63,13 +65,11 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     )
   }
 
-  // Si no está autenticado
   if (!isAuthenticated) {
     sessionStorage.setItem('redirectAfterLogin', location.pathname)
     return <Navigate to="/login" replace />
   }
 
-  // Si requiere admin pero no lo es
   if (requireAdmin && !isAdmin) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -92,7 +92,6 @@ const MainLayout = ({ children, showHeader = true }) => {
   const { isAuthenticated, userRole, logout, getSessionTimeLeft } = useAuth()
   const [timeLeft, setTimeLeft] = useState(getSessionTimeLeft())
 
-  // Actualizar tiempo de sesión
   useEffect(() => {
     const interval = setInterval(() => {
       setTimeLeft(getSessionTimeLeft())
@@ -102,11 +101,9 @@ const MainLayout = ({ children, showHeader = true }) => {
 
   return (
     <div className="min-h-screen bg-black text-white font-mono">
-      {/* Floating Education Button */}
       <FloatingEduButton />
       <MacroExplainer />
 
-      {/* Header con info de sesión y navegación */}
       {showHeader && (
         <>
           <div className="bg-gray-900/80 border-b border-gray-800">
@@ -123,7 +120,6 @@ const MainLayout = ({ children, showHeader = true }) => {
                     </span>
                   </span>
                   
-                  {/* MENÚ DE NAVEGACIÓN */}
                   <div className="flex items-center space-x-4 ml-4">
                     <Link 
                       to="/dashboard" 
@@ -159,7 +155,6 @@ const MainLayout = ({ children, showHeader = true }) => {
         </>
       )}
 
-      {/* Contenido principal */}
       {children}
     </div>
   )
@@ -178,81 +173,9 @@ const LoginPage = () => {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#000000',
-      display: 'flex',
-      alignItems: 'flex-start',
-      justifyContent: 'center',
-      position: 'relative',
-      overflow: 'hidden',
-      paddingTop: '10vh'
-    }}>
-      
-      {/* Efectos de fondo */}
-      <div style={{
-        position: 'absolute',
-        top: '0',
-        left: '0',
-        right: '0',
-        bottom: '0',
-        background: `
-          radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-          radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.05) 0%, transparent 50%)
-        `,
-        zIndex: 1
-      }}></div>
-      
-      {/* Contenedor principal */}
-      <div style={{
-        position: 'relative',
-        zIndex: 10,
-        width: '100%',
-        maxWidth: '420px',
-        padding: '0 1rem',
-        marginTop: '5vh'
-      }}>
+    <div style={{ /* ... estilos existentes ... */ }}>
+      <div style={{ /* ... */ }}>
         <LoginModal />
-      </div>
-      
-      {/* Dashboard en segundo plano */}
-      <div style={{
-        position: 'absolute',
-        top: '40vh',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        opacity: 0.1,
-        filter: 'blur(12px)',
-        pointerEvents: 'none',
-        zIndex: 0
-      }}>
-        <div style={{
-          backgroundColor: '#000',
-          height: '100%'
-        }}>
-          <div style={{
-            height: '60px',
-            backgroundColor: 'rgba(30, 41, 59, 0.3)',
-            marginBottom: '20px'
-          }}></div>
-          <div style={{
-            display: 'flex',
-            gap: '20px',
-            marginBottom: '20px'
-          }}>
-            <div style={{
-              flex: '7',
-              height: '200px',
-              backgroundColor: 'rgba(30, 41, 59, 0.3)'
-            }}></div>
-            <div style={{
-              flex: '3',
-              height: '200px',
-              backgroundColor: 'rgba(30, 41, 59, 0.3)'
-            }}></div>
-          </div>
-        </div>
       </div>
     </div>
   )
@@ -265,14 +188,12 @@ const DashboardPage = () => {
   const { isAdmin } = useAuth()
   const [showAdminPanel, setShowAdminPanel] = useState(false)
 
-  // Panel admin SOLO visible si es admin y activó manualmente
   const shouldShowAdminPanel = isAdmin && showAdminPanel
 
   return (
     <MainLayout>
       <div className="container mx-auto px-4">
         
-        {/* BOTÓN PARA ACTIVAR PANEL ADMIN (SOLO PARA ADMIN) */}
         {isAdmin && !showAdminPanel && (
           <div className="mb-4 flex justify-end">
             <button
@@ -284,7 +205,6 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* PANEL DE ADMINISTRACIÓN (SOLO SI ESTÁ ACTIVADO) */}
         {shouldShowAdminPanel && (
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -304,10 +224,8 @@ const DashboardPage = () => {
           <QuotesCarousel />
         </div>
         
-        {/* CONTENEDOR PRINCIPAL CON COLUMNAS 70%/30% */}
         <div className="flex flex-col xl:flex-row gap-6">
           
-          {/* COLUMNA IZQUIERDA (70%) */}
           <div className="xl:w-[70%] min-w-0">
             <div className="space-y-6">
               <LiveStreamsGrid />
@@ -317,19 +235,16 @@ const DashboardPage = () => {
             </div>
           </div>
           
-          {/* COLUMNA DERECHA (30%) */}
           <div className="xl:w-[30%] min-w-0 space-y-6">
             <Notice /> 
             <TreemapDashboard />
           </div>
         </div>
         
-        {/* EconomicDataBlock - 100% ANCHO TOTAL */}
         <div className="w-full min-w-0 mt-6">
           <EconomicDataBlock />
         </div>
         
-        {/* GRAFICOS TRADINGVIEW - 100% ANCHO TOTAL */}
         <div className="w-full min-w-0 mt-6">
           <TradingViewCharts />
         </div>
@@ -362,59 +277,177 @@ const NotFoundPage = () => (
 // COMPONENTE APP PRINCIPAL
 // ============================================
 function App() {
+  const { alertas } = usePremiumStore();
+  const [preciosActuales, setPreciosActuales] = useState({});
+  console.log('🔄 useEffect de alertas ejecutándose. Alertas:', alertas);
+
+useEffect(() => {
+  console.log('🔄 useEffect de alertas ejecutándose. Alertas:', alertas);
+  
+  const verificarAlertas = async () => {
+    console.log('⏰ VERIFICANDO ALERTAS - TIMESTAMP:', new Date().toLocaleTimeString());
+    
+    const tickers = [...new Set(alertas.map(a => a.ticker))];
+    console.log('Tickers a verificar:', tickers);
+    
+    const nuevosPrecios = {};
+    
+    for (const ticker of tickers) {
+      try {
+        // Buscar la alerta para saber el tipo
+        const alerta = alertas.find(a => a.ticker === ticker);
+        if (!alerta) continue;
+        
+        console.log(`Obteniendo precio para ${ticker} (tipo: ${alerta.tipo})...`);
+        
+        let precio = null;
+        
+        if (alerta.tipo === 'bonos') {
+          // Para bonos, obtener todos y filtrar
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/bonos`);
+          if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+          const bonos = await res.json();
+          const bono = bonos.find(b => b.symbol === ticker);
+          precio = bono?.last;
+          console.log(`Precio de bono ${ticker}:`, precio);
+        } 
+        else if (alerta.tipo === 'letras') {
+          // Para letras, obtener todas y filtrar
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/letras`);
+          if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+          const letras = await res.json();
+          const letra = letras.find(l => l.symbol === ticker);
+          precio = letra?.last;
+          console.log(`Precio de letra ${ticker}:`, precio);
+        }
+        else {
+          // Para empresas (balances)
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/company/${ticker}`);
+          if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+          const data = await res.json();
+          precio = data.precio;
+          console.log(`Precio de empresa ${ticker}:`, precio);
+        }
+        
+        nuevosPrecios[ticker] = precio;
+        
+      } catch (error) {
+        console.error('Error obteniendo precio para', ticker, error);
+        nuevosPrecios[ticker] = null;
+      }
+    }
+    
+    setPreciosActuales(nuevosPrecios);
+    console.log('💰 Precios actualizados:', nuevosPrecios);
+    
+    // Verificar cada alerta
+    alertas.forEach(alerta => {
+      console.log('Evaluando alerta:', alerta);
+      
+      if (!alerta.activa) {
+        console.log('⏸️ Alerta inactiva, ignorada');
+        return;
+      }
+      
+      const precioActual = nuevosPrecios[alerta.ticker];
+      console.log(`Precio actual de ${alerta.ticker}: ${precioActual}, objetivo: ${alerta.precioObjetivo}`);
+      
+      if (precioActual === null || precioActual === undefined) {
+        console.log('⚠️ Precio no disponible, alerta ignorada');
+        return;
+      }
+      
+      const condicionCumplida = alerta.condicion === 'mayor' 
+        ? precioActual >= alerta.precioObjetivo
+        : precioActual <= alerta.precioObjetivo;
+      
+      console.log('✅ Condición cumplida?', condicionCumplida);
+      
+      if (condicionCumplida) {
+  // 🔊 Reproducir sonido de alerta
+  playAlert("medium"); // o "short" o "long"
+  
+  toast.success(`🔔 ${alerta.ticker} alcanzó $${precioActual.toFixed(2)}`, {
+    duration: 10000,
+    icon: '🔔',
+    style: {
+      background: '#1F2937',
+      color: '#fff',
+      border: '1px solid #374151',
+      fontSize: '16px'
+    }
+  });
+}
+    });
+  };
+  
+  // Ejecutar inmediatamente al montar
+  verificarAlertas();
+  
+  // Configurar intervalo cada 30 segundos
+  const intervalo = setInterval(verificarAlertas, 30000);
+  console.log('⏱️ Intervalo configurado cada 30 segundos');
+  
+  // Limpiar al desmontar
+  return () => {
+    console.log('🧹 Limpiando intervalo de alertas');
+    clearInterval(intervalo);
+  };
+}, [alertas]); // Dependencia: alertas
+
   return (
-    <Routes>
-      {/* Ruta de login */}
-      <Route path="/login" element={<LoginPage />} />
-      
-      {/* Ruta raíz redirige a dashboard */}
-      <Route path="/" element={
-        <ProtectedRoute>
-          <Navigate to="/dashboard" replace />
-        </ProtectedRoute>
-      } />
-      
-      {/* Dashboard principal */}
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <DashboardPage />
-        </ProtectedRoute>
-      } />
-      
-      {/* Panel admin (solo para administradores) */}
-      <Route path="/admin" element={
-        <ProtectedRoute requireAdmin={true}>
-          <MainLayout>
-            <div className="container mx-auto px-4 py-8">
-              <h1 className="text-3xl font-bold text-white mb-6">🔧 Panel de Administración Completo</h1>
-              <UserManagement />
-            </div>
-          </MainLayout>
-        </ProtectedRoute>
-      } />
-
-      {/* RUTAS PREMIUM */}
-      <Route path="/analisis-premium" element={
-        <ProtectedRoute>
-          <PremiumGuard>
+    <>
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: '#1F2937',
+            color: '#fff',
+            border: '1px solid #374151'
+          }
+        }}
+      />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Navigate to="/dashboard" replace />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute requireAdmin={true}>
             <MainLayout>
-              <AnalisisPremiumPage />
+              <div className="container mx-auto px-4 py-8">
+                <h1 className="text-3xl font-bold text-white mb-6">🔧 Panel de Administración Completo</h1>
+                <UserManagement />
+              </div>
             </MainLayout>
-          </PremiumGuard>
-        </ProtectedRoute>
-      } />
-
-      <Route path="/upgrade" element={
-        <ProtectedRoute>
-          <MainLayout>
-            <UpgradePage />
-          </MainLayout>
-        </ProtectedRoute>
-      } />
-      
-      {/* Ruta 404 */}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+          </ProtectedRoute>
+        } />
+        <Route path="/analisis-premium" element={
+          <ProtectedRoute>
+            <PremiumGuard>
+              <MainLayout>
+                <AnalisisPremiumPage />
+              </MainLayout>
+            </PremiumGuard>
+          </ProtectedRoute>
+        } />
+        <Route path="/upgrade" element={
+          <ProtectedRoute>
+            <MainLayout>
+              <UpgradePage />
+            </MainLayout>
+          </ProtectedRoute>
+        } />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </>
   )
 }
 
