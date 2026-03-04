@@ -1,15 +1,21 @@
 // src/components/premium/PremiumGuard.jsx
 import { Navigate } from 'react-router-dom';
 
+const USUARIOS_AUTORIZADOS = [
+  'admin@tradingdesk.com',        // Tu email
+  'clienteLeo@empresa.com'           // Email de tu asesor
+];
+
 const PremiumGuard = ({ children }) => {
-  // Leemos de localStorage (después lo cambiaremos por un hook real)
   const esPremium = localStorage.getItem('esPremium') === 'true';
+  const emailUsuario = localStorage.getItem('userEmail');
   
-  if (!esPremium) {
-    return <Navigate to="/upgrade" replace />;
+  // Si es premium O es usuario autorizado, deja pasar
+  if (esPremium || USUARIOS_AUTORIZADOS.includes(emailUsuario)) {
+    return children;
   }
   
-  return children;
+  return <Navigate to="/upgrade" replace />;
 };
 
-export default PremiumGuard;  // <--- TIENE QUE ESTAR ASÍ
+export default PremiumGuard;

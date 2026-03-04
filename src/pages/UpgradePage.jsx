@@ -1,6 +1,6 @@
 // src/pages/UpgradePage.jsx
 import React from 'react';
-import { Crown, ArrowRight, Check } from 'lucide-react';
+import { Crown, ArrowRight, Check, Info  } from 'lucide-react';
 
 const UpgradePage = () => {
   // Función para activar premium en pruebas
@@ -62,7 +62,13 @@ const UpgradePage = () => {
             * Modo prueba: activa premium con un clic (sin pago real)
           </p>
         </div>
-
+        {/* Después del botón de prueba */}
+        <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700/30 rounded-lg">
+          <p className="text-sm text-blue-300 flex items-center gap-2">
+            <Info className="w-4 h-4" />
+            ⚠️ Modo demostración: activás premium con un clic. Pronto estará disponible el pago real con Mercado Pago.
+          </p>
+        </div>
         {/* Preview de lo que verán */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">

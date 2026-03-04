@@ -121,23 +121,22 @@ const MainLayout = ({ children, showHeader = true }) => {
                   </span>
                   
                   <div className="flex items-center space-x-4 ml-4">
-                    <Link 
-                      to="/dashboard" 
-                      className="text-gray-300 hover:text-white transition px-3 py-1 rounded hover:bg-gray-800"
-                    >
-                      Dashboard
-                    </Link>
-                    
-                    {localStorage.getItem('esPremium') === 'true' && (
-                      <Link 
-                        to="/analisis-premium" 
-                        className="text-yellow-400 hover:text-yellow-300 font-semibold flex items-center gap-1 transition px-3 py-1 rounded hover:bg-yellow-900/20"
-                      >
-                        <Crown className="w-4 h-4" />
-                        Análisis Premium
-                      </Link>
-                    )}
-                  </div>
+                  <Link 
+                    to="/dashboard" 
+                    className="text-gray-300 hover:text-white transition px-3 py-1 rounded hover:bg-gray-800"
+                  >
+                    Dashboard
+                  </Link>
+                  
+                  {/* Link a Premium (siempre visible) */}
+                  <Link 
+                    to={localStorage.getItem('esPremium') === 'true' ? "/analisis-premium" : "/upgrade"} 
+                    className="text-yellow-400 hover:text-yellow-300 font-semibold flex items-center gap-1 transition px-3 py-1 rounded hover:bg-yellow-900/20"
+                  >
+                    <Crown className="w-4 h-4" />
+                    Premium
+                  </Link>
+                </div>
                 </div>
                 
                 {isAuthenticated && (
