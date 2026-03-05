@@ -63,7 +63,7 @@ const path = require('path');
 app.get('/api/bonos', (req, res) => {
   const scriptPath = path.join(__dirname, 'scripts', 'get_bonds.py');
   
-  exec(`python "${scriptPath}"`, (error, stdout, stderr) => {
+exec(`python3 "${scriptPath}"`, (error, stdout, stderr) => {
     if (error) {
       console.error('Error ejecutando script:', error);
       return res.status(500).json({ error: stderr });
