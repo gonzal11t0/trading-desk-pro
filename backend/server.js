@@ -1,10 +1,7 @@
-// backend/server.js
 const express = require('express');
 const cors = require('cors');
-// Importar la clase (NOTA: puede requerir .default según la versión)
 const YahooFinance = require('yahoo-finance2').default; 
 
-// Crear una instancia de la clase ANTES de usarla
 const yahooFinance = new YahooFinance();
 
 const app = express();
@@ -28,10 +25,8 @@ app.get('/api/company/:ticker', async (req, res) => {
   try {
     const ticker = tickerMap[req.params.ticker] || req.params.ticker;
     
-    // Usar la instancia yahooFinance (que ya creamos)
     const quote = await yahooFinance.quote(ticker);
     
-    // Para datos históricos (si los necesitás)
     const endDate = new Date();
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - 3);
@@ -77,7 +72,6 @@ exec(`python3 "${scriptPath}"`, (error, stdout, stderr) => {
     }
   });
 });
-// backend/server.js
 app.get('/api/letras', (req, res) => {
   const scriptPath = path.join(__dirname, 'scripts', 'get_letras.py');
   
@@ -96,7 +90,6 @@ app.get('/api/letras', (req, res) => {
   });
 });
 
-// backend/server.js (agregar esto)
 app.get('/api/test', (req, res) => {
   const scriptPath = path.join(__dirname, 'scripts', 'test.py');
   
