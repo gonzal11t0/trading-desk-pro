@@ -1,0 +1,11 @@
+[project]
+name = "trading-backend-scripts"
+version = "1.0.0"
+description = "Scripts Python para obtener datos financieros"
+requires-python = ">=3.9"
+dependencies = [
+    "requests",
+    "beautifulsoup4",
+    "pandas",
+    "lxml"
+]
