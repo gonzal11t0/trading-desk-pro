@@ -112,6 +112,4 @@ app.get('/api/test', (req, res) => {
     }
   });
 });
-app.listen(3001, () => {
-  console.log('✅ Backend (v3) corriendo en http://localhost:3001');
-});
+module.exports = app;
