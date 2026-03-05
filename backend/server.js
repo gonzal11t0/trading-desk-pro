@@ -96,6 +96,22 @@ app.get('/api/letras', (req, res) => {
   });
 });
 
+// backend/server.js (agregar esto)
+app.get('/api/test', (req, res) => {
+  const scriptPath = path.join(__dirname, 'scripts', 'test.py');
+  
+  exec(`python "${scriptPath}"`, (error, stdout, stderr) => {
+    if (error) {
+      return res.status(500).json({ error: error.message, stderr });
+    }
+    try {
+      const data = JSON.parse(stdout);
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: 'Error parseando JSON', stdout });
+    }
+  });
+});
 app.listen(3001, () => {
   console.log('✅ Backend (v3) corriendo en http://localhost:3001');
 });
