@@ -4,42 +4,35 @@ import os
 import json
 import traceback
 
-# 📍 LOG 1: El script arrancó
-print("🚀 Script get_bonds.py iniciado", file=sys.stderr)
-sys.stderr.flush()
+# Capturar toda la salida de error
+error_log = []
 
-# Agregar la ruta de PyOBD
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'PyOBD'))
-print("📂 Ruta PyOBD agregada", file=sys.stderr)
-sys.stderr.flush()
+def log(msg):
+    error_log.append(msg)
+    print(msg, file=sys.stderr)
+    sys.stderr.flush()
+
+log("🚀 Script get_bonds.py iniciado")
 
 try:
-    # 📍 LOG 2: Intentando importar PyOBD
-    print("📦 Importando PyOBD...", file=sys.stderr)
-    sys.stderr.flush()
+    # Agregar ruta
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'PyOBD'))
+    log("📂 Ruta PyOBD agregada")
     
+    # Importar PyOBD
+    log("📦 Importando PyOBD...")
     from PyOBD import *
+    log("✅ PyOBD importado")
     
-    print("✅ PyOBD importado correctamente", file=sys.stderr)
-    sys.stderr.flush()
-    
-    # 📍 LOG 3: Inicializando openBYMAdata
-    print("🔄 Inicializando openBYMAdata()...", file=sys.stderr)
-    sys.stderr.flush()
-    
+    # Inicializar
+    log("🔄 Inicializando openBYMAdata()...")
     PyOBD = openBYMAdata()
+    log("✅ openBYMAdata() OK")
     
-    print("✅ openBYMAdata() ejecutado", file=sys.stderr)
-    sys.stderr.flush()
-    
-    # 📍 LOG 4: Obteniendo bonos
-    print("📊 Obteniendo bonos con get_bonds()...", file=sys.stderr)
-    sys.stderr.flush()
-    
+    # Obtener bonos
+    log("📊 Ejecutando get_bonds()...")
     bonos = PyOBD.get_bonds()
-    
-    print(f"✅ get_bonds() ejecutado. Tipo: {type(bonos)}", file=sys.stderr)
-    sys.stderr.flush()
+    log(f"✅ get_bonds() OK. Tipo: {type(bonos)}")
     
     # Convertir a JSON
     if hasattr(bonos, 'to_dict'):
@@ -49,16 +42,21 @@ try:
     else:
         resultado = str(bonos)
     
-    print(f"📦 JSON generado con {len(resultado)} bonos", file=sys.stderr)
-    sys.stderr.flush()
+    log(f"📦 JSON generado con {len(resultado)} bonos")
     
-    # 📍 LOG 5: Imprimiendo JSON final
-    print(json.dumps(resultado, default=str, indent=2))
+    # Devolver JSON + logs
+    respuesta = {
+        "success": True,
+        "data": resultado,
+        "logs": error_log
+    }
+    print(json.dumps(respuesta, default=str))
     
 except Exception as e:
-    print("❌ ERROR:", file=sys.stderr)
-    print(json.dumps({
+    respuesta = {
+        "success": False,
         "error": str(e),
-        "traceback": traceback.format_exc()
-    }, indent=2))
-    sys.exit(1)
+        "traceback": traceback.format_exc(),
+        "logs": error_log
+    }
+    print(json.dumps(respuesta, indent=2))
