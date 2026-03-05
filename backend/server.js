@@ -81,7 +81,7 @@ app.get('/api/bonos', (req, res) => {
 app.get('/api/letras', (req, res) => {
   const scriptPath = path.join(__dirname, 'scripts', 'get_letras.py');
   
-  exec(`python "${scriptPath}"`, (error, stdout, stderr) => {
+  exec(`python3 "${scriptPath}"`, (error, stdout, stderr) => {
     if (error) {
       console.error('Error ejecutando script:', error);
       return res.status(500).json({ error: stderr });
@@ -100,7 +100,7 @@ app.get('/api/letras', (req, res) => {
 app.get('/api/test', (req, res) => {
   const scriptPath = path.join(__dirname, 'scripts', 'test.py');
   
-  exec(`python "${scriptPath}"`, (error, stdout, stderr) => {
+  exec(`python3 "${scriptPath}"`, (error, stdout, stderr) => {
     if (error) {
       return res.status(500).json({ error: error.message, stderr });
     }
