@@ -102,6 +102,39 @@ export const letrasData = {
     plazo: 600,
     moneda: 'USD',
     observaciones: 'Dólar-linked largo plazo'
+  },
+    'S16M6': {
+    nombre: 'LETRA S16M6',
+    tipo: 'Capitalización',
+    tna: null,      // Si no tenés el dato, dejalo null
+    tea: null,
+    plazo: null,
+    moneda: 'ARS',
+    observaciones: 'Letra corto plazo'
+  },
+  'S17A6': {
+    nombre: 'LETRA S17A6',
+    tipo: 'Capitalización',
+    tna: null,
+    tea: null,
+    plazo: null,
+    moneda: 'ARS'
+  },
+  'LBA26': {
+    nombre: 'LBA26',
+    tipo: 'Capitalización',
+    tna: null,
+    tea: null,
+    plazo: null,
+    moneda: 'ARS'
+  },
+  'LBM26': {
+    nombre: 'LBM26',
+    tipo: 'Capitalización',
+    tna: null,
+    tea: null,
+    plazo: null,
+    moneda: 'ARS'
   }
 };
 

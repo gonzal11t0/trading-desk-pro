@@ -9,13 +9,15 @@ const BonoCard = ({ bono }) => {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modalAlertaAbierto, setModalAlertaAbierto] = useState(false);
 
-  // 👇 LOGS (solo para verificar que llega bien)
-  console.log('🎯 BonoCard recibió:', bono);
-
   if (!bono) return null;
 
-  const variacion = bono.change ?? 0;
-  const variacionPorcentaje = variacion ? (variacion * 100).toFixed(2) : '0.00';
+  // Usar las propiedades que vienen de Rava
+  const ticker = bono.ticker;
+  const ultimo = bono.ultimo ?? 0;
+  const variacion = bono.variacion_dia ?? 0;
+  const anterior = bono.anterior ?? 0;
+  const apertura = bono.apertura ?? 0;
+  const volumen = bono.volumen_nominal ?? 0;
 
   const getVariacionColor = (valor) => {
     if (valor > 0) return 'text-green-400';
@@ -35,14 +37,12 @@ const BonoCard = ({ bono }) => {
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-xl font-bold text-white">{bono.symbol || 'S/D'}</h3>
-            <p className="text-sm text-gray-400">
-              Vence: {bono.expiration ? new Date(bono.expiration).toLocaleDateString('es-AR') : 'N/A'}
-            </p>
+            <h3 className="text-xl font-bold text-white">{ticker}</h3>
+            <p className="text-sm text-gray-400">Bono • Rava</p>
           </div>
           
           <div className="flex items-center gap-2">
-            <BotonFavorito tipo="bonos" ticker={bono.symbol} size="sm" />
+            <BotonFavorito tipo="bonos" ticker={ticker} size="sm" />
             <button
               onClick={() => setModalAlertaAbierto(true)}
               className="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-yellow-400 transition"
@@ -62,38 +62,38 @@ const BonoCard = ({ bono }) => {
             <p className="text-xs text-gray-500 mb-1">Último</p>
             <div className="flex items-center gap-1">
               <span className="text-white font-semibold">
-                ${bono.last ? bono.last.toFixed(2) : '0.00'}
+                ${ultimo.toFixed(2)}
               </span>
               <span className={getVariacionColor(variacion)}>
-                {variacionPorcentaje}%
+                {variacion > 0 ? '+' : ''}{variacion.toFixed(2)}%
               </span>
               {getVariacionIcon(variacion)}
             </div>
           </div>
           
           <div>
-            <p className="text-xs text-gray-500 mb-1">Bid / Ask</p>
+            <p className="text-xs text-gray-500 mb-1">Anterior</p>
             <span className="text-white font-semibold">
-              ${bono.bid ? bono.bid.toFixed(2) : '0.00'} / ${bono.ask ? bono.ask.toFixed(2) : '0.00'}
-            </span>
-          </div>
-          
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Volumen</p>
-            <span className="text-white font-semibold">
-              {bono.volume ? bono.volume.toLocaleString() : '0'}
+              ${anterior.toFixed(2)}
             </span>
           </div>
           
           <div>
             <p className="text-xs text-gray-500 mb-1">Apertura</p>
             <span className="text-white font-semibold">
-              ${bono.open ? bono.open.toFixed(2) : '0.00'}
+              ${apertura.toFixed(2)}
+            </span>
+          </div>
+          
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Volumen</p>
+            <span className="text-white font-semibold">
+              {volumen.toLocaleString()}
             </span>
           </div>
         </div>
 
-        {/* Botones de acción */}
+        {/* Botones */}
         <div className="flex gap-2">
           <button
             onClick={() => setModalAbierto(true)}
@@ -107,22 +107,21 @@ const BonoCard = ({ bono }) => {
         </div>
       </div>
 
-      {/* Modal de análisis */}
-      <ModalBono 
+      {/* Modal */}
+      <ModalBono
         isOpen={modalAbierto}
         onClose={() => setModalAbierto(false)}
         bono={bono}
       />
 
-      {/* Modal de alerta */}
       <ModalAlerta
         isOpen={modalAlertaAbierto}
         onClose={() => setModalAlertaAbierto(false)}
         instrumento={{
           tipo: 'bonos',
-          ticker: bono.symbol,
-          nombre: bono.symbol,
-          precio: bono.last || 0
+          ticker: ticker,
+          nombre: ticker,
+          precio: ultimo
         }}
       />
     </>

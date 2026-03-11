@@ -16,7 +16,7 @@ const LetrasTab = () => {
       try {
         const data = await letrasApi.getLetras();
         // Filtramos las que nos interesan
-        const tickersInteres = ['S27F6', 'S29Y6', 'S30N6', 'X29Y6', 'X30N6', 'TZX27', 'TZX28', 'M31G6', 'D27F6', 'AO27'];
+        const tickersInteres = ['S16M6','S17A6','LBA26','LBM26','S27F6', 'S29Y6', 'S30N6', 'X29Y6', 'X30N6', 'TZX27', 'TZX28', 'M31G6', 'D27F6', 'AO27'];
         const filtrados = data.filter(letra => 
           letra && tickersInteres.includes(letra.symbol)
         );

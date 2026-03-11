@@ -12,21 +12,24 @@ const BonosTab = () => {
   const { favoritos } = usePremiumStore();
 
   useEffect(() => {
-    const fetchBonos = async () => {
-      try {
-        const data = await bonosApi.getBonos();
-        // Filtramos los que nos interesan
-        const filtrados = data.filter(bono => 
-          bono && ['AL30', 'AL35', 'GD30', 'GD35', 'AL41', 'AN29', 'AE38', 'AO27'].includes(bono.symbol)
-        );
-        setBonos(filtrados);
-      } catch (error) {
-        console.error('Error fetching bonos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
+   // src/components/premium/BonosTab.jsx
+  const fetchBonos = async () => {
+    try {
+      const data = await bonosApi.getBonos(); // 👈 Ahora data ES el array
+      console.log('Datos de bonos (array):', data);
+      
+    const filtrados = data.filter(bono => {
+  const pasa = ['AL30', 'AL35', 'GD30', 'GD35', 'AL41', 'AN29', 'AE38', 'AO27', 'BPY26', 'CUAP', 'DICP'].includes(bono.ticker);
+  if (pasa) console.log('✅ Pasa el filtro:', bono.ticker);
+  return pasa;
+});
+      setBonos(filtrados);
+    } catch (error) {
+      console.error('Error fetching bonos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
     fetchBonos();
   }, []);
 

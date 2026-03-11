@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const YahooFinance = require('yahoo-finance2').default; 
-
+console.log('🚀 Iniciando server.js...');
 const yahooFinance = new YahooFinance();
 
 const app = express();
@@ -55,45 +55,34 @@ app.get('/api/company/:ticker', async (req, res) => {
 const { exec } = require('child_process');
 const path = require('path');
 
-app.get('/api/bonos', (req, res) => {
-  const scriptPath = path.join(__dirname, 'scripts', 'get_bonds.py');
-  
-exec(`python3 "${scriptPath}"`, (error, stdout, stderr) => {
-    if (error) {
-      console.error('Error ejecutando script:', error);
-      return res.status(500).json({ error: stderr });
-    }
-    
-    try {
-      const data = JSON.parse(stdout);
-      res.json(data);
-    } catch (e) {
-      res.status(500).json({ error: 'Error parseando JSON' });
-    }
-  });
-});
-app.get('/api/letras', (req, res) => {
-  const scriptPath = path.join(__dirname, 'scripts', 'get_letras.py');
-  
-  exec(`python3 "${scriptPath}"`, (error, stdout, stderr) => {
-    if (error) {
-      console.error('Error ejecutando script:', error);
-      return res.status(500).json({ error: stderr });
-    }
-    
-    try {
-      const data = JSON.parse(stdout);
-      res.json(data);
-    } catch (e) {
-      res.status(500).json({ error: 'Error parseando JSON' });
-    }
-  });
-});
 
+const scrapeBonosPuppeteer = require('./scripts/get_bonos_puppeteer');
+
+app.get('/api/bonos', async (req, res) => {
+  try {
+    const data = await scrapeBonosPuppeteer();
+    res.json(data);
+  } catch (error) {
+    console.error('Error en /api/bonos:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+// backend/server.js
+const scrapeLetrasIOL = require('./scripts/get_letras_iol');
+
+app.get('/api/letras', async (req, res) => {
+  try {
+    const data = await scrapeLetrasIOL();
+    res.json(data);
+  } catch (error) {
+    console.error('Error en /api/letras:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
 app.get('/api/test', (req, res) => {
   const scriptPath = path.join(__dirname, 'scripts', 'test.py');
   
-  exec(`python3 "${scriptPath}"`, (error, stdout, stderr) => {
+  exec(`py "${scriptPath}"`, (error, stdout, stderr) => {
     if (error) {
       return res.status(500).json({ error: error.message, stderr });
     }
@@ -105,4 +94,12 @@ app.get('/api/test', (req, res) => {
     }
   });
 });
-module.exports = app;
+if (require.main === module) {
+  // Si se ejecuta directamente (node server.js), iniciar servidor
+  app.listen(3001, () => {
+    console.log('✅ Backend (v3) corriendo en http://localhost:3001');
+  });
+} else {
+  // Si se importa como módulo (Vercel), exportar la app
+  module.exports = app;
+}
