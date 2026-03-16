@@ -56,18 +56,11 @@ const { exec } = require('child_process');
 const path = require('path');
 
 
-const scrapeBonosPuppeteer = require('./scripts/get_bonos_puppeteer');
+const getBonosMock = require('./scripts/bonosMock');
 
-app.get('/api/bonos', async (req, res) => {
-  try {
-    const data = await scrapeBonosPuppeteer();
-    res.json(data);
-  } catch (error) {
-    console.error('Error en /api/bonos:', error.message);
-    res.status(500).json({ error: error.message });
-  }
+app.get('/api/bonos', (req, res) => {
+  res.json(getBonosMock());
 });
-// backend/server.js
 const scrapeLetrasIOL = require('./scripts/get_letras_iol');
 
 app.get('/api/letras', async (req, res) => {

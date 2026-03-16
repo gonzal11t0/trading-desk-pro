@@ -1,17 +1,21 @@
 // backend/scripts/get_letras_iol.js
-const puppeteer = require('puppeteer');
+const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer-core');
 
 async function scrapeLetrasIOL() {
   let browser;
   try {
-    console.log('🚀 Lanzando navegador para letras...');
+    console.log('🚀 Lanzando navegador optimizado para Vercel...');
+    
     browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
-    console.log('🌐 Navegando a IOL (Letras)...');
+    console.log('🌐 Navegando a IOL (letras)...');
 
     await page.goto('https://iol.invertironline.com/mercado/cotizaciones/argentina/letras/todas', {
       waitUntil: 'networkidle2',
@@ -19,19 +23,15 @@ async function scrapeLetrasIOL() {
     });
 
     console.log('⏳ Esperando que la tabla se cargue...');
-
-    // Esperar a que aparezca al menos una fila de datos (ej. un ticker conocido)
     await page.waitForSelector('table tbody tr', { timeout: 10000 });
 
     console.log('✅ Tabla encontrada, extrayendo datos...');
 
     const letras = await page.evaluate(() => {
-      // Buscar TODAS las tablas
       const tablas = document.querySelectorAll('table');
       let tablaLetras = null;
       let maxFilas = 0;
 
-      // Encontrar la tabla más grande (la de datos)
       tablas.forEach(tabla => {
         const filas = tabla.querySelectorAll('tr').length;
         if (filas > maxFilas) {
@@ -47,15 +47,13 @@ async function scrapeLetrasIOL() {
 
       filas.forEach((row) => {
         const celdas = row.querySelectorAll('td');
-        if (celdas.length < 5) return; // Mínimo de columnas para tener datos útiles
+        if (celdas.length < 5) return;
 
         const ticker = celdas[0]?.innerText?.trim();
         if (!ticker || ticker === 'Símbolo' || ticker.includes('Símbolo')) return;
 
-        // Función para limpiar números (formato argentino: puntos como separador de miles, coma decimal)
         const limpiarNumero = (texto) => {
           if (!texto || texto === '--' || texto === '---') return null;
-          // Ej: "104,36" -> 104.36, "1.234,56" -> 1234.56
           const limpio = texto.replace(/\./g, '').replace(',', '.');
           const numero = parseFloat(limpio);
           return isNaN(numero) ? null : numero;
