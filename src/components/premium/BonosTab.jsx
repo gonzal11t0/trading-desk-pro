@@ -18,11 +18,9 @@ const BonosTab = () => {
       const data = await bonosApi.getBonos(); // 👈 Ahora data ES el array
       console.log('Datos de bonos (array):', data);
       
-    const filtrados = data.filter(bono => {
-  const pasa = ['AL30', 'AL35', 'GD30', 'GD35', 'AL41', 'AN29', 'AE38', 'AO27', 'BPY26', 'CUAP', 'DICP'].includes(bono.ticker);
-  if (pasa) console.log('✅ Pasa el filtro:', bono.ticker);
-  return pasa;
-});
+    const filtrados = data.filter(bono => 
+      ['AL30', 'AL35', 'GD30', 'GD35', 'AE38', 'AL41', 'AN29', 'AO27'].includes(bono.ticker)
+    );
       setBonos(filtrados);
     } catch (error) {
       console.error('Error fetching bonos:', error);

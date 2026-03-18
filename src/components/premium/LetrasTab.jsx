@@ -15,12 +15,21 @@ const LetrasTab = () => {
     const fetchLetras = async () => {
       try {
         const data = await letrasApi.getLetras();
-        // Filtramos las que nos interesan
-        const tickersInteres = ['S16M6','S17A6','LBA26','LBM26','S27F6', 'S29Y6', 'S30N6', 'X29Y6', 'X30N6', 'TZX27', 'TZX28', 'M31G6', 'D27F6', 'AO27'];
-        const filtrados = data.filter(letra => 
-          letra && tickersInteres.includes(letra.symbol)
-        );
-        setLetras(filtrados);
+        console.log('Datos de letras (raw):', data);
+        
+        // Extraer el array correctamente de la respuesta { success: true, data: [...] }
+        const letrasArray = data.success ? data.data : data;
+        
+        if (Array.isArray(letrasArray)) {
+          // Filtrar las que nos interesan
+          const filtradas = letrasArray.filter(letra => 
+            ['S27F6', 'S29Y6', 'S30N6', 'X29Y6', 'X30N6', 'TZX27', 'M31G6', 'D27F6'].includes(letra.ticker)
+          );
+          console.log('Letras filtradas:', filtradas);
+          setLetras(filtradas);
+        } else {
+          console.error('letrasArray no es un array:', letrasArray);
+        }
       } catch (error) {
         console.error('Error fetching letras:', error);
       } finally {
@@ -33,10 +42,10 @@ const LetrasTab = () => {
 
   const letrasFiltradas = letras
     .filter(letra => letra != null)
-    .filter(letra => !soloFavoritos || favoritos.letras?.includes(letra.symbol))
+    .filter(letra => !soloFavoritos || favoritos.letras?.includes(letra.ticker))
     .sort((a, b) => {
-      const aFav = favoritos.letras?.includes(a.symbol);
-      const bFav = favoritos.letras?.includes(b.symbol);
+      const aFav = favoritos.letras?.includes(a.ticker);
+      const bFav = favoritos.letras?.includes(b.ticker);
       if (aFav && !bFav) return -1;
       if (!aFav && bFav) return 1;
       return 0;
@@ -52,7 +61,6 @@ const LetrasTab = () => {
 
   return (
     <div className="space-y-4">
-      {/* Filtro de favoritos */}
       <div className="flex justify-end mb-4">
         <button
           onClick={() => setSoloFavoritos(!soloFavoritos)}
@@ -74,7 +82,7 @@ const LetrasTab = () => {
         </div>
       ) : (
         letrasFiltradas.map(letra => (
-          <LetraCard key={letra.symbol} letra={letra} />
+          <LetraCard key={letra.ticker} letra={letra} />
         ))
       )}
     </div>

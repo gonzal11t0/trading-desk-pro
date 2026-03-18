@@ -11,13 +11,14 @@ const BonoCard = ({ bono }) => {
 
   if (!bono) return null;
 
-  // Usar las propiedades que vienen de Rava
+  // Datos de IOL
   const ticker = bono.ticker;
   const ultimo = bono.ultimo ?? 0;
   const variacion = bono.variacion_dia ?? 0;
-  const anterior = bono.anterior ?? 0;
-  const apertura = bono.apertura ?? 0;
-  const volumen = bono.volumen_nominal ?? 0;
+  const maximo = bono.maximo ?? 0;
+  const minimo = bono.minimo ?? 0;
+  const cierreAnterior = bono.ultimo_cierre ?? 0;
+  const monto = bono.monto_operado ?? 0;
 
   const getVariacionColor = (valor) => {
     if (valor > 0) return 'text-green-400';
@@ -34,11 +35,10 @@ const BonoCard = ({ bono }) => {
   return (
     <>
       <div className="bg-gray-800/30 rounded-xl p-5 border border-gray-700/50 hover:border-yellow-700/50 transition">
-        {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-xl font-bold text-white">{ticker}</h3>
-            <p className="text-sm text-gray-400">Bono • Rava</p>
+            <p className="text-sm text-gray-400">Bono • IOL</p>
           </div>
           
           <div className="flex items-center gap-2">
@@ -46,7 +46,6 @@ const BonoCard = ({ bono }) => {
             <button
               onClick={() => setModalAlertaAbierto(true)}
               className="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-yellow-400 transition"
-              title="Crear alerta"
             >
               <Bell className="w-4 h-4" />
             </button>
@@ -56,14 +55,11 @@ const BonoCard = ({ bono }) => {
           </div>
         </div>
 
-        {/* Grid de indicadores */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div>
             <p className="text-xs text-gray-500 mb-1">Último</p>
             <div className="flex items-center gap-1">
-              <span className="text-white font-semibold">
-                ${ultimo.toFixed(2)}
-              </span>
+              <span className="text-white font-semibold">${ultimo.toFixed(2)}</span>
               <span className={getVariacionColor(variacion)}>
                 {variacion > 0 ? '+' : ''}{variacion.toFixed(2)}%
               </span>
@@ -72,28 +68,21 @@ const BonoCard = ({ bono }) => {
           </div>
           
           <div>
-            <p className="text-xs text-gray-500 mb-1">Anterior</p>
-            <span className="text-white font-semibold">
-              ${anterior.toFixed(2)}
-            </span>
+            <p className="text-xs text-gray-500 mb-1">Cierre anterior</p>
+            <span className="text-white font-semibold">${cierreAnterior.toFixed(2)}</span>
           </div>
           
           <div>
-            <p className="text-xs text-gray-500 mb-1">Apertura</p>
-            <span className="text-white font-semibold">
-              ${apertura.toFixed(2)}
-            </span>
+            <p className="text-xs text-gray-500 mb-1">Máx / Mín</p>
+            <span className="text-white font-semibold">${maximo.toFixed(2)} / ${minimo.toFixed(2)}</span>
           </div>
           
           <div>
-            <p className="text-xs text-gray-500 mb-1">Volumen</p>
-            <span className="text-white font-semibold">
-              {volumen.toLocaleString()}
-            </span>
+            <p className="text-xs text-gray-500 mb-1">Monto operado</p>
+            <span className="text-white font-semibold">${(monto / 1e6).toFixed(2)}M</span>
           </div>
         </div>
 
-        {/* Botones */}
         <div className="flex gap-2">
           <button
             onClick={() => setModalAbierto(true)}
@@ -107,7 +96,6 @@ const BonoCard = ({ bono }) => {
         </div>
       </div>
 
-      {/* Modal */}
       <ModalBono
         isOpen={modalAbierto}
         onClose={() => setModalAbierto(false)}

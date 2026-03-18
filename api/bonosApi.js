@@ -1,5 +1,6 @@
 // src/api/bonosApi.js
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+console.log('🌐 API_URL siendo usada:', API_URL);
 
 export const bonosApi = {
   getBonos: async () => {

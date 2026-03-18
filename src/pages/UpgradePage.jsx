@@ -1,11 +1,13 @@
 // src/pages/UpgradePage.jsx
 import React from 'react';
-import { Crown, ArrowRight, Check, Info  } from 'lucide-react';
+import { Crown, ArrowRight, Check, Info, Clock } from 'lucide-react';
 
 const UpgradePage = () => {
   // Función para activar premium en pruebas
-  const activarPremiumPrueba = () => {
+  const activarPruebaGratis = () => {
     localStorage.setItem('esPremium', 'true');
+    // Opcional: guardar timestamp para controlar expiración
+    localStorage.setItem('pruebaInicio', Date.now().toString());
     window.location.href = '/analisis-premium';
   };
 
@@ -49,44 +51,59 @@ const UpgradePage = () => {
             ))}
           </div>
 
-          {/* Botón de prueba (después será Mercado Pago) */}
+          {/* ⚠️ ACLARACIÓN SOBRE DATOS SIMULADOS */}
+          <div className="mb-6 p-4 bg-yellow-900/20 border border-yellow-700/30 rounded-lg">
+            <p className="text-sm text-yellow-300 flex items-start gap-2">
+              <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <span>
+                <strong className="font-semibold">🟡 Datos simulados:</strong> Los bonos y letras que verás durante la prueba son demostrativos. 
+                La versión completa incluirá datos en tiempo real de fuentes oficiales.
+              </span>
+            </p>
+          </div>
+
+          {/* Botón de prueba gratuita */}
           <button
-            onClick={activarPremiumPrueba}
+            onClick={activarPruebaGratis}
             className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-4 rounded-xl font-semibold text-lg transition flex items-center justify-center gap-2"
           >
-            ACTIVAR PREMIUM (MODO PRUEBA)
+            <Clock className="w-5 h-5" />
+            ACTIVAR PRUEBA GRATIS POR 3 DÍAS
             <ArrowRight className="w-5 h-5" />
           </button>
           
           <p className="text-xs text-gray-500 text-center mt-4">
-            * Modo prueba: activa premium con un clic (sin pago real)
+            * Sin compromiso, sin tarjeta de crédito. Luego de los 3 días, podés suscribirte por $10.000/mes.
           </p>
         </div>
-        {/* Después del botón de prueba */}
-        <div className="mt-4 p-3 bg-blue-900/20 border border-blue-700/30 rounded-lg">
-          <p className="text-sm text-blue-300 flex items-center gap-2">
-            <Info className="w-4 h-4" />
-            ⚠️ Modo demostración: activás premium con un clic. Pronto estará disponible el pago real con Mercado Pago.
-          </p>
-        </div>
+
         {/* Preview de lo que verán */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
             <h3 className="font-semibold text-white mb-2">📈 Balances</h3>
             <p className="text-sm text-gray-400">YPF, PAMPA, GGAL, EDN y más</p>
+            <p className="text-xs text-green-400 mt-2">✅ Datos reales</p>
           </div>
           <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
             <h3 className="font-semibold text-white mb-2">💰 Bonos</h3>
             <p className="text-sm text-gray-400">AL30, GD30, YPF 2029, PAMP 2028</p>
+            <p className="text-xs text-yellow-400 mt-2">🟡 Datos simulados (demostración)</p>
           </div>
           <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
             <h3 className="font-semibold text-white mb-2">📝 Letras</h3>
             <p className="text-sm text-gray-400">LETRAS CAP, DIS, LECAP</p>
+            <p className="text-xs text-yellow-400 mt-2">🟡 Datos simulados (demostración)</p>
           </div>
         </div>
+
+        {/* Mensaje final */}
+        <p className="text-xs text-gray-600 text-center mt-8">
+          Al activar la prueba aceptás que los datos de bonos y letras son simulados con fines demostrativos.
+          Pronto estará disponible el pago real con Mercado Pago.
+        </p>
       </div>
     </div>
   );
 };
 
-export default UpgradePage;  // <--- TIENE QUE ESTAR ASÍ
+export default UpgradePage;

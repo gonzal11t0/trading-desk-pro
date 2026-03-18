@@ -12,9 +12,14 @@ const LetraCard = ({ letra }) => {
 
   if (!letra) return null;
 
-  const letraInfo = getLetraData(letra.symbol);
-  const variacion = letra.change ?? 0;
+  const letraInfo = getLetraData(letra.ticker);
+  
+  // Usar las propiedades correctas del mock
+  const ultimo = letra.ultimo ?? 0;
+  const variacion = letra.variacion_dia ?? 0;
   const variacionPorcentaje = variacion ? (variacion * 100).toFixed(2) : '0.00';
+  const maximo = letra.maximo ?? 0;
+  const minimo = letra.minimo ?? 0;
 
   const getVariacionColor = (valor) => {
     if (valor > 0) return 'text-green-400';
@@ -34,12 +39,12 @@ const LetraCard = ({ letra }) => {
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h3 className="text-xl font-bold text-white">{letra.symbol}</h3>
+            <h3 className="text-xl font-bold text-white">{letra.ticker}</h3>
             <p className="text-sm text-gray-400">{letraInfo.nombre} • {letraInfo.tipo}</p>
           </div>
           
           <div className="flex items-center gap-2">
-            <BotonFavorito tipo="letras" ticker={letra.symbol} size="sm" />
+            <BotonFavorito tipo="letras" ticker={letra.ticker} size="sm" />
             <button
               onClick={() => setModalAlertaAbierto(true)}
               className="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-yellow-400 transition"
@@ -59,7 +64,7 @@ const LetraCard = ({ letra }) => {
             <p className="text-xs text-gray-500 mb-1">Último</p>
             <div className="flex items-center gap-1">
               <span className="text-white font-semibold">
-                ${letra.last ? letra.last.toFixed(2) : '0.00'}
+                ${ultimo.toFixed(2)}
               </span>
               <span className={getVariacionColor(variacion)}>
                 {variacionPorcentaje}%
@@ -116,9 +121,9 @@ const LetraCard = ({ letra }) => {
         onClose={() => setModalAlertaAbierto(false)}
         instrumento={{
           tipo: 'letras',
-          ticker: letra.symbol,
+          ticker: letra.ticker,
           nombre: letraInfo.nombre,
-          precio: letra.last || 0
+          precio: ultimo
         }}
       />
     </>
