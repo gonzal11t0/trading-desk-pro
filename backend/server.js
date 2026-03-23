@@ -37,7 +37,6 @@ app.get('/api/company/:ticker', async (req, res) => {
   }
 });
 
-// ========== DATOS MOCK ==========
 const scrapeBonosIOL = require('./scripts/get_bonos_iol');
 app.get('/api/bonos', async (req, res) => {
   try {
