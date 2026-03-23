@@ -50,7 +50,9 @@ app.get('/api/bonos', async (req, res) => {
 });
 
 
+// ... otros requires
 const scrapeLetrasIOL = require('./scripts/get_letras_iol');
+
 
 app.get('/api/letras', async (req, res) => {
   try {
