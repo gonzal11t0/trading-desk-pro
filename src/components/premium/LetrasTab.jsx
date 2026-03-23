@@ -17,14 +17,21 @@ const LetrasTab = () => {
         const data = await letrasApi.getLetras();
         console.log('Datos de letras (raw):', data);
         
-        // Extraer el array correctamente de la respuesta { success: true, data: [...] }
         const letrasArray = data.success ? data.data : data;
         
         if (Array.isArray(letrasArray)) {
-          // Filtrar las que nos interesan
-          const filtradas = letrasArray.filter(letra => 
-            ['S27F6', 'S29Y6', 'S30N6', 'X29Y6', 'X30N6', 'TZX27', 'M31G6', 'D27F6'].includes(letra.ticker)
-          );
+          // Filtrar por tickers que CONTENGAN los códigos que nos interesan
+          const filtradas = letrasArray.filter(letra => {
+            const ticker = letra.ticker;
+            return ticker.includes('S29Y6') || 
+                   ticker.includes('S30N6') || 
+                   ticker.includes('M31G6') || 
+                   ticker.includes('X30N6') || 
+                   ticker.includes('S27F6') ||
+                   ticker.includes('X29Y6') ||
+                   ticker.includes('TZX27') ||
+                   ticker.includes('D27F6');
+          });
           console.log('Letras filtradas:', filtradas);
           setLetras(filtradas);
         } else {
