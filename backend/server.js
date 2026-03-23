@@ -38,10 +38,15 @@ app.get('/api/company/:ticker', async (req, res) => {
 });
 
 // ========== DATOS MOCK ==========
-const getBonosMock = require('./scripts/bonosMock');
-
-app.get('/api/bonos', (req, res) => {
-  res.json(getBonosMock());
+const scrapeBonosIOL = require('./scripts/get_bonos_iol');
+app.get('/api/bonos', async (req, res) => {
+  try {
+    const data = await scrapeBonosIOL();
+    res.json(data);
+  } catch (error) {
+    console.error('Error en /api/bonos:', error.message);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get('/api/letras', (req, res) => {
