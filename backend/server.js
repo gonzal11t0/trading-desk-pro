@@ -49,8 +49,17 @@ app.get('/api/bonos', async (req, res) => {
   }
 });
 
-app.get('/api/letras', (req, res) => {
-  res.json(getLetrasMock());
+
+const scrapeLetrasIOL = require('./scripts/get_letras_iol');
+
+app.get('/api/letras', async (req, res) => {
+  try {
+    const data = await scrapeLetrasIOL();
+    res.json(data);
+  } catch (error) {
+    console.error('Error en /api/letras:', error.message);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 if (require.main === module) {
