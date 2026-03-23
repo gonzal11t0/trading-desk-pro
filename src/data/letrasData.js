@@ -1,16 +1,13 @@
 // src/data/letrasData.js
-// Datos fijos de letras argentinas (según instrumento)
-
 export const letrasData = {
-  // Letras Capitalización
+  // Capitalización
   'S27F6': {
     nombre: 'LETRA S27F6',
     tipo: 'Capitalización',
     tna: 38.0,
     tea: 42.3,
     plazo: 30,
-    moneda: 'ARS',
-    observaciones: 'Letra corto plazo'
+    moneda: 'ARS'
   },
   'S29Y6': {
     nombre: 'LETRA S29Y6',
@@ -18,8 +15,7 @@ export const letrasData = {
     tna: 42.0,
     tea: 47.8,
     plazo: 90,
-    moneda: 'ARS',
-    observaciones: 'Tasa alta, plazo intermedio'
+    moneda: 'ARS'
   },
   'S30N6': {
     nombre: 'LETRA S30N6',
@@ -27,19 +23,25 @@ export const letrasData = {
     tna: 40.0,
     tea: 45.1,
     plazo: 270,
-    moneda: 'ARS',
-    observaciones: 'Largo plazo'
+    moneda: 'ARS'
+  },
+  'M31G6': {
+    nombre: 'M31G6 (TAMAR)',
+    tipo: 'Capitalización',
+    tna: 36.0,
+    tea: 40.2,
+    plazo: 180,
+    moneda: 'ARS'
   },
   
-  // Letras CER
+  // CER
   'X29Y6': {
     nombre: 'LETRA X29Y6 (CER)',
     tipo: 'Ajustable por inflación',
     tna: 22.0,
     tea: 24.5,
     plazo: 90,
-    moneda: 'ARS',
-    observaciones: 'Cobertura inflacionaria'
+    moneda: 'ARS'
   },
   'X30N6': {
     nombre: 'LETRA X30N6 (CER)',
@@ -47,8 +49,7 @@ export const letrasData = {
     tna: 22.0,
     tea: 24.5,
     plazo: 270,
-    moneda: 'ARS',
-    observaciones: 'CER largo plazo'
+    moneda: 'ARS'
   },
   
   // Bonos CER
@@ -58,8 +59,7 @@ export const letrasData = {
     tna: 24.0,
     tea: 26.8,
     plazo: 480,
-    moneda: 'ARS',
-    observaciones: 'Bono CER 2027'
+    moneda: 'ARS'
   },
   'TZX28': {
     nombre: 'BONO TZX28 (CER)',
@@ -67,19 +67,7 @@ export const letrasData = {
     tna: 24.0,
     tea: 26.8,
     plazo: 840,
-    moneda: 'ARS',
-    observaciones: 'Bono CER 2028'
-  },
-  
-  // TAMAR
-  'M31G6': {
-    nombre: 'M31G6 (TAMAR)',
-    tipo: 'Capitalización',
-    tna: 36.0,
-    tea: 40.2,
-    plazo: 180,
-    moneda: 'ARS',
-    observaciones: 'Tasa intermedia'
+    moneda: 'ARS'
   },
   
   // Dólar-linked
@@ -89,63 +77,33 @@ export const letrasData = {
     tna: 32.0,
     tea: 35.5,
     plazo: 30,
-    moneda: 'USD',
-    observaciones: 'Protección cambiaria'
+    moneda: 'USD'
   },
-  
-  // Bonar USD
   'AO27': {
     nombre: 'AO27 (Bonar USD)',
     tipo: 'Dólar-linked',
     tna: 28.0,
     tea: 31.2,
     plazo: 600,
-    moneda: 'USD',
-    observaciones: 'Dólar-linked largo plazo'
-  },
-    'S16M6': {
-    nombre: 'LETRA S16M6',
-    tipo: 'Capitalización',
-    tna: null,      // Si no tenés el dato, dejalo null
-    tea: null,
-    plazo: null,
-    moneda: 'ARS',
-    observaciones: 'Letra corto plazo'
-  },
-  'S17A6': {
-    nombre: 'LETRA S17A6',
-    tipo: 'Capitalización',
-    tna: null,
-    tea: null,
-    plazo: null,
-    moneda: 'ARS'
-  },
-  'LBA26': {
-    nombre: 'LBA26',
-    tipo: 'Capitalización',
-    tna: null,
-    tea: null,
-    plazo: null,
-    moneda: 'ARS'
-  },
-  'LBM26': {
-    nombre: 'LBM26',
-    tipo: 'Capitalización',
-    tna: null,
-    tea: null,
-    plazo: null,
-    moneda: 'ARS'
+    moneda: 'USD'
   }
 };
 
 export const getLetraData = (ticker) => {
-  return letrasData[ticker] || {
+  // Buscar si el ticker contiene alguna de las claves
+  for (const [key, data] of Object.entries(letrasData)) {
+    if (ticker.includes(key)) {
+      return data;
+    }
+  }
+  
+  // Si no encuentra, devolver datos genéricos
+  return {
     nombre: ticker,
     tipo: 'Capitalización',
     tna: null,
     tea: null,
     plazo: null,
-    moneda: 'ARS',
-    observaciones: 'Datos no disponibles'
+    moneda: 'ARS'
   };
 };
