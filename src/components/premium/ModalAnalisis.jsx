@@ -5,7 +5,6 @@ import { exportarEmpresaPDF } from '../../utils/pdfExport';
 import GraficoLinea from './GraficoLinea';
 import { empresasApi } from '../../../api/empresasApi';
 
-// Ratios sectoriales por tipo de empresa
 const sectorRatios = {
   energy: { priceToSales: 1.2, ebitdaMargin: 0.28, debtToEbitda: 3.2 },
   financial: { priceToSales: 2.5, ebitdaMargin: 0.35, debtToEbitda: 2.1 },
@@ -107,7 +106,6 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
       try {
         const data = await empresasApi.getCompanyData(empresa.ticker);
         setEmpresaData(data);
-        console.log('✅ Datos cargados:', data);
       } catch (error) {
         console.error('Error:', error);
       } finally {

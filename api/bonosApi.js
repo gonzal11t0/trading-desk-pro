@@ -1,6 +1,5 @@
 // src/api/bonosApi.js
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-console.log('🌐 API_URL siendo usada:', API_URL);
 
 export const bonosApi = {
   getBonos: async () => {
@@ -10,14 +9,11 @@ export const bonosApi = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log('✅ Bonos cargados:', data);
       
-      // Si la respuesta tiene la estructura { success: true, data: [...] }
       if (data.success && Array.isArray(data.data)) {
         return data.data;
       }
       
-      // Si ya es un array directamente
       if (Array.isArray(data)) {
         return data;
       }

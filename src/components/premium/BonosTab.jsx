@@ -12,11 +12,9 @@ const BonosTab = () => {
   const { favoritos } = usePremiumStore();
 
   useEffect(() => {
-   // src/components/premium/BonosTab.jsx
   const fetchBonos = async () => {
     try {
-      const data = await bonosApi.getBonos(); // 👈 Ahora data ES el array
-      console.log('Datos de bonos (array):', data);
+      const data = await bonosApi.getBonos();
       
     const filtrados = data.filter(bono => 
       ['AL30', 'AL35', 'GD30', 'GD35', 'AE38', 'AL41', 'AN29', 'AO27'].includes(bono.ticker)

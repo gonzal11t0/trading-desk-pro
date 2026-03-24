@@ -1,12 +1,9 @@
 // src/components/charts/TradingViewCharts.lazy.jsx
 import React, { Suspense, lazy} from 'react';
 
-// Lazy load del componente pesado
 const TradingViewChartsLazy = lazy(() => import('./TradingViewCharts'));
 
-// En tus componentes que usan TradingView
 
-// Componente wrapper con loading state
 const TradingViewChartsWrapper = (props) => (
   
   <Suspense 

@@ -2,12 +2,10 @@
 import { isDemoMode, getDemoData } from '../utils/demoMode';
 
 /**
- * Obtiene el precio de una acción desde múltiples fuentes
- * @param {string} symbol - Símbolo de la acción (AAPL, MSFT, etc.)
+ * @param {string} symbol 
  * @returns {Promise<{price: number, change: number, changePercent: number}>}
  */
 export const fetchStockPrice = async (symbol) => {
-  // Modo demo (si está configurado)
   if (isDemoMode()) {
     const demoData = getDemoData('stocks');
     return demoData[symbol] || { 
@@ -19,15 +17,12 @@ export const fetchStockPrice = async (symbol) => {
   }
   
   try {
-    // Intentar FMP primero
     const fmpData = await fetchFromFMP(symbol);
     if (fmpData) return fmpData;
     
-    // Fallback a IEX Cloud
     const iexData = await fetchFromIEX(symbol);
     if (iexData) return iexData;
     
-    // Último recurso: datos mock
     return getMockStockData(symbol);
     
   } catch {
@@ -35,9 +30,7 @@ export const fetchStockPrice = async (symbol) => {
   }
 };
 
-/**
- * Obtiene datos de Financial Modeling Prep
- */
+
 const fetchFromFMP = async (symbol) => {
   try {
     const API_KEY = import.meta.env.VITE_FMP_KEY || 'demo';

@@ -278,16 +278,12 @@ const NotFoundPage = () => (
 function App() {
   const { alertas } = usePremiumStore();
   const [preciosActuales, setPreciosActuales] = useState({});
-  console.log('🔄 useEffect de alertas ejecutándose. Alertas:', alertas);
 
 useEffect(() => {
-  console.log('🔄 useEffect de alertas ejecutándose. Alertas:', alertas);
   
   const verificarAlertas = async () => {
-    console.log('⏰ VERIFICANDO ALERTAS - TIMESTAMP:', new Date().toLocaleTimeString());
     
     const tickers = [...new Set(alertas.map(a => a.ticker))];
-    console.log('Tickers a verificar:', tickers);
     
     const nuevosPrecios = {};
     
@@ -297,18 +293,15 @@ useEffect(() => {
         const alerta = alertas.find(a => a.ticker === ticker);
         if (!alerta) continue;
         
-        console.log(`Obteniendo precio para ${ticker} (tipo: ${alerta.tipo})...`);
         
         let precio = null;
         
         if (alerta.tipo === 'bonos') {
-          // Para bonos, obtener todos y filtrar
           const res = await fetch(`${import.meta.env.VITE_API_URL}/bonos`);
           if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
           const bonos = await res.json();
           const bono = bonos.find(b => b.symbol === ticker);
           precio = bono?.last;
-          console.log(`Precio de bono ${ticker}:`, precio);
         } 
         else if (alerta.tipo === 'letras') {
           // Para letras, obtener todas y filtrar
@@ -317,7 +310,6 @@ useEffect(() => {
           const letras = await res.json();
           const letra = letras.find(l => l.symbol === ticker);
           precio = letra?.last;
-          console.log(`Precio de letra ${ticker}:`, precio);
         }
         else {
           // Para empresas (balances)
@@ -325,7 +317,6 @@ useEffect(() => {
           if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
           const data = await res.json();
           precio = data.precio;
-          console.log(`Precio de empresa ${ticker}:`, precio);
         }
         
         nuevosPrecios[ticker] = precio;
@@ -337,34 +328,26 @@ useEffect(() => {
     }
     
     setPreciosActuales(nuevosPrecios);
-    console.log('💰 Precios actualizados:', nuevosPrecios);
     
     // Verificar cada alerta
     alertas.forEach(alerta => {
-      console.log('Evaluando alerta:', alerta);
       
       if (!alerta.activa) {
-        console.log('⏸️ Alerta inactiva, ignorada');
         return;
       }
       
       const precioActual = nuevosPrecios[alerta.ticker];
-      console.log(`Precio actual de ${alerta.ticker}: ${precioActual}, objetivo: ${alerta.precioObjetivo}`);
       
       if (precioActual === null || precioActual === undefined) {
-        console.log('⚠️ Precio no disponible, alerta ignorada');
         return;
       }
       
       const condicionCumplida = alerta.condicion === 'mayor' 
         ? precioActual >= alerta.precioObjetivo
         : precioActual <= alerta.precioObjetivo;
-      
-      console.log('✅ Condición cumplida?', condicionCumplida);
-      
+            
       if (condicionCumplida) {
-  // 🔊 Reproducir sonido de alerta
-  playAlert("medium"); // o "short" o "long"
+  playAlert("medium"); 
   
   toast.success(`🔔 ${alerta.ticker} alcanzó $${precioActual.toFixed(2)}`, {
     duration: 10000,
@@ -380,19 +363,14 @@ useEffect(() => {
     });
   };
   
-  // Ejecutar inmediatamente al montar
   verificarAlertas();
   
-  // Configurar intervalo cada 30 segundos
   const intervalo = setInterval(verificarAlertas, 30000);
-  console.log('⏱️ Intervalo configurado cada 30 segundos');
   
-  // Limpiar al desmontar
   return () => {
-    console.log('🧹 Limpiando intervalo de alertas');
     clearInterval(intervalo);
   };
-}, [alertas]); // Dependencia: alertas
+}, [alertas]); 
 
   return (
     <>

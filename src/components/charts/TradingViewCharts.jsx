@@ -270,7 +270,6 @@ const useTradingView = () => {
         return;
       }
     }
-    originalLog.apply(console, args);
   };
   
   return () => {

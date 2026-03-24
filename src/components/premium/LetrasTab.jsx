@@ -15,12 +15,10 @@ const LetrasTab = () => {
     const fetchLetras = async () => {
       try {
         const data = await letrasApi.getLetras();
-        console.log('Datos de letras (raw):', data);
         
         const letrasArray = data.success ? data.data : data;
         
         if (Array.isArray(letrasArray)) {
-          // Filtrar por tickers que CONTENGAN los códigos que nos interesan
           const filtradas = letrasArray.filter(letra => {
             const ticker = letra.ticker;
             return ticker.includes('S29Y6') || 
@@ -32,7 +30,6 @@ const LetrasTab = () => {
                    ticker.includes('TZX27') ||
                    ticker.includes('D27F6');
           });
-          console.log('Letras filtradas:', filtradas);
           setLetras(filtradas);
         } else {
           console.error('letrasArray no es un array:', letrasArray);
