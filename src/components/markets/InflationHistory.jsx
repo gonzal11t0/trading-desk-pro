@@ -99,15 +99,45 @@ const InflationHistory = () => {
     );
   }
 
-  // Formatear fecha
-  const formatDate = (dateString) => {
+ // InflationHistory.jsx
+const formatDate = (dateString) => {
+  if (!dateString) return 'Fecha no disponible';
+  
+  try {
+    // Si la fecha viene como "2026-02-01"
     const date = new Date(dateString);
+    
+    // Verificar si la fecha es válida
+    if (isNaN(date.getTime())) {
+      // Si no es válida, intentar parsear el string manualmente
+      const parts = dateString.split('-');
+      if (parts.length === 3) {
+        return `${getMonthName(parseInt(parts[1]) - 1)} ${parts[0]}`;
+      }
+      return dateString;
+    }
+    
     const months = [
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
-    return months[date.getMonth()] + ' ' + date.getFullYear();
-  };
+    
+    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+    
+  } catch (error) {
+    console.error('Error formateando fecha:', dateString, error);
+    return dateString;
+  }
+};
+
+// Función auxiliar para obtener nombre del mes
+function getMonthName(monthIndex) {
+  const months = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+  return months[monthIndex];
+}
 
 // InflationHistory.jsx - SOLO EL RETURN CORREGIDO
 return (
