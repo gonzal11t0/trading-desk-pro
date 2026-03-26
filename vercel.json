@@ -1,8 +1,23 @@
+
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
   "installCommand": "npm install --include=dev",
+    "rewrites": [
+    {
+      "source": "/api/argentina-datos/:path*",
+      "destination": "https://api.argentinadatos.com/:path*"
+    },
+    {
+      "source": "/api/fmp/:path*",
+      "destination": "https://financialmodelingprep.com/:path*"
+    },
+    {
+      "source": "/api/eoddata/:path*",
+      "destination": "https://eoddata.com/:path*"
+    }
+  ],
   "routes": [
     { "src": "/assets/(.*)", "dest": "/assets/$1" },
     { "src": "/upgrade", "dest": "/index.html" },
@@ -12,4 +27,5 @@
     { "src": "/login", "dest": "/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
+  
 }

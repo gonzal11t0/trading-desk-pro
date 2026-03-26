@@ -14,18 +14,30 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      server: {
-  proxy: {
-  }
-},
- '/api/argentina-datos': {
+      '/api/argentina-datos': {
         target: 'https://api.argentinadatos.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/argentina-datos/, '')
       },
+      '/api/fmp': {
+        target: 'https://financialmodelingprep.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/fmp/, '')
+      },
       '/api/coingecko': {
-        target: 'https://api.coingecko.com/api/v3',
-        changeOrigin: true
+  target: 'https://api.coingecko.com/api/v3',
+  changeOrigin: true,
+  rewrite: (path) => path.replace(/^\/api\/coingecko/, '')
+},
+       '/api/yahoo': {
+        target: 'https://query1.finance.yahoo.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/yahoo/, '')
+      },
+      '/api/eoddata': {
+        target: 'https://eoddata.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/eoddata/, '')
       }
     }
   }

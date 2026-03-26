@@ -1,4 +1,4 @@
-// src/components/markets/QuotesCarousel.jsx - VERSIÓN COMPLETA CON TAILWIND
+// src/components/markets/QuotesCarousel.jsx 
 import React, { useState, useEffect } from 'react'
 import { TrendingUp, TrendingDown, Play, Pause, RefreshCw } from 'lucide-react'
 import { fetchQuotesData } from '../../api/quotesApi'
