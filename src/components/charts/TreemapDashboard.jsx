@@ -14,37 +14,46 @@ const TreemapDashboard = () => {
   const derechosPorcentaje = 0.004; // 0.04% = 0.004 en decimal
   const ivaPorcentaje = 0.21; // 21% sobre comisión
 
-  // Cálculos
-  const resultados = useMemo(() => {
-    // Interés bruto
-    const interesBruto = (monto * tasa * plazo) / (365 * 100);
-    
-    // Gastos
-    const comision = (monto * comisionPorcentaje) / 100;
-    const derechos = (monto * derechosPorcentaje) / 100;
-    const iva = comision * ivaPorcentaje;
-    const totalGastos = comision + derechos + iva;
-    
-    // Totales
-    const interesNeto = interesBruto - totalGastos;
-    const montoFinal = monto + interesNeto;
-    
-    // Tasa efectiva
-    const tasaEfectiva = interesNeto > 0 
-      ? (interesNeto / monto) * (365 / plazo) * 100 
-      : 0;
+// Cálculos CORREGIDOS
+const resultados = useMemo(() => {
+  // 1. Interés bruto (simple, porque la caución paga interés simple)
+  const interesBruto = (monto * tasa * plazo) / (365 * 100);
+  
+  // 2. Gastos
+  const comision = (monto * comisionPorcentaje) / 100;
+  const derechos = (monto * derechosPorcentaje) / 100;
+  const iva = comision * ivaPorcentaje;
+  const totalGastos = comision + derechos + iva;
+  
+  // 3. Interés neto
+  const interesNeto = interesBruto - totalGastos;
+  const montoFinal = monto + interesNeto;
+  
+  // 4. TASA EFECTIVA ANUAL (TEA) CORREGIDA
+  // Tasa efectiva para el período (en decimal)
+  const tasaPeriodo = (tasa / 100) * (plazo / 365);
+  // Capitalización a 365 días
+  const tea = (Math.pow(1 + tasaPeriodo, 365 / plazo) - 1) * 100;
+  
+  // 5. Tasa efectiva neta (después de gastos) para el período
+  const rendimientoNetoPeriodo = interesNeto / monto;
+  const teaNeta = rendimientoNetoPeriodo > 0
+    ? (Math.pow(1 + rendimientoNetoPeriodo, 365 / plazo) - 1) * 100
+    : 0;
 
-    return {
-      interesBruto: interesBruto,
-      comision: comision,
-      derechos: derechos,
-      iva: iva,
-      totalGastos: totalGastos,
-      interesNeto: interesNeto,
-      montoFinal: montoFinal,
-      tasaEfectiva: tasaEfectiva
-    };
-  }, [monto, plazo, tasa, cantidad]);
+  return {
+    interesBruto: interesBruto,
+    comision: comision,
+    derechos: derechos,
+    iva: iva,
+    totalGastos: totalGastos,
+    interesNeto: interesNeto,
+    montoFinal: montoFinal,
+    tea: tea,              // TEA bruta (antes de gastos)
+    teaNeta: teaNeta,      // TEA neta (después de gastos)
+    rendimientoNeto: (interesNeto / monto) * 100  // rendimiento del período
+  };
+}, [monto, plazo, tasa, cantidad]);
 
   // Formatear moneda
   const formatCurrency = (value) => {
@@ -165,31 +174,36 @@ const TreemapDashboard = () => {
           </div>
         </div>
 
-        {/* 5. RESULTADOS */}
         <div className="bg-gradient-to-r from-blue-900/20 to-blue-800/10 rounded-lg p-4 border border-blue-700/30">
-          <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            Resultados
-          </h4>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-blue-800/30">
-              <span className="text-sm text-gray-400">Intereses:</span>
-              <span className="text-lg font-bold text-blue-300">
-                {formatCurrency(resultados.interesBruto)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-base font-medium text-gray-300">Monto Final:</span>
-              <span className="text-xl font-bold text-green-400">
-                {formatCurrency(resultados.montoFinal)}
-              </span>
-            </div>
-            <div className="text-sm text-gray-400 mt-3 pt-3 border-t border-blue-800/30">
-              Tasa efectiva anual: <span className="font-semibold text-green-300">{resultados.tasaEfectiva.toFixed(2)}%</span>
-            </div>
-          </div>
-        </div>
-
+  <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+    Resultados
+  </h4>
+  <div className="space-y-3">
+    <div className="flex justify-between items-center py-2 border-b border-blue-800/30">
+      <span className="text-sm text-gray-400">Intereses brutos:</span>
+      <span className="text-lg font-bold text-blue-300">
+        {formatCurrency(resultados.interesBruto)}
+      </span>
+    </div>
+    <div className="flex justify-between items-center py-2 border-b border-blue-800/30">
+      <span className="text-sm text-gray-400">TEA bruta (antes de gastos):</span>
+      <span className="text-lg font-bold text-blue-300">
+        {resultados.tea.toFixed(2)}%
+      </span>
+    </div>
+    <div className="flex justify-between items-center py-2">
+      <span className="text-base font-medium text-gray-300">Monto Final:</span>
+      <span className="text-xl font-bold text-green-400">
+        {formatCurrency(resultados.montoFinal)}
+      </span>
+    </div>
+    <div className="text-sm text-gray-400 mt-3 pt-3 border-t border-blue-800/30">
+      <div>TEA neta (después de gastos): <span className="font-semibold text-green-300">{resultados.teaNeta.toFixed(2)}%</span></div>
+      <div className="text-xs text-gray-500 mt-1">Rendimiento del período: {resultados.rendimientoNeto.toFixed(2)}%</div>
+    </div>
+  </div>
+</div>
         {/* 6. GASTOS */}
         <div className="bg-gradient-to-r from-amber-900/10 to-amber-800/5 rounded-lg p-4 border border-amber-700/30">
           <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
