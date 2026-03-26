@@ -4,44 +4,69 @@ import inflationApi from '../../api/inflationApi';
 
 const ExchangeBandsModule = () => {
   const [loading, setLoading] = useState(true);
-  const [ipcData, setIpcData] = useState([]);
+  const [ipcCache, setIpcCache] = useState(null);
+  const [lastIpcFetch, setLastIpcFetch] = useState(null);
   const [bandasData, setBandasData] = useState({
-    piso: 915.66,
-    techo: 1527.61,
-    pisoCalculado: 915.66,
-    techoCalculado: 1500.61,
-    fechaActualizacion: new Date().toISOString().split('T')[0],
+    piso: 0,
+    techo: 0,
+    pisoBase: 915.66,
+    techoBase: 1527.61,
+    fechaBase: '2026-01-01',
     ipcUtilizado: 0,
     ipcMesReferencia: '',
-    variacionMensual: {
-      piso: 0,
-      techo: 0
-    }
+    tasaDiaria: 0,
+    diasDesdeBase: 0,
+    fechaActualizacion: ''
   });
 
-  // Calcular mes t-2 (rezago de 2 meses)
+  // Obtener mes T-2 para IPC
   const getMonthTMinus2 = () => {
     const now = new Date();
     const targetDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
     return `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
   };
 
-  // Calcular nuevas bandas con IPC[t-2]
-  const calcularBandasConIPC = (pisoBase, techoBase, ipcPercent) => {
-    const factor = 1 + (ipcPercent / 100);
-    return {
-      pisoCalculado: pisoBase * factor,
-      techoCalculado: techoBase * factor,
-      variacionPiso: ((pisoBase * factor) / pisoBase - 1) * 100,
-      variacionTecho: ((techoBase * factor) / techoBase - 1) * 100
-    };
+  // Calcular días desde la fecha base (1/1/2026)
+  const calcularDiasDesdeBase = () => {
+    const fechaBase = new Date(2026, 0, 1);
+    const hoy = new Date();
+    const diffTime = hoy - fechaBase;
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // Cargar datos y calcular bandas
-  const cargarDatosBandas = async () => {
-    setLoading(true);
+  // Calcular tasa diaria exponencial: r_d = (1 + r_m)^(1/30) - 1
+  const calcularTasaDiaria = (ipcPercent) => {
+    return Math.pow(1 + (ipcPercent / 100), 1 / 30) - 1;
+  };
+
+  // Calcular bandas con fórmula exponencial
+  const calcularBandasExponencial = (pisoBase, techoBase, tasaDiaria, dias) => {
+    const factor = 1 + tasaDiaria;
+    const techoCalculado = techoBase * Math.pow(factor, dias);
+    const pisoCalculado = pisoBase * Math.pow(factor, -dias);
+    return { pisoCalculado, techoCalculado };
+  };
+
+const cargarDatosBandas = async (forceRefreshIPC = false) => {
+  setLoading(true);
+  
+  try {
+    let ipcValor;
+    let mesTMinus2;
     
-    try {
+    // 👇 LÓGICA OPTIMIZADA: solo consultar IPC si:
+    // - No hay cache
+    // - ForceRefreshIPC es true (cuando el usuario toca "Recalcular")
+    // - Pasaron más de 6 horas desde la última consulta
+    const ahora = new Date();
+    const deberiaActualizarIPC = !ipcCache || 
+                                  forceRefreshIPC || 
+                                  !lastIpcFetch || 
+                                  (ahora - lastIpcFetch) > 6 * 60 * 60 * 1000;
+    
+    if (deberiaActualizarIPC) {
+      console.log('🔄 Consultando IPC a la API...');
+      // Obtener IPC histórico
       const ipcHistorico = await inflationApi.getLastMonthsInflation(12);
       
       const formattedIpcData = ipcHistorico.map(item => ({
@@ -50,54 +75,62 @@ const ExchangeBandsModule = () => {
         date: item.date
       }));
       
-      setIpcData(formattedIpcData);
-      
-      const mesTMinus2 = getMonthTMinus2();
-      
-      let ipcValor = 0;
+      // Obtener IPC del mes T-2
+      mesTMinus2 = getMonthTMinus2();
       const ipcEncontrado = formattedIpcData.find(item => item.month === mesTMinus2);
       
       if (ipcEncontrado) {
         ipcValor = ipcEncontrado.value;
       } else {
-        ipcValor = formattedIpcData[0]?.value || 2.1;
+        ipcValor = formattedIpcData[0]?.value || 2.9;
       }
       
-      const basePiso = 915.66;
-      const baseTecho = 1527.61;
-      
-      const bandasCalculadas = calcularBandasConIPC(basePiso, baseTecho, ipcValor);
-      
-      setBandasData({
-        piso: basePiso,
-        techo: baseTecho,
-        pisoCalculado: bandasCalculadas.pisoCalculado,
-        techoCalculado: bandasCalculadas.techoCalculado,
-        fechaActualizacion: new Date().toLocaleDateString('es-AR'),
-        ipcUtilizado: ipcValor,
-        ipcMesReferencia: mesTMinus2,
-        variacionMensual: {
-          piso: bandasCalculadas.variacionPiso,
-          techo: bandasCalculadas.variacionTecho
-        }
+      // Guardar en cache
+      setIpcCache({
+        valor: ipcValor,
+        mes: mesTMinus2,
+        timestamp: ahora
       });
+      setLastIpcFetch(ahora);
       
-    } catch (error) {
-      setBandasData(prev => ({
-        ...prev,
-        pisoCalculado: 933.50,
-        techoCalculado: 1524.12,
-        ipcUtilizado: 2.1,
-        ipcMesReferencia: getMonthTMinus2()
-      }));
-    } finally {
-      setLoading(false);
+    } else {
+      console.log('📦 Usando IPC cacheado:', ipcCache);
+      ipcValor = ipcCache.valor;
+      mesTMinus2 = ipcCache.mes;
     }
-  };
+    
+    // Resto del código igual (calcular días, tasa diaria, bandas)
+    const dias = calcularDiasDesdeBase();
+    const tasaDiaria = calcularTasaDiaria(ipcValor);
+    const { pisoCalculado, techoCalculado } = calcularBandasExponencial(
+      915.66, 1527.61, tasaDiaria, dias
+    );
+    
+    setBandasData({
+      piso: pisoCalculado,
+      techo: techoCalculado,
+      pisoBase: 915.66,
+      techoBase: 1527.61,
+      fechaBase: '2026-01-01',
+      ipcUtilizado: ipcValor,
+      ipcMesReferencia: mesTMinus2,
+      tasaDiaria: tasaDiaria * 100,
+      diasDesdeBase: dias,
+      fechaActualizacion: new Date().toLocaleDateString('es-AR')
+    });
+    
+  } catch (error) {
+    console.error('Error calculando bandas:', error);
+    // Fallback...
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     cargarDatosBandas();
     
+    // Actualizar cada hora (las bandas cambian diariamente)
     const interval = setInterval(() => {
       cargarDatosBandas();
     }, 3600000);
@@ -143,7 +176,9 @@ const ExchangeBandsModule = () => {
             <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="text-blue-300 text-xs md:text-sm min-w-0">
               <span className="font-medium">Cálculo: </span>
-              IPC[{bandasData.ipcMesReferencia.replace('-', '/')}] = {bandasData.ipcUtilizado.toFixed(2)}%
+              IPC[{bandasData.ipcMesReferencia.replace('-', '/')}] = {bandasData.ipcUtilizado.toFixed(2)}% | 
+              Tasa diaria: {bandasData.tasaDiaria.toFixed(4)}% | 
+              Días desde base: {bandasData.diasDesdeBase}
             </div>
           </div>
         </div>
@@ -163,7 +198,7 @@ const ExchangeBandsModule = () => {
         </button>
       </div>
 
-      {/* Valores de las bandas - RESPONSIVE */}
+      {/* Valores de las bandas */}
       <div className="mb-4 md:mb-6">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 lg:gap-8">
           
@@ -173,17 +208,14 @@ const ExchangeBandsModule = () => {
             <div className="flex items-center justify-center gap-2 mb-1">
               <TrendingDown className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
               <div className="text-white text-2xl md:text-3xl font-bold">
-                ${bandasData.pisoCalculado.toFixed(2)}
+                ${bandasData.piso.toFixed(2)}
               </div>
             </div>
-            <div className={`text-xs md:text-sm mb-1 ${
-              bandasData.variacionMensual.piso >= 0 ? 'text-red-400' : 'text-green-400'
-            }`}>
-              {bandasData.variacionMensual.piso >= 0 ? '+' : ''}
-              {bandasData.variacionMensual.piso.toFixed(1)}% mensual
+            <div className="text-xs md:text-sm text-blue-300 mb-1">
+              Decaimiento exponencial
             </div>
             <div className="text-gray-500 text-xs">
-              Base: ${bandasData.piso.toFixed(2)}
+              Base (1/1/26): ${bandasData.pisoBase.toFixed(2)}
             </div>
           </div>
           
@@ -206,17 +238,14 @@ const ExchangeBandsModule = () => {
             <div className="flex items-center justify-center gap-2 mb-1">
               <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-red-400" />
               <div className="text-white text-2xl md:text-3xl font-bold">
-                ${bandasData.techoCalculado.toFixed(2)}
+                ${bandasData.techo.toFixed(2)}
               </div>
             </div>
-            <div className={`text-xs md:text-sm mb-1 ${
-              bandasData.variacionMensual.techo >= 0 ? 'text-red-400' : 'text-green-400'
-            }`}>
-              {bandasData.variacionMensual.techo >= 0 ? '+' : ''}
-              {bandasData.variacionMensual.techo.toFixed(1)}% mensual
+            <div className="text-xs md:text-sm text-red-300 mb-1">
+              Crecimiento exponencial
             </div>
             <div className="text-gray-500 text-xs">
-              Base: ${bandasData.techo.toFixed(2)}
+              Base (1/1/26): ${bandasData.techoBase.toFixed(2)}
             </div>
           </div>
         </div>
@@ -234,18 +263,18 @@ const ExchangeBandsModule = () => {
           
           <div className="flex items-center gap-2">
             <div className="text-gray-500 text-xs md:text-sm">
-              IPC <span className="text-gray-300">{bandasData.ipcMesReferencia.replace('-', '/')}</span>:
+              Fórmula:
             </div>
-            <div className="text-blue-400 text-sm md:text-base font-semibold">
-              {bandasData.ipcUtilizado.toFixed(2)}%
+            <div className="text-gray-300 text-xs md:text-sm font-mono">
+              B_sup(t) = B_sup_0 × (1 + r_d)^t
             </div>
           </div>
         </div>
       </div>
 
-      {/* Información adicional para móviles */}
-      <div className="mt-3 text-gray-500 text-xs text-center sm:hidden">
-        Las bandas se ajustan mensualmente con IPC[t-2]
+      {/* Información adicional */}
+      <div className="mt-3 text-gray-500 text-xs text-center">
+        Bandas con ajuste exponencial diario | IPC {bandasData.ipcMesReferencia.replace('-', '/')} (T-2)
       </div>
     </div>
   );
