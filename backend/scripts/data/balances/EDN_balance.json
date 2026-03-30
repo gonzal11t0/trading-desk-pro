@@ -1,0 +1,14 @@
+{
+  "ticker": "EDN",
+  "nombre": "Edenor",
+  "fecha_balance": "2025-12-31",
+  "periodo": "4T2025",
+  "moneda": "ARS",
+  "ingresos": 706123,
+  "resultado_neto": 45675,
+  "ebitda": 97465,
+  "patrimonio": 2222906,
+  "deuda_total": 1184293,
+  "roe_trimestral_anualizado": 8.22,
+  "deuda_patrimonio": 0.53
+}

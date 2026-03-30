@@ -1,0 +1,14 @@
+{
+  "ticker": "CEPU",
+  "fecha_balance": "2025",
+  "ingresos_usd": 782600000.0,
+  "resultado_neto_usd": 254100000.0,
+  "ebitda_usd": 380300000.0,
+  "ebitda_ajustado_usd": 2025000000.0,
+  "resultado_operativo_usd": 265100000.00000003,
+  "ganancia_bruta_usd": 280800000.0,
+  "resultado_antes_impuestos_usd": 325600000.0,
+  "patrimonio_usd": 2578000000.0,
+  "deuda_total_usd": null,
+  "roe": 9.86
+}

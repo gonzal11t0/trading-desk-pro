@@ -1,0 +1,9 @@
+{
+  "ticker": "PAMP",
+  "fecha_balance": "2025",
+  "ingresos_usd": 443000000.0,
+  "resultado_neto_usd": 4000000.0,
+  "patrimonio_usd": 3596000000.0,
+  "deuda_total_usd": null,
+  "roe": 0.11
+}

@@ -1,0 +1,13 @@
+{
+  "ticker": "COME",
+  "nombre": "Sociedad Comercial del Plata",
+  "fecha_balance": "2025-09-30",
+  "periodo": "9M2025",
+  "moneda": "ARS",
+  "ingresos": 447986,
+  "resultado_neto": -31622,
+  "patrimonio": 536634,
+  "deuda_total": 223328,
+  "roe_anualizado": -7.86,
+  "deuda_patrimonio": 0.42
+}
