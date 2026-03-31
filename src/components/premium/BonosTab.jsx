@@ -1,4 +1,3 @@
-// src/components/premium/BonosTab.jsx
 import React, { useState, useEffect } from 'react';
 import BonoCard from './BonoCard';
 import { usePremiumStore } from '../../stores/premiumStore';
@@ -12,29 +11,39 @@ const BonosTab = () => {
   const { favoritos } = usePremiumStore();
 
   useEffect(() => {
-  const fetchBonos = async () => {
-    try {
-      const data = await bonosApi.getBonos();
-      
-    const filtrados = data.filter(bono => 
-      ['AL30', 'AL35', 'GD30', 'GD35', 'AE38', 'AL41', 'AN29', 'AO27'].includes(bono.ticker)
-    );
-      setBonos(filtrados);
-    } catch (error) {
-      console.error('Error fetching bonos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchBonos = async () => {
+      try {
+        const data = await bonosApi.getBonos();
+        
+        const filtrados = data.filter(bono => {
+          const ticker = bono.ticker;
+          return ticker === 'AL30' || ticker === 'AL30C' || ticker === 'AL30D' ||
+                 ticker === 'AL35' || ticker === 'AL35C' || ticker === 'AL35D' ||
+                 ticker === 'GD30' || ticker === 'GD30C' || ticker === 'GD30D' ||
+                 ticker === 'GD35' || ticker === 'GD35C' || ticker === 'GD35D' ||
+                 ticker === 'AE38' || ticker === 'AE38C' || ticker === 'AE38D' ||
+                 ticker === 'AL41' || ticker === 'AL41C' || ticker === 'AL41D' ||
+                 ticker === 'AN29' || ticker === 'AN29C' || ticker === 'AN29D' ||
+                 ticker === 'AO27' || ticker === 'AO27C' || ticker === 'AO27D';
+        });
+        
+        setBonos(filtrados);
+      } catch (error) {
+        console.error('Error fetching bonos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     fetchBonos();
   }, []);
 
   const bonosFiltrados = bonos
     .filter(bono => bono != null)
-    .filter(bono => !soloFavoritos || favoritos.bonos?.includes(bono.symbol))
+    .filter(bono => !soloFavoritos || favoritos.bonos?.includes(bono.ticker))
     .sort((a, b) => {
-      const aFav = favoritos.bonos?.includes(a.symbol);
-      const bFav = favoritos.bonos?.includes(b.symbol);
+      const aFav = favoritos.bonos?.includes(a.ticker);
+      const bFav = favoritos.bonos?.includes(b.ticker);
       if (aFav && !bFav) return -1;
       if (!aFav && bFav) return 1;
       return 0;
@@ -73,7 +82,7 @@ const BonosTab = () => {
         </div>
       ) : (
         bonosFiltrados.map(bono => (
-          <BonoCard key={bono.symbol} bono={bono} />
+          <BonoCard key={bono.ticker} bono={bono} />
         ))
       )}
     </div>

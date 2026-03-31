@@ -5,27 +5,30 @@ const puppeteer = require('puppeteer-core');
 async function scrapeBonosIOL() {
   let browser;
   try {
-    console.log('🚀 Lanzando navegador optimizado para Vercel (Bonos IOL)...');
+    console.log('🚀 Lanzando navegador...');
+    
+    // Usar Chrome instalado en el sistema
+    const executablePath = process.platform === 'win32'
+      ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+      : '/usr/bin/google-chrome';
     
     browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
+      executablePath,  // 👈 Usar Chrome instalado
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage'
+      ]
     });
 
     const page = await browser.newPage();
-    console.log('🌐 Navegando a IOL (bonos)...');
-
     await page.goto('https://iol.invertironline.com/mercado/cotizaciones/argentina/bonos', {
       waitUntil: 'networkidle2',
       timeout: 30000
     });
 
-    console.log('⏳ Esperando que la tabla se cargue...');
     await page.waitForSelector('table tbody tr', { timeout: 10000 });
-
-    console.log('✅ Tabla encontrada, extrayendo datos...');
 
     const bonos = await page.evaluate(() => {
       const filas = document.querySelectorAll('table tbody tr');
@@ -59,14 +62,15 @@ async function scrapeBonosIOL() {
     });
 
     console.log(`✅ Se extrajeron ${bonos.length} bonos.`);
-    return { success: true, data: bonos, fuente: 'IOL (Bonos) - Puppeteer' };
+    return { success: true, data: bonos, fuente: 'IOL (Bonos)' };
 
   } catch (error) {
     console.error('❌ Error en scrapeBonosIOL:', error.message);
-    return { success: false, error: error.message, fuente: 'IOL' };
+    // Fallback a datos mock
+    const getBonosMock = require('./bonosMock');
+    return getBonosMock();
   } finally {
     if (browser) await browser.close();
-    console.log('🕵️ Navegador cerrado.');
   }
 }
 
