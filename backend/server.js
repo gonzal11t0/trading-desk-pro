@@ -37,14 +37,25 @@ app.get('/api/company/:ticker', async (req, res) => {
   }
 });
 
-const scrapeBonosIOL = require('./scripts/get_bonos_iol');
-app.get('/api/bonos', async (req, res) => {
+// En backend/server.js
+const scrapeLetrasIOL = require('./scripts/get_letras_iol');
+const getLetrasMock = require('./scripts/letrasMock');
+
+// Endpoint para letras
+app.get('/api/letras', async (req, res) => {
   try {
-    const data = await scrapeBonosIOL();
-    res.json(data);
+    console.log('📡 Solicitando letras...');
+    const data = await scrapeLetrasIOL();
+    
+    if (data.success && data.data && data.data.length > 0) {
+      res.json(data);
+    } else {
+      console.log('⚠️ Falló scraping, usando mock');
+      res.json(getLetrasMock());
+    }
   } catch (error) {
-    console.error('Error en /api/bonos:', error.message);
-    res.status(500).json({ error: error.message });
+    console.error('Error en /api/letras:', error.message);
+    res.json(getLetrasMock());
   }
 });
 

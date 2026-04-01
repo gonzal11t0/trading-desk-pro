@@ -7,23 +7,35 @@ async function scrapeLetrasIOL() {
   try {
     console.log('🚀 Lanzando navegador para letras IOL...');
     
-    browser = await puppeteer.launch({
+    // Detectar si estamos en producción (Vercel) o desarrollo
+    const isProduction = process.env.VERCEL === '1';
+    
+    const launchOptions = {
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
       headless: chromium.headless,
-    });
-
+    };
+    
+    // En desarrollo, usar Chrome instalado
+    if (!isProduction && process.platform === 'win32') {
+      launchOptions.executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+    } else {
+      launchOptions.executablePath = await chromium.executablePath();
+    }
+    
+    browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
+    
     console.log('🌐 Navegando a IOL (letras)...');
-
+    
+    // Timeout más largo para IOL
     await page.goto('https://iol.invertironline.com/mercado/cotizaciones/argentina/letras/todas', {
       waitUntil: 'networkidle2',
-      timeout: 30000
+      timeout: 45000
     });
 
     console.log('⏳ Esperando tabla de letras...');
-    await page.waitForSelector('table tbody tr', { timeout: 10000 });
+    await page.waitForSelector('table tbody tr', { timeout: 15000 });
 
     const letras = await page.evaluate(() => {
       const filas = document.querySelectorAll('table tbody tr');
@@ -46,20 +58,18 @@ async function scrapeLetrasIOL() {
         resultados.push({
           ticker: ticker,
           ultimo: limpiarNumero(celdas[1]?.innerText),
-          ultima_tasa: limpiarNumero(celdas[2]?.innerText),
-          variacion_dia: limpiarNumero(celdas[3]?.innerText),
-          apertura: limpiarNumero(celdas[8]?.innerText),
-          maximo: limpiarNumero(celdas[9]?.innerText),
-          minimo: limpiarNumero(celdas[10]?.innerText),
-          ultimo_cierre: limpiarNumero(celdas[11]?.innerText),
-          monto_operado: limpiarNumero(celdas[12]?.innerText),
+          variacion_dia: limpiarNumero(celdas[2]?.innerText),
+          ultimo_cierre: limpiarNumero(celdas[3]?.innerText),
+          maximo: limpiarNumero(celdas[4]?.innerText),
+          minimo: limpiarNumero(celdas[5]?.innerText),
+          monto_operado: limpiarNumero(celdas[6]?.innerText),
         });
       });
       return resultados;
     });
 
-    console.log(`✅ Se extrajeron ${letras.length} letras.`);
-    return { success: true, data: letras, fuente: 'IOL (Letras) - Puppeteer' };
+    console.log(`✅ Se extrajeron ${letras.length} letras de IOL.`);
+    return { success: true, data: letras, fuente: 'IOL (Letras)' };
 
   } catch (error) {
     console.error('❌ Error en scrapeLetrasIOL:', error.message);

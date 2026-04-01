@@ -1,21 +1,8 @@
 // src/components/premium/ModalLetra.jsx
 import React, { useState } from 'react';
-import { X, TrendingUp, TrendingDown, Download, Calculator, Calendar, Clock, BarChart3, AlertCircle } from 'lucide-react';
+import { X, Download, Calculator, Calendar, AlertCircle } from 'lucide-react';
 import { exportarLetraPDF } from '../../utils/pdfExport';
-import GraficoLinea from './GraficoLinea';
 import { getLetraData } from '../../data/letrasData';
-
-// Datos históricos simulados (opcional)
-const datosHistoricosLetras = {
-  'S27F6': [
-    { periodo: 'Feb 2026', precio: 1202.40, tna: 38.0, tea: 42.3, variacion: -0.5 },
-    { periodo: 'Ene 2026', precio: 1208.50, tna: 37.5, tea: 41.8, variacion: 0.2 }
-  ],
-  'S29Y6': [
-    { periodo: 'Feb 2026', precio: 1165.50, tna: 42.0, tea: 47.8, variacion: -0.8 },
-    { periodo: 'Ene 2026', precio: 1174.00, tna: 41.5, tea: 47.0, variacion: -0.3 }
-  ]
-};
 
 const ModalLetra = ({ isOpen, onClose, letra }) => {
   const [tabActiva, setTabActiva] = useState('actual');
@@ -24,29 +11,30 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
   
   if (!isOpen || !letra) return null;
 
-  // Obtener datos fijos de la letra
-  const letraInfo = getLetraData(letra.symbol);
-
-  // Calcular días hasta vencimiento (si tenemos expiration)
+  // Obtener datos fijos de la letra usando ticker
+  const letraInfo = getLetraData(letra.ticker);
+  
+  // Datos reales de la letra
+  const precioActual = letra.ultimo || 0;
+  const variacion = letra.variacion_dia || 0;
+  const moneda = letraInfo.moneda || 'ARS';
+  const tna = letraInfo.tna;
+  const tea = letraInfo.tea;
+  const plazo = letraInfo.plazo;
+  
+  // Calcular días hasta vencimiento
   const calcularDias = () => {
-    if (!letra.expiration) return null;
+    if (!letraInfo.vencimiento) return plazo || 30;
     const hoy = new Date();
-    const vencimiento = new Date(letra.expiration);
+    const vencimiento = new Date(letraInfo.vencimiento);
     const diff = vencimiento - hoy;
     return Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24)));
   };
 
   const diasReales = calcularDias();
-  const dias = diasRestantes || diasReales || letraInfo.plazo || 30;
+  const dias = diasRestantes || diasReales || 30;
 
-  // Datos de la letra
-  const precioActual = letra.last || letra.precio || 0;
-  const tna = letraInfo.tna;
-  const tea = letraInfo.tea;
-  const plazo = letraInfo.plazo;
-  const moneda = letraInfo.moneda;
-
-  // Cálculos para letras
+  // Cálculos para la calculadora
   const interesBruto = tna ? (montoInversion * tna * dias) / (365 * 100) : 0;
   const comision = (montoInversion * 0.035) / 100;
   const derechos = (montoInversion * 0.004) / 100;
@@ -56,23 +44,11 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
   const montoFinal = montoInversion + interesNeto;
   const rendimientoPeriodo = interesNeto > 0 ? (interesNeto / montoInversion) * 100 : 0;
 
-  // Comparación con inflación (estimada 5% mensual)
-  const inflacionMensual = 5;
-  const perdidaInflacion = montoInversion * (inflacionMensual / 100);
-  const gananciaReal = interesNeto - perdidaInflacion;
-
-  // Función para formatear número
+  // Formatear números
   const formatearNumero = (num) => {
-    if (num === undefined || num === null) return '—';
+    if (num === undefined || num === null || isNaN(num)) return '—';
     return num.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
-
-  // Datos para gráfico (si tenemos histórico)
-  const datosGrafico = (datosHistoricosLetras[letra.symbol] || []).map(item => ({
-    periodo: item.periodo,
-    tna: item.tna,
-    tea: item.tea
-  }));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
@@ -80,10 +56,10 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
         {/* Header */}
         <div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 flex justify-between items-center">
           <div>
-            <h2 className="text-xl font-bold text-white">{letra.symbol}</h2>
+            <h2 className="text-xl font-bold text-white">{letra.ticker}</h2>
             <p className="text-sm text-gray-400">{letraInfo.nombre} • {letraInfo.tipo}</p>
-            {letraInfo.observaciones && (
-              <p className="text-xs text-gray-500 mt-1">{letraInfo.observaciones}</p>
+            {letraInfo.vencimiento && (
+              <p className="text-xs text-gray-500">Vence: {new Date(letraInfo.vencimiento).toLocaleDateString('es-AR')}</p>
             )}
           </div>
           <button onClick={onClose} className="p-1 hover:bg-gray-800 rounded">
@@ -114,25 +90,11 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
             <Calculator className="w-4 h-4" />
             Calculadora
           </button>
-          {datosGrafico.length > 0 && (
-            <button
-              onClick={() => setTabActiva('graficos')}
-              className={`px-4 py-2 font-medium transition flex items-center gap-1 ${
-                tabActiva === 'graficos'
-                  ? 'text-yellow-400 border-b-2 border-yellow-400'
-                  : 'text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              Gráficos
-            </button>
-          )}
         </div>
 
         {/* Contenido */}
         <div className="p-6">
           {tabActiva === 'actual' ? (
-            /* === TAB ACTUAL === */
             <div className="space-y-6">
               {/* Datos de la letra */}
               <div className="grid grid-cols-2 gap-4">
@@ -141,8 +103,8 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
                   <p className="text-xl font-bold text-white">
                     {moneda === 'USD' ? 'U$S' : '$'}{formatearNumero(precioActual)}
                   </p>
-                  <p className={`text-sm ${letra.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {letra.change ? (letra.change * 100).toFixed(2) : '0.00'}% vs ayer
+                  <p className={`text-sm ${variacion > 0 ? 'text-green-400' : variacion < 0 ? 'text-red-400' : 'text-gray-400'}`}>
+                    {variacion > 0 ? '+' : ''}{variacion.toFixed(2)}% vs ayer
                   </p>
                 </div>
                 
@@ -171,7 +133,6 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
                   <p className="text-xs text-gray-400 mb-1">Plazo</p>
                   <p className="text-xl font-bold text-white">
                     {plazo ? `${plazo} días` : '—'}
-                    {diasReales && ` (${diasReales} reales)`}
                   </p>
                 </div>
               </div>
@@ -188,19 +149,19 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
                     <span className="text-gray-400">Tipo:</span>
                     <span className="text-white font-semibold">{letraInfo.tipo}</span>
                   </div>
-                  {letra.expiration && (
+                  {letraInfo.vencimiento && (
                     <div className="flex justify-between">
                       <span className="text-gray-400">Vencimiento:</span>
                       <span className="text-white font-semibold">
-                        {new Date(letra.expiration).toLocaleDateString('es-AR')}
+                        {new Date(letraInfo.vencimiento).toLocaleDateString('es-AR')}
                       </span>
                     </div>
                   )}
                 </div>
               </div>
             </div>
-          ) : tabActiva === 'calculadora' ? (
-            /* === TAB CALCULADORA === */
+          ) : (
+            /* TAB CALCULADORA */
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                 <Calculator className="w-5 h-5 text-yellow-400" />
@@ -209,48 +170,29 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
 
               <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700">
                 <div className="space-y-4">
-                  {/* Monto a invertir */}
                   <div>
-                    <label className="text-sm text-gray-400 mb-1 block">
-                      Monto a invertir (ARS)
-                    </label>
+                    <label className="text-sm text-gray-400 mb-1 block">Monto a invertir (ARS)</label>
                     <input
-                      type="text"
-                      inputMode="numeric"
-                      value={montoInversion.toLocaleString('es-AR')}
-                      onChange={(e) => {
-                        const valor = e.target.value.replace(/\./g, '').replace(/,/g, '');
-                        if (!isNaN(valor) && valor !== '') {
-                          setMontoInversion(Number(valor));
-                        }
-                      }}
+                      type="number"
+                      value={montoInversion}
+                      onChange={(e) => setMontoInversion(Number(e.target.value))}
                       className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                     />
                   </div>
 
-                  {/* Días a vencimiento (editable) */}
                   <div>
                     <label className="text-sm text-gray-400 mb-1 block">Días de la operación</label>
                     <input
-                      type="text"
-                      inputMode="numeric"
-                      value={dias.toLocaleString('es-AR')}
-                      onChange={(e) => {
-                        const valor = e.target.value.replace(/\./g, '');
-                        if (!isNaN(valor) && valor !== '') {
-                          setDiasRestantes(Number(valor));
-                        }
-                      }}
+                      type="number"
+                      value={dias}
+                      onChange={(e) => setDiasRestantes(Number(e.target.value))}
                       className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white"
                     />
                     {plazo && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        * Plazo del instrumento: {plazo} días
-                      </p>
+                      <p className="text-xs text-gray-500 mt-1">* Plazo del instrumento: {plazo} días</p>
                     )}
                   </div>
 
-                  {/* Resultados (solo si hay TNA) */}
                   {tna ? (
                     <div className="bg-gray-900/50 rounded-lg p-4 space-y-3">
                       <div className="flex justify-between">
@@ -274,63 +216,19 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
                         <span className="text-gray-300 font-medium">Rendimiento del período:</span>
                         <span className="text-green-400 font-bold">{rendimientoPeriodo.toFixed(2)}%</span>
                       </div>
-                      
-                      {/* Comparación con inflación */}
-                      <div className="mt-4 pt-4 border-t border-gray-700">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Inflación estimada ({dias} días):</span>
-                          <span className="text-red-400">${formatearNumero(perdidaInflacion)}</span>
-                        </div>
-                        <div className="flex justify-between mt-2">
-                          <span className="text-gray-300 font-medium">Ganancia/pérdida real:</span>
-                          <span className={gananciaReal > 0 ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}>
-                            ${formatearNumero(gananciaReal)}
-                          </span>
-                        </div>
-                      </div>
                     </div>
                   ) : (
                     <div className="bg-gray-800/30 rounded-lg p-6 text-center">
                       <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
                       <p className="text-gray-300">TNA no disponible para este instrumento</p>
-                      <p className="text-sm text-gray-500 mt-2">No es posible calcular rendimiento</p>
                     </div>
                   )}
 
                   <p className="text-xs text-gray-500">
-                    * Cálculo basado en TNA fija. Gastos estimados según BYMA (0.035% comisión + 0.004% derechos + IVA 21%).
-                    {!tna && ' TNA no disponible.'}
+                    * Cálculo basado en TNA fija. Gastos estimados según BYMA.
                   </p>
                 </div>
               </div>
-            </div>
-          ) : (
-            /* === TAB GRÁFICOS === */
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-yellow-400" />
-                Evolución de tasas
-              </h3>
-              
-              {datosGrafico.length > 0 ? (
-                <>
-                  <GraficoLinea
-                    data={datosGrafico}
-                    xKey="periodo"
-                    lines={[
-                      { key: 'tna', name: 'TNA (%)', color: '#4ADE80' },
-                      { key: 'tea', name: 'TEA (%)', color: '#FBBF24' }
-                    ]}
-                  />
-                  <p className="text-xs text-gray-500 text-center">
-                    * Datos históricos simulados
-                  </p>
-                </>
-              ) : (
-                <div className="bg-gray-800/30 rounded-lg p-8 text-center">
-                  <p className="text-gray-400">No hay datos históricos disponibles</p>
-                </div>
-              )}
             </div>
           )}
 
