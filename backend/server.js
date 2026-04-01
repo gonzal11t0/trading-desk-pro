@@ -53,7 +53,6 @@ app.get('/api/bonos', async (req, res) => {
 
 
 const scrapeLetrasIOL = require('./scripts/get_letras_iol');
-const getLetrasMock = require('./scripts/letrasMock');
 
 // Endpoint para letras
 app.get('/api/letras', async (req, res) => {
