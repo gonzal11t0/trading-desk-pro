@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import BalancesTab from './BalancesTab';
 import BonosTab from './BonosTab';
 import LetrasTab from './LetrasTab';
+import CurvaRendimientoTab from './CurvaRendimientoTab'; 
 import PanelAlertas from './PanelAlertas';
-import { Crown, Bell, Sparkles } from 'lucide-react';
+import { Crown, Bell, Sparkles, TrendingUp } from 'lucide-react';
 
 const AnalisisPremium = () => {
   const [tabActiva, setTabActiva] = useState('balances');
@@ -13,14 +14,14 @@ const AnalisisPremium = () => {
   const tabs = [
     { id: 'balances', nombre: '📈 Balances', icono: '📈', componente: <BalancesTab /> },
     { id: 'bonos', nombre: '💰 Bonos', icono: '💰', componente: <BonosTab /> },
-    { id: 'letras', nombre: '📝 Letras', icono: '📝', componente: <LetrasTab /> }
+    { id: 'letras', nombre: '📝 Letras', icono: '📝', componente: <LetrasTab /> },
+    { id: 'curva', nombre: '📊 Curva', icono: '📊', componente: <CurvaRendimientoTab /> }  // 🆕
   ];
 
   return (
     <div className="min-w-0 animate-fadeIn">
-      {/* Header premium con diseño mejorado */}
+      {/* Header premium */}
       <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 border border-gray-700/50">
-        {/* Efecto de brillo */}
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
         
@@ -36,7 +37,7 @@ const AnalisisPremium = () => {
               </h1>
               <p className="text-gray-400 mt-1 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                Balances, bonos y letras con análisis profesional
+                Balances, bonos, letras y curva de rendimiento
               </p>
             </div>
           </div>
@@ -54,13 +55,13 @@ const AnalisisPremium = () => {
         </div>
       </div>
 
-      {/* Tabs con diseño mejorado */}
-      <div className="flex gap-1 mb-6 p-1 bg-gray-800/30 rounded-xl border border-gray-700/50">
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 p-1 bg-gray-800/30 rounded-xl border border-gray-700/50 overflow-x-auto">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setTabActiva(tab.id)}
-            className={`flex-1 relative px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+            className={`flex-1 relative px-4 py-3 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
               tabActiva === tab.id
                 ? 'bg-gradient-to-r from-yellow-600/20 to-yellow-600/10 text-yellow-400 shadow-lg shadow-yellow-600/10'
                 : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/50'
@@ -77,7 +78,7 @@ const AnalisisPremium = () => {
         ))}
       </div>
 
-      {/* Contenido con animación */}
+      {/* Contenido */}
       <div className="transition-opacity duration-300 animate-slideUp">
         {tabs.find(t => t.id === tabActiva)?.componente}
       </div>
