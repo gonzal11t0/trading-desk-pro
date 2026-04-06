@@ -1,4 +1,4 @@
-/* tradingviewcharts*/
+/* tradingviewcharts */
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { ExternalLink, Maximize2, RefreshCw, Play, Pause } from 'lucide-react'
 
@@ -155,6 +155,7 @@ const ChartCard = React.memo(({
               disabled={isRefreshing}
               className="p-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50 hover:border-green-500/50 disabled:opacity-50 transition-all duration-300 hover:scale-110"
               title="Recargar gráfico"
+              aria-label="Recargar gráfico"
             >
               <RefreshCw className={`w-3 h-3 text-gray-400 hover:text-green-400 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -163,19 +164,20 @@ const ChartCard = React.memo(({
               onClick={handleOpen}
               className="p-1.5 rounded-lg bg-gray-800/50 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 hover:scale-110"
               title="Abrir en TradingView"
+              aria-label="Abrir en TradingView"
             >
               <ExternalLink className="w-3 h-3 text-gray-400 hover:text-blue-400" />
             </button>
           </div>
         </div>
 
-        {/* Contenedor del Gráfico Mejorado */}
+        {/* Contenedor del Gráfico Mejorado - con altura fija para evitar CLS */}
         <div className="aspect-video bg-gray-900 relative min-h-[280px]">
           <div 
             id={`tradingview_${chart.id}`}
             className="tradingview-widget-container w-full h-full"
           >
-            {/* Estado de carga mejorado */}
+            {/* Estado de carga mejorado - siempre presente para evitar CLS */}
             {isRefreshing && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-900 rounded-b-lg">
                 <div className="text-center p-6">
@@ -192,6 +194,7 @@ const ChartCard = React.memo(({
             <button
               onClick={handleOpen}
               className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-5 py-3 rounded-xl flex items-center space-x-2 transition-all duration-300 transform scale-90 group-hover:scale-100 shadow-2xl"
+              aria-label="Pantalla completa"
             >
               <Maximize2 className="w-4 h-4" />
               <span className="text-sm font-bold">Pantalla Completa</span>
@@ -227,57 +230,56 @@ const useTradingView = () => {
   
   const chartsInitialized = useRef(false)
   const [isRefreshing, setIsRefreshing] = useState({})
- useEffect(() => {
-  // SILENCIAR ABSOLUTAMENTE TODOS LOS ERRORES DE TRADINGVIEW
-  const originalError = console.error;
-  const originalWarn = console.warn;
-  const originalLog = console.log;
   
-  console.error = (...args) => {
-    if (args[0] && typeof args[0] === 'string') {
-      if (args[0].includes('TradingView') || 
-          args[0].includes('telemetry') || 
-          args[0].includes('support-portal') ||
-          args[0].includes('Couldn\'t load support portal') ||
-          args[0].includes('Chart.DataProblemModel') ||
-          args[0].includes('Failed to fetch')) {
-        // SILENCIAR COMPLETAMENTE - NO HACER NADA
-        return;
+  // Silenciar errores de TradingView
+  useEffect(() => {
+    const originalError = console.error;
+    const originalWarn = console.warn;
+    const originalLog = console.log;
+    
+    console.error = (...args) => {
+      if (args[0] && typeof args[0] === 'string') {
+        if (args[0].includes('TradingView') || 
+            args[0].includes('telemetry') || 
+            args[0].includes('support-portal') ||
+            args[0].includes('Couldn\'t load support portal') ||
+            args[0].includes('Chart.DataProblemModel') ||
+            args[0].includes('Failed to fetch')) {
+          return;
+        }
       }
-    }
-    originalError.apply(console, args);
-  };
-  
-  console.warn = (...args) => {
-    if (args[0] && typeof args[0] === 'string') {
-      if (args[0].includes('TradingView') || 
-          args[0].includes('ChunkLoadError') ||
-          args[0].includes('DataProblemModel')) {
-        // SILENCIAR COMPLETAMENTE - NO HACER NADA
-        return;
+      originalError.apply(console, args);
+    };
+    
+    console.warn = (...args) => {
+      if (args[0] && typeof args[0] === 'string') {
+        if (args[0].includes('TradingView') || 
+            args[0].includes('ChunkLoadError') ||
+            args[0].includes('DataProblemModel')) {
+          return;
+        }
       }
-    }
-    originalWarn.apply(console, args);
-  };
-  
-  // También silenciar logs específicos
-  console.log = (...args) => {
-    if (args[0] && typeof args[0] === 'string') {
-      if (args[0].includes('TradingView') || 
-          args[0].includes('Fetch:') ||
-          args[0].includes('telemetry')) {
-        // SILENCIAR
-        return;
+      originalWarn.apply(console, args);
+    };
+    
+    console.log = (...args) => {
+      if (args[0] && typeof args[0] === 'string') {
+        if (args[0].includes('TradingView') || 
+            args[0].includes('Fetch:') ||
+            args[0].includes('telemetry')) {
+          return;
+        }
       }
-    }
-  };
+      originalLog.apply(console, args);
+    };
+    
+    return () => {
+      console.error = originalError;
+      console.warn = originalWarn;
+      console.log = originalLog;
+    };
+  }, []);
   
-  return () => {
-    console.error = originalError;
-    console.warn = originalWarn;
-    console.log = originalLog;
-  };
-}, []);
   const initializeChart = useCallback((chartConfig) => {
     const container = document.getElementById(`tradingview_${chartConfig.id}`)
     if (!container) return
@@ -475,6 +477,7 @@ export function TradingViewCharts() {
                 ? 'bg-green-500/20 border-green-500/30 text-green-400' 
                 : 'bg-gray-700/50 border-gray-600/30 text-gray-400'
             }`}
+            aria-label={autoRefresh ? 'Desactivar auto-refresh' : 'Activar auto-refresh'}
           >
             {autoRefresh ? (
               <Play className="w-3 h-3" />
@@ -489,6 +492,7 @@ export function TradingViewCharts() {
           <button
             onClick={handleReloadAll}
             className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-all duration-300"
+            aria-label="Recargar todos los gráficos"
           >
             <RefreshCw className="w-3 h-3" />
             <span className="text-xs font-semibold">RECARGAR TODO</span>
@@ -496,8 +500,8 @@ export function TradingViewCharts() {
         </div>
       </div>
 
-      {/* Grid de Gráficos Premium */}
-      <div className="space-y-6">
+      {/* Grid de Gráficos Premium - con altura mínima para evitar CLS */}
+      <div className="space-y-6 min-h-[600px]">
         {rows.map((row, rowIndex) => (
           <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {row.map((chart) => (

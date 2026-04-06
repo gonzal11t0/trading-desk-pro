@@ -1,4 +1,4 @@
-// src/components/markets/QuotesCarousel.jsx 
+// src/components/markets/QuotesCarousel.jsx
 import React, { useState, useEffect } from 'react'
 import { TrendingUp, TrendingDown, Play, Pause, RefreshCw } from 'lucide-react'
 import { fetchQuotesData } from '../../api/quotesApi'
@@ -75,10 +75,10 @@ export function QuotesCarousel() {
     return colors[symbol] || { text: '#9ca3af', dot: '#6b7280', background: 'linear-gradient(135deg, #6b7280, #4b5563)' }
   }
 
-  // LOADING STATE - MANTENGO LA MISMA ESTRUCTURA
+  // LOADING STATE con altura reservada para evitar CLS
   if (isLoading && quotes.length === 0) {
     return (
-      <div className="relative bg-gradient-to-r from-gray-900 via-black to-gray-900 border-t border-b border-gray-700/50">
+      <div className="relative bg-gradient-to-r from-gray-900 via-black to-gray-900 border-t border-b border-gray-700/50 min-h-[200px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[1, 2, 3].map((item) => (
@@ -98,6 +98,7 @@ export function QuotesCarousel() {
       bg-gradient-to-r from-gray-900 via-black to-gray-900
       border-t border-b border-gray-700/50
       shadow-2xl shadow-blue-500/5
+      min-h-[200px]  /* Altura mínima reservada para evitar CLS */
     ">
       {/* Barra superior animada - MANTENGO EL PULSE ORIGINAL */}
       <div className="
@@ -149,13 +150,13 @@ export function QuotesCarousel() {
             {/* ACTUALIZACIÓN AUTOMÁTICA - MANTENGO display: 'none' original */}
             <div className="
               hidden 
-              md:flex  /* Cambié de lg:flex a md:flex para mostrar antes */
+              md:flex
               items-center 
               gap-2 
               text-gray-400 
               text-xs
             ">
-              <RefreshCw className="w-3 h-3 animate-spin" /> {/* RESTAURO animate-spin */}
+              <RefreshCw className="w-3 h-3 animate-spin" />
               <span>ACTUALIZACIÓN AUTOMÁTICA</span>
             </div>
           </div>
@@ -164,7 +165,7 @@ export function QuotesCarousel() {
             {/* Hora - MANTENGO display: 'none' original */}
             <div className="
               hidden 
-              md:block  /* Cambié de lg:block a md:block */
+              md:block
               text-gray-400 
               text-xs 
               font-mono
@@ -194,10 +195,11 @@ export function QuotesCarousel() {
                   disabled:opacity-50 
                   disabled:cursor-not-allowed
                 "
+                aria-label="Actualizar cotizaciones"
               >
                 <RefreshCw className={`
                   w-4 h-4 text-gray-400
-                  ${isLoading ? 'animate-spin' : ''}  /* RESTAURO la animación condicional */
+                  ${isLoading ? 'animate-spin' : ''}
                 `} />
               </button>
               
@@ -213,6 +215,7 @@ export function QuotesCarousel() {
                   transition-all 
                   duration-300
                 "
+                aria-label={isPlaying ? 'Pausar carrusel' : 'Reanudar carrusel'}
               >
                 {isPlaying ? (
                   <Pause className="w-4 h-4 text-gray-400" />
@@ -308,7 +311,7 @@ export function QuotesCarousel() {
                       }
                     `}>
                       {quote.positive ? (
-                        <TrendingUp className="w-3 h-3" />  /* MANTENGO TAMAÑO ORIGINAL */
+                        <TrendingUp className="w-3 h-3" />
                       ) : (
                         <TrendingDown className="w-3 h-3" />
                       )}
@@ -397,6 +400,7 @@ export function QuotesCarousel() {
                   e.currentTarget.classList.add('bg-gray-600');
                 }
               }}
+              aria-label={`Ir a conjunto ${i + 1}`}
             />
           ))}
         </div>

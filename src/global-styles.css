@@ -1,7 +1,5 @@
 /* src/styles/global-styles.css */
-/* TODOS los estilos específicos que mantenían tu diseño */
 
-/* 1. CONTENEDORES Y ESTRUCTURA */
 .w-7\/10 {
   width: 70% !important;
 }
@@ -15,8 +13,10 @@
   margin: 0 auto;
   padding: 0 1rem;
 }
-
-/* 2. TARJETAS TERMINAL (esto daba el look característico) */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-display: optional;
+}
 .terminal-card {
   background-color: #1A1A1A !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -30,14 +30,12 @@
   transform: translateY(-2px);
 }
 
-/* 3. VALORES CON FONTE MONO (look financiero) */
 .terminal-value {
   font-family: 'JetBrains Mono', monospace !important;
   font-weight: 600 !important;
   letter-spacing: -0.025em;
 }
 
-/* 4. COLORES ESPECÍFICOS DE DATOS */
 .data-positive {
   color: #00FF9D !important;
 }
@@ -46,7 +44,6 @@
   color: #FF5E5E !important;
 }
 
-/* 5. SECCIONES CON FONDO */
 .section-bg {
   background-color: #1A1A1A !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -54,7 +51,6 @@
   backdrop-filter: blur(10px);
 }
 
-/* 6. GRADIENTES DE TEXTO */
 .gradient-text-primary {
   background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
   -webkit-background-clip: text;
@@ -62,4 +58,3 @@
   background-clip: text;
 }
 
-/* Importa este archivo en main.jsx */

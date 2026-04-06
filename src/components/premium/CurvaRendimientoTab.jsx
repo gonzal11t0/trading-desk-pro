@@ -122,7 +122,7 @@ const CurvaRendimientoTab = () => {
   }
   // GD35 (incluyendo variantes GD35, GD35C, GD35D)
   if (bono.ticker === 'GD35' || bono.ticker === 'GD35C' || bono.ticker === 'GD35D') {
-    puntos.push({
+    puntos.push({ 
       plazo: 9.7,
       tasa: 15.9,
       nombre: 'GD35',
