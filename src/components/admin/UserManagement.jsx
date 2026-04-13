@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 // ⚠️ CAMBIAR ESTA URL POR LA DE TU BACKEND EN VERCEL
 const API_URL = import.meta.env.VITE_API_URL || 'https://trading-backend-psi.vercel.app/api';
 
+
 const UserManagement = () => {
   const { isAdmin, currentUser } = useAuth();
   const [generatedPassword, setGeneratedPassword] = useState(null);
