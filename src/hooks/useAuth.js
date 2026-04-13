@@ -1,117 +1,116 @@
-// src/hooks/useAuth.js - VERSIÓN SIMPLIFICADA Y CORREGIDA
-import { useEffect, useState } from 'react';
+// src/hooks/useAuth.js - VERSIÓN CORREGIDA
+import { useEffect, useState, useRef } from 'react';
 import { useAuthStore } from '../stores/authStore';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export const useAuth = () => {
   const authStore = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const loginInProgress = useRef(false);
 
-  // Verificar estado de autenticación al montar
+  // Verificar sesión guardada al iniciar
   useEffect(() => {
-    let mounted = true;
+    const token = localStorage.getItem('tdp_token');
+    const userStr = localStorage.getItem('tdp_user');
     
-    const checkAuth = async () => {
-      if (!mounted) return;
-      
+    if (token && userStr && !authStore.isAuthenticated) {
       try {
-        authStore.initAuth();
-        
-        if (authStore.isAuthenticated) {
-          const isActive = authStore.checkTimeout();
-          if (!isActive) {
-            authStore.logout();
-          } else {
-            authStore.updateActivity();
-          }
-        }
-      } catch (error) {
-        console.error('Error en checkAuth:', error);
-      } finally {
-        if (mounted) setIsChecking(false);
+        const user = JSON.parse(userStr);
+        authStore.loginSuccess(user, token, true);
+        authStore.updateActivity();
+      } catch (e) {
+        console.error('Error restaurando sesión:', e);
+        localStorage.removeItem('tdp_token');
+        localStorage.removeItem('tdp_user');
       }
-    };
-
-    setTimeout(() => checkAuth(), 100);
-    return () => { mounted = false; };
-  }, [authStore]);
-
-  // Actualizar actividad en eventos
-  useEffect(() => {
-    let timeoutId;
+    }
     
-    const updateActivity = () => {
-      if (authStore.isAuthenticated) {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => authStore.updateActivity(), 1000);
-      }
-    };
+    setIsChecking(false);
+  }, []);
 
+  // Actualizar actividad
+  useEffect(() => {
+    let intervalId;
+    
     if (authStore.isAuthenticated) {
-      const events = ['mousedown', 'keydown'];
-      events.forEach(event => window.addEventListener(event, updateActivity));
+      intervalId = setInterval(() => {
+        authStore.updateActivity();
+      }, 60000);
+      
+      const updateActivity = () => authStore.updateActivity();
+      window.addEventListener('mousedown', updateActivity);
+      window.addEventListener('keydown', updateActivity);
+      
       return () => {
-        events.forEach(event => window.removeEventListener(event, updateActivity));
-        clearTimeout(timeoutId);
+        clearInterval(intervalId);
+        window.removeEventListener('mousedown', updateActivity);
+        window.removeEventListener('keydown', updateActivity);
       };
     }
-  }, [authStore.isAuthenticated, authStore]);
+  }, [authStore.isAuthenticated]);
 
   const login = async (email, password, rememberMe = false) => {
+    if (loginInProgress.current) {
+      return { success: false, error: 'Login en progreso' };
+    }
+    
+    loginInProgress.current = true;
+    setIsLoading(true);
+    setError('');
+    
     try {
-      setIsLoading(true);
-      setError('');
-
-      const validCredentials = {
-        'ZW1haWw9YWRtaW5AdHJhZGluZ2Rlc2suY29tJnBhc3M9QWRtaW5AVHJhZGluZzIwMjUh': {
-          role: 'admin',
-          name: 'Administrador',
-          plan: 'enterprise'
-        },
-        "ZW1haWw9Y2xpZW50ZUxlb0BlbXByZXNhLmNvbSZwYXNzPUxlb0lvbEAh":{
-        role:'client',
-        name:'Leo',
-        plan:'basic'
-        }
-      };
-
-      const credentialHash = btoa(`email=${email}&pass=${password}`);
-      const userInfo = validCredentials[credentialHash];
+      console.log('📡 Llamando a /api/auth/login');
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
       
-      if (userInfo) {
-        const userData = {
-          email: email,
-          name: userInfo.name,
-          role: userInfo.role,
-          plan: userInfo.plan
-        };
-        
-        const token = 'tdp_' + Date.now();
-        
-        authStore.loginSuccess(userData, token, rememberMe);
-        
-        localStorage.setItem('tdp_token', token);
-        localStorage.setItem('tdp_user', JSON.stringify(userData));
-        localStorage.setItem('tdp_remember', rememberMe.toString());
-        localStorage.setItem('last_activity', Date.now().toString());
-        
-        return { success: true, user: userData };
-      } else {
-        throw new Error('Credenciales incorrectas');
+      const data = await response.json();
+      console.log('📡 Respuesta completa:', data);
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Credenciales incorrectas');
       }
       
+      // ✅ USAR EL TOKEN REAL DEL BACKEND
+      const { token, user } = data;
+      
+      if (!token || !token.startsWith('eyJ')) {
+        console.error('❌ Token inválido recibido:', token);
+        throw new Error('Token inválido recibido del backend');
+      }
+      
+      console.log('✅ Token JWT guardado:', token.substring(0, 50) + '...');
+      
+      authStore.loginSuccess(user, token, rememberMe);
+      
+      localStorage.setItem('tdp_token', token);
+      localStorage.setItem('tdp_user', JSON.stringify(user));
+      localStorage.setItem('tdp_remember', rememberMe.toString());
+      localStorage.setItem('last_activity', Date.now().toString());
+      
+      return { success: true, user };
+      
     } catch (error) {
+      console.error('❌ Error en login:', error);
       setError(error.message);
       return { success: false, error: error.message };
     } finally {
       setIsLoading(false);
+      setTimeout(() => { loginInProgress.current = false; }, 500);
     }
   };
 
   const logout = () => {
+    localStorage.removeItem('tdp_token');
+    localStorage.removeItem('tdp_user');
+    localStorage.removeItem('tdp_remember');
+    localStorage.removeItem('last_activity');
     authStore.logout();
-    setIsChecking(false);
   };
 
   return {
@@ -124,22 +123,11 @@ export const useAuth = () => {
     error,
     login,
     logout,
-    
-    checkSession: () => {
-      if (authStore.isAuthenticated) {
-        return authStore.checkTimeout();
-      }
-      return true;
-    },
-    
+    checkSession: () => authStore.checkTimeout(),
     getSessionTimeLeft: () => {
       if (!authStore.lastActivity || !authStore.isAuthenticated) return 0;
-      
-      const timeoutMs = authStore.rememberMe ? 
-        (30 * 24 * 60 * 60 * 1000) : (60 * 60 * 1000);
-      
-      const timeLeft = timeoutMs - (Date.now() - authStore.lastActivity);
-      return Math.max(0, Math.floor(timeLeft / 1000));
+      const timeoutMs = authStore.rememberMe ? 30 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000;
+      return Math.max(0, Math.floor((timeoutMs - (Date.now() - authStore.lastActivity)) / 1000));
     }
   };
 };

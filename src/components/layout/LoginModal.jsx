@@ -1,11 +1,14 @@
-/* loginModal.jsx - VERSIÓN SIMPLIFICADA Y FUNCIONAL */
+/* loginModal.jsx */
 
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, AlertCircle, Loader2, Smartphone } from 'lucide-react';
+import { useAuthBackend } from '../../hooks/useAuthBackend';
 import { useAuth } from '../../hooks/useAuth';
 
 const LoginModal = () => {
-  const { isAuthenticated, login, isChecking } = useAuth();
+  const { login: loginBackend, isLoading: isLoadingBackend } = useAuthBackend();
+const { isAuthenticated, isChecking } = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -29,31 +32,34 @@ const LoginModal = () => {
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    if (!email.trim() || !password.trim()) {
-      setError('Por favor completa todos los campos');
-      return;
-    }
-    
-    if (!isValidEmail(email)) {
-      setError('Por favor ingresa un email válido');
-      return;
-    }
+  e.preventDefault();
+  setError('');
+  
+  if (!email.trim() || !password.trim()) {
+    setError('Por favor completa todos los campos');
+    return;
+  }
+  
+  if (!isValidEmail(email)) {
+    setError('Por favor ingresa un email válido');
+    return;
+  }
 
-    setIsLoading(true);
-    
-    try {
-      const result = await login(email, password, rememberMe);
-      if (!result.success) setError(result.error);
-    } catch (err) {
-      setError('Error de conexión. Intenta nuevamente.');
-      if (import.meta.env.DEV) console.error('Login error:', err);
-    } finally {
-      setIsLoading(false);
+  setIsLoading(true);
+  
+  try {
+    // Usar el backend en lugar del login local
+    const result = await loginBackend(email, password, rememberMe);
+    if (!result.success) {
+      setError(result.error);
     }
-  };
+  } catch (err) {
+    setError('Error de conexión. Intenta nuevamente.');
+    if (import.meta.env.DEV) console.error('Login error:', err);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto" style={{ 
@@ -272,7 +278,6 @@ const LoginModal = () => {
                   <span className="tracking-wide relative z-10">ACCEDER AL DASHBOARD</span>
                 )}
               </button>
-
             </form>
 
             {/* Footer */}
