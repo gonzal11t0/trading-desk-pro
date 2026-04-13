@@ -23,7 +23,7 @@ export const useAuth = () => {
         authStore.loginSuccess(user, token, true);
         authStore.updateActivity();
       } catch (e) {
-        console.error('Error restaurando sesión:', e);
+        console.error('Error restaurando la  sesión actual:', e);
         localStorage.removeItem('tdp_token');
         localStorage.removeItem('tdp_user');
       }
