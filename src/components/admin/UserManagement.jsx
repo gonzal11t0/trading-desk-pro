@@ -1,12 +1,14 @@
+// src/components/admin/UserManagement.jsx
 import React, { useState, useEffect } from 'react';
-import { Users, RefreshCw, Trash2, Plus, Check, X, Mail, Shield, Search, UserPlus, Server, Copy, Key } from 'lucide-react';import { useAuth } from '../../hooks/useAuth';
+import { Users, RefreshCw, Trash2, Check, X, Mail, Shield, Search, UserPlus, Copy, Key } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// ⚠️ CAMBIAR ESTA URL POR LA DE TU BACKEND EN VERCEL
+const API_URL = import.meta.env.VITE_API_URL || 'https://trading-backend-psi.vercel.app/api';
 
 const UserManagement = () => {
-const { isAdmin, currentUser } = useAuth();
-const [generatedPassword, setGeneratedPassword] = useState(null);
-
+  const { isAdmin, currentUser } = useAuth();
+  const [generatedPassword, setGeneratedPassword] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newUserEmail, setNewUserEmail] = useState('');
@@ -31,6 +33,8 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
       if (response.ok) {
         const data = await response.json();
         setUsers(data.users || []);
+      } else {
+        console.error('Error cargando usuarios:', await response.text());
       }
     } catch (error) {
       console.error('Error cargando usuarios:', error);
@@ -49,47 +53,46 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
   };
 
   const handleCreateUser = async () => {
-  if (!newUserEmail.trim() || !newUserPassword.trim()) {
-    showMessage('Email y contraseña son requeridos', 'error');
-    return;
-  }
-  try {
-    const token = getToken();
-    const response = await fetch(`${API_URL}/admin/users`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email: newUserEmail,
-        password: newUserPassword,
-        name: newUserName || newUserEmail.split('@')[0],
-        role: newUserRole,
-        plan: newUserPlan
-      })
-    });
-    const data = await response.json();
-    if (response.ok) {
-      // Guardar la contraseña para mostrarla
-      setGeneratedPassword({
-        email: newUserEmail,
-        password: newUserPassword
-      });
-      
-      showMessage(`✅ Usuario ${newUserEmail} creado`, 'success');
-      setNewUserEmail('');
-      setNewUserName('');
-      setNewUserPassword('');
-      setIsAddingUser(false);
-      loadUsers();
-    } else {
-      showMessage(data.error || 'Error creando usuario', 'error');
+    if (!newUserEmail.trim() || !newUserPassword.trim()) {
+      showMessage('Email y contraseña son requeridos', 'error');
+      return;
     }
-  } catch (error) {
-    showMessage('Error de conexión', 'error');
-  }
-};
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_URL}/admin/users`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: newUserEmail,
+          password: newUserPassword,
+          name: newUserName || newUserEmail.split('@')[0],
+          role: newUserRole,
+          plan: newUserPlan
+        })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setGeneratedPassword({
+          email: newUserEmail,
+          password: newUserPassword
+        });
+        
+        showMessage(`✅ Usuario ${newUserEmail} creado`, 'success');
+        setNewUserEmail('');
+        setNewUserName('');
+        setNewUserPassword('');
+        setIsAddingUser(false);
+        loadUsers();
+      } else {
+        showMessage(data.error || 'Error creando usuario', 'error');
+      }
+    } catch (error) {
+      showMessage('Error de conexión', 'error');
+    }
+  };
 
   const handleDeleteUser = async (userId, userEmail) => {
     if (userEmail === currentUser?.email) {
@@ -280,51 +283,52 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
       <div className="mt-6 pt-4 border-t border-gray-800/30">
         <p className="text-xs text-gray-500 text-center">🔒 Usuarios gestionados desde el backend (JWT + bcrypt)</p>
       </div>
-      {generatedPassword && (
-  <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-    <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 max-w-md w-full">
-      <h3 className="text-lg font-bold text-white mb-4 flex items-center">
-        <Key className="w-5 h-5 mr-2 text-green-400" />
-        Usuario Creado
-      </h3>
       
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">Email</label>
-          <div className="p-2 bg-gray-800 rounded text-white font-mono text-sm">
-            {generatedPassword.email}
+      {generatedPassword && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+              <Key className="w-5 h-5 mr-2 text-green-400" />
+              Usuario Creado
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Email</label>
+                <div className="p-2 bg-gray-800 rounded text-white font-mono text-sm">
+                  {generatedPassword.email}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Contraseña</label>
+                <div className="p-2 bg-gray-800 rounded text-white font-mono text-sm break-all">
+                  {generatedPassword.password}
+                </div>
+              </div>
+              
+              <div className="flex space-x-3 pt-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${generatedPassword.email}\n${generatedPassword.password}`);
+                    showMessage('📋 Credenciales copiadas', 'success');
+                  }}
+                  className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center justify-center"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar Email + Password
+                </button>
+                <button
+                  onClick={() => setGeneratedPassword(null)}
+                  className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">Contraseña</label>
-          <div className="p-2 bg-gray-800 rounded text-white font-mono text-sm break-all">
-            {generatedPassword.password}
-          </div>
-        </div>
-        
-        <div className="flex space-x-3 pt-2">
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(`${generatedPassword.email}\n${generatedPassword.password}`);
-              showMessage('📋 Credenciales copiadas', 'success');
-            }}
-            className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center justify-center"
-          >
-            <Copy className="w-4 h-4 mr-2" />
-            Copiar Email + Password
-          </button>
-          <button
-            onClick={() => setGeneratedPassword(null)}
-            className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded"
-          >
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 };

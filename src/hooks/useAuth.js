@@ -1,8 +1,9 @@
-// src/hooks/useAuth.js - VERSIÓN CORREGIDA
+// src/hooks/useAuth.js - VERSIÓN CORREGIDA PARA PRODUCCIÓN
 import { useEffect, useState, useRef } from 'react';
 import { useAuthStore } from '../stores/authStore';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// ⚠️ CAMBIAR ESTA URL POR LA DE TU BACKEND EN VERCEL
+const API_URL = import.meta.env.VITE_API_URL || 'https://trading-backend-psi.vercel.app/api';
 
 export const useAuth = () => {
   const authStore = useAuthStore();
@@ -62,7 +63,7 @@ export const useAuth = () => {
     setError('');
     
     try {
-      console.log('📡 Llamando a /api/auth/login');
+      console.log('📡 Llamando a:', `${API_URL}/auth/login`);
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -76,7 +77,6 @@ export const useAuth = () => {
         throw new Error(data.error || 'Credenciales incorrectas');
       }
       
-      // ✅ USAR EL TOKEN REAL DEL BACKEND
       const { token, user } = data;
       
       if (!token || !token.startsWith('eyJ')) {
