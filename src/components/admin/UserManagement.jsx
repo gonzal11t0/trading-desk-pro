@@ -4,7 +4,7 @@ import { Users, RefreshCw, Trash2, Check, X, Mail, Shield, Search, UserPlus, Cop
 import { useAuth } from '../../hooks/useAuth';
 
 // ⚠️ CAMBIAR ESTA URL POR LA DE TU BACKEND EN VERCEL
-const API_URL = import.meta.env.VITE_API_URL || 'https://trading-backend-psi.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://trading-backend-letras.vercel.app/api';
 
 
 const UserManagement = () => {
