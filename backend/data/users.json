@@ -9,26 +9,6 @@
       "plan": "enterprise",
       "active": true,
       "createdAt": "2024-01-01"
-    },
-    {
-      "id": 2,
-      "email": "clienteLeo@empresa.com",
-      "password": "$2b$10$eykuGz2bswu2M7lzdedgJe/f7yL1/RUih/c5.Gs.kerm24RfO4a/2",
-      "name": "Leo",
-      "role": "client",
-      "plan": "basic",
-      "active": true,
-      "createdAt": "2026-04-13"
-    },
-    {
-      "id": 3,
-      "email": "gonza@gmail.com",
-      "password": "$2b$10$4VexA6AUV7e6AgJq61BhVekvpxTPoBeEeOY4.hi5bX0MhSu50nJFO",
-      "name": "gonza",
-      "role": "client",
-      "plan": "basic",
-      "active": true,
-      "createdAt": "2026-04-13"
     }
   ]
 }

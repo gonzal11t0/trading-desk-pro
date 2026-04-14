@@ -1,9 +1,8 @@
-// src/hooks/useAuth.js - VERSIÓN CORREGIDA PARA PRODUCCIÓN
+// src/hooks/useAuth.js
 import { useEffect, useState, useRef } from 'react';
 import { useAuthStore } from '../stores/authStore';
 
-// ⚠️ CAMBIAR ESTA URL POR LA DE TU BACKEND EN VERCEL
-const API_URL = import.meta.env.VITE_API_URL || 'https://trading-backend-psi.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://trading-backend.vercel.app/api';
 
 export const useAuth = () => {
   const authStore = useAuthStore();
@@ -12,8 +11,10 @@ export const useAuth = () => {
   const [error, setError] = useState('');
   const loginInProgress = useRef(false);
 
-  // Verificar sesión guardada al iniciar
+  // Verificar sesión guardada al iniciar (solo una vez)
   useEffect(() => {
+    let mounted = true;
+    
     const token = localStorage.getItem('tdp_token');
     const userStr = localStorage.getItem('tdp_user');
     
@@ -23,16 +24,18 @@ export const useAuth = () => {
         authStore.loginSuccess(user, token, true);
         authStore.updateActivity();
       } catch (e) {
-        console.error('Error restaurando la  sesión actual:', e);
+        console.error('Error restaurando sesión:', e);
         localStorage.removeItem('tdp_token');
         localStorage.removeItem('tdp_user');
       }
     }
     
-    setIsChecking(false);
+    if (mounted) setIsChecking(false);
+    
+    return () => { mounted = false; };
   }, []);
 
-  // Actualizar actividad
+  // Actualizar actividad periódicamente
   useEffect(() => {
     let intervalId;
     
@@ -54,57 +57,43 @@ export const useAuth = () => {
   }, [authStore.isAuthenticated]);
 
   const login = async (email, password, rememberMe = false) => {
-    if (loginInProgress.current) {
-      return { success: false, error: 'Login en progreso' };
-    }
-    
-    loginInProgress.current = true;
+  try {
     setIsLoading(true);
     setError('');
     
-    try {
-      console.log('📡 Llamando a:', `${API_URL}/auth/login`);
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      
-      const data = await response.json();
-      console.log('📡 Respuesta completa:', data);
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Credenciales incorrectas');
-      }
-      
-      const { token, user } = data;
-      
-      if (!token || !token.startsWith('eyJ')) {
-        console.error('❌ Token inválido recibido:', token);
-        throw new Error('Token inválido recibido del backend');
-      }
-      
-      console.log('✅ Token JWT guardado:', token.substring(0, 50) + '...');
-      
-      authStore.loginSuccess(user, token, rememberMe);
-      
-      localStorage.setItem('tdp_token', token);
-      localStorage.setItem('tdp_user', JSON.stringify(user));
-      localStorage.setItem('tdp_remember', rememberMe.toString());
-      localStorage.setItem('last_activity', Date.now().toString());
-      
-      return { success: true, user };
-      
-    } catch (error) {
-      console.error('❌ Error en login:', error);
-      setError(error.message);
-      return { success: false, error: error.message };
-    } finally {
-      setIsLoading(false);
-      setTimeout(() => { loginInProgress.current = false; }, 500);
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Credenciales incorrectas');
     }
-  };
-
+    
+    // ✅ USAR EL TOKEN REAL DEL BACKEND
+    const { token, user } = data;
+    
+    console.log('✅ Token real recibido:', token.substring(0, 50) + '...');
+    
+    authStore.loginSuccess(user, token, rememberMe);
+    
+    localStorage.setItem('tdp_token', token);  // ← Guardar token REAL
+    localStorage.setItem('tdp_user', JSON.stringify(user));
+    localStorage.setItem('tdp_remember', rememberMe.toString());
+    localStorage.setItem('last_activity', Date.now().toString());
+    
+    return { success: true, user };
+    
+  } catch (error) {
+    setError(error.message);
+    return { success: false, error: error.message };
+  } finally {
+    setIsLoading(false);
+  }
+};
   const logout = () => {
     localStorage.removeItem('tdp_token');
     localStorage.removeItem('tdp_user');
