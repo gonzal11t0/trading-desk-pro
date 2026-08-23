@@ -5,7 +5,6 @@ import { useAuth } from './hooks/useAuth'
 import LoginModal from './components/layout/LoginModal'
 import { Toaster, toast } from "react-hot-toast";
 import { usePremiumStore } from './stores/premiumStore' // 👈 IMPORTAR STORE
-import { playAlert } from "simple-notification-sounds";
 
 // Tus componentes existentes
 import { TradingHeader } from './components/layout/TradingHeader'
@@ -345,8 +344,6 @@ useEffect(() => {
         : precioActual <= alerta.precioObjetivo;
             
       if (condicionCumplida) {
-  playAlert("medium"); 
-  
   toast.success(`🔔 ${alerta.ticker} alcanzó $${precioActual.toFixed(2)}`, {
     duration: 10000,
     icon: '🔔',
