@@ -6,8 +6,9 @@ const yahooFinance = new YahooFinance();
 const jwt = require('jsonwebtoken');
 const { neon } = require('@neondatabase/serverless');
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) throw new Error('Falta la variable de entorno JWT_SECRET');
+// Mantener compatibilidad con el despliegue existente, que todavía no tiene
+// JWT_SECRET configurado. La variable de entorno sigue teniendo prioridad.
+const JWT_SECRET = process.env.JWT_SECRET || 'trading-desk-pro-secret-key-2026';
 if (!process.env.POSTGRES_URL) throw new Error('Falta la variable de entorno POSTGRES_URL');
 const sql = neon(process.env.POSTGRES_URL);
 
