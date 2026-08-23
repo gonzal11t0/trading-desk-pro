@@ -9,6 +9,7 @@ import re
 import time
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
+from urllib.request import Request, urlopen
 
 import pdfplumber
 
@@ -143,6 +144,35 @@ def extract_cepu_fields(text):
     return fields, sum(fields[key] is not None for key in expected)
 
 
+def download_official_pdf(ticker, source_url):
+    parsed = urlparse(source_url)
+    allowed_hosts = {
+        'CEPU': {'centralpuerto.com', 'www.centralpuerto.com'}
+    }
+    if parsed.scheme != 'https' or parsed.hostname not in allowed_hosts.get(ticker, set()):
+        raise ValueError('El enlace no pertenece a la fuente oficial permitida para esta empresa')
+
+    headers = {'User-Agent': 'TradingDeskPro/1.0'}
+    final_url = source_url
+    if not parsed.path.lower().endswith('.pdf'):
+        with urlopen(Request(source_url, headers=headers), timeout=25) as response:
+            html = response.read(2_000_001)
+        if len(html) > 2_000_000:
+            raise ValueError('La página oficial es demasiado grande para localizar el informe')
+        links = re.findall(rb'https://www\.centralpuerto\.com/[^"\s]+\.pdf', html, re.I)
+        candidates = [link.decode('utf-8', 'ignore') for link in links]
+        preferred = [link for link in candidates if re.search(r'2T26.*ESP.*CEPU|20260811_2T26', link, re.I)]
+        if not preferred:
+            raise ValueError('No se encontró la presentación de resultados más reciente en la página oficial')
+        final_url = preferred[0]
+
+    with urlopen(Request(final_url, headers=headers), timeout=40) as response:
+        pdf_bytes = response.read(15_000_001)
+    if len(pdf_bytes) > 15_000_000 or not pdf_bytes.startswith(b'%PDF'):
+        raise ValueError('La fuente oficial no devolvió un PDF válido')
+    return pdf_bytes, final_url
+
+
 class handler(BaseHTTPRequestHandler):
     def send_json(self, status, payload):
         body = json.dumps(payload, ensure_ascii=False).encode()
@@ -156,9 +186,10 @@ class handler(BaseHTTPRequestHandler):
         try:
             require_admin(self.headers.get('Authorization'))
             length = int(self.headers.get('Content-Length', '0'))
-            if length > 4_650_000:
-                return self.send_json(413, {'error': 'El PDF supera el límite de extracción (4,65 MB)'})
+            if length > 4_400_000:
+                return self.send_json(413, {'error': 'El PDF supera el límite de envío directo'})
             content_type = self.headers.get('Content-Type', '')
+            source_url = ''
             if content_type.startswith('application/pdf'):
                 ticker = parse_qs(urlparse(self.path).query).get('ticker', [''])[0].strip().upper()
                 pdf_bytes = self.rfile.read(length)
@@ -166,11 +197,15 @@ class handler(BaseHTTPRequestHandler):
                 payload = json.loads(self.rfile.read(length) or b'{}')
                 encoded = payload.get('pdfBase64', '')
                 ticker = str(payload.get('ticker', '')).strip().upper()
-                pdf_bytes = base64.b64decode(encoded, validate=True)
+                source_url = str(payload.get('sourceUrl', '')).strip()
+                if source_url:
+                    pdf_bytes, source_url = download_official_pdf(ticker, source_url)
+                else:
+                    pdf_bytes = base64.b64decode(encoded, validate=True)
             if not re.fullmatch(r'[A-Z0-9.]{2,10}', ticker):
                 return self.send_json(400, {'error': 'Seleccioná o escribí un ticker antes del PDF'})
-            if len(pdf_bytes) > 4_650_000 or not pdf_bytes.startswith(b'%PDF'):
-                return self.send_json(400, {'error': 'El archivo no es un PDF válido o supera 4,65 MB'})
+            if len(pdf_bytes) > 15_000_000 or not pdf_bytes.startswith(b'%PDF'):
+                return self.send_json(400, {'error': 'El archivo no es un PDF válido o supera 15 MB'})
             with pdfplumber.open(io.BytesIO(pdf_bytes)) as document:
                 text = '\n'.join(page.extract_text() or '' for page in document.pages)
             if not text.strip():
@@ -180,6 +215,7 @@ class handler(BaseHTTPRequestHandler):
                 'success': True,
                 'fields': fields,
                 'found': found,
+                'sourceUrl': source_url or None,
                 'warnings': ['Extracción preliminar: los formatos cambian entre emisoras y períodos. Revisá cada cifra y su unidad contra el PDF antes de publicar.']
             })
         except PermissionError as error:

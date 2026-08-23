@@ -21,9 +21,19 @@ export const balancesApi = {
     }));
   },
 
-  extractBalance: async ({ file, ticker }) => {
-    if (file.size > 4_650_000) throw new Error('El PDF supera 4,65 MB. Descargá una versión reducida o sólo los estados financieros principales.');
+  extractBalance: async ({ file, ticker, sourceUrl }) => {
     const token = localStorage.getItem('tdp_token');
+    if (file.size > 4_400_000) {
+      if (!sourceUrl) throw new Error('El PDF es demasiado grande y falta el enlace oficial para analizarlo desde la fuente.');
+      return parseResponse(await fetch(`${API_URL}/admin/balances/extract`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ticker, sourceUrl })
+      }));
+    }
     return parseResponse(await fetch(`${API_URL}/admin/balances/extract?ticker=${encodeURIComponent(ticker)}`, {
       method: 'POST',
       headers: {

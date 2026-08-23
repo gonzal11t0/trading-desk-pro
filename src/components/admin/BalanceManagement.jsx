@@ -90,7 +90,8 @@ const BalanceManagement = () => {
     }));
     setExtracting(true);
     try {
-      const result = await balancesApi.extractBalance({ file, ticker: balance.ticker });
+      const result = await balancesApi.extractBalance({ file, ticker: balance.ticker, sourceUrl: sourceUrl || officialSource?.url });
+      if (result.sourceUrl) setSourceUrl(result.sourceUrl);
       setBalance(current => {
         const next = { ...current };
         Object.entries(result.fields || {}).forEach(([field, value]) => {
