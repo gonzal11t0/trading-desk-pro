@@ -18,22 +18,26 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
   const [activeTab, setActiveTab] = useState('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState(null);
+  const [loadError, setLoadError] = useState('');
 
   const getToken = () => localStorage.getItem('tdp_token');
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const token = getToken();
+      if (!token) throw new Error('La sesión no contiene un token. Cerrá sesión y volvé a ingresar.');
       const response = await fetch(`${API_URL}/admin/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data.users || []);
-      }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `Error HTTP ${response.status}`);
+      setUsers(data.users || []);
     } catch (error) {
       console.error('Error cargando usuarios:', error);
+      setUsers([]);
+      setLoadError(error.message || 'No fue posible cargar los usuarios');
     } finally {
       setLoading(false);
     }
@@ -185,7 +189,13 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
 
       {activeTab === 'users' && (
         <div className="space-y-4">
-          {loading ? (
+          {loadError ? (
+            <div className="rounded-lg border border-red-800/40 bg-red-950/20 p-4 text-sm text-red-300">
+              <p className="font-semibold">No se pudo consultar la base de usuarios</p>
+              <p className="mt-1">{loadError}</p>
+              <button onClick={loadUsers} className="mt-3 px-3 py-1.5 bg-red-700/40 hover:bg-red-700/60 rounded text-white">Reintentar</button>
+            </div>
+          ) : loading ? (
             <div className="text-center py-8">Cargando...</div>
           ) : filteredUsers.length === 0 ? (
             <div className="text-center py-8 text-gray-500">No se encontraron usuarios</div>
