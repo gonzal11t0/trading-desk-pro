@@ -3,17 +3,41 @@ import EmpresaCard from './EmpresaCard';
 import { usePremiumStore } from '../../stores/premiumStore';
 import { Star } from 'lucide-react';
 import balancesData from '../../data/balances_reales.json';
+import { companyApi } from '../../api/companyApi';
 
 const BalancesTab = () => {
   const [empresas, setEmpresas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [soloFavoritos, setSoloFavoritos] = useState(false);
+  const [preciosActualizados, setPreciosActualizados] = useState(0);
   const { favoritos } = usePremiumStore();
 
   useEffect(() => {
-    // Cargar datos desde el JSON
     setEmpresas(balancesData.empresas);
     setLoading(false);
+
+    Promise.allSettled(
+      balancesData.empresas.map(async empresa => ({
+        ticker: empresa.ticker,
+        data: await companyApi.getCompany(empresa.ticker)
+      }))
+    ).then(results => {
+      const cotizaciones = new Map(
+        results
+          .filter(result => result.status === 'fulfilled' && Number.isFinite(Number(result.value.data?.precio)))
+          .map(result => [result.value.ticker, result.value.data])
+      );
+      setPreciosActualizados(cotizaciones.size);
+      setEmpresas(actuales => actuales.map(empresa => {
+        const mercado = cotizaciones.get(empresa.ticker);
+        return mercado ? {
+          ...empresa,
+          precio: Number(mercado.precio),
+          per: Number.isFinite(Number(mercado.per)) ? Number(mercado.per) : empresa.per,
+          precioEnVivo: true
+        } : empresa;
+      }));
+    });
   }, []);
 
   const empresasFiltradas = useMemo(() => {
@@ -56,7 +80,10 @@ const BalancesTab = () => {
             </span>
           )}
           <span className="text-xs text-gray-500 ml-2">
-            Últ. actualización: {balancesData.ultima_actualizacion}
+            Balances cargados: {balancesData.ultima_actualizacion}
+          </span>
+          <span className="text-xs text-gray-500">
+            · Cotizaciones actualizadas: {preciosActualizados}/{balancesData.empresas.length}
           </span>
         </div>
         
@@ -88,9 +115,10 @@ const BalancesTab = () => {
         ))
       )}
       
-      <button className="w-full py-3 bg-gray-800/50 hover:bg-gray-800 rounded-lg text-gray-400 transition">
-        Cargar más empresas...
-      </button>
+      <p className="text-xs text-gray-500 text-center px-4">
+        Los importes del balance provienen del archivo local fechado. Precio y PER se consultan al mercado cuando la fuente responde.
+        No constituyen una recomendación de inversión.
+      </p>
     </div>
   );
 };

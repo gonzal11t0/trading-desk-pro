@@ -26,7 +26,7 @@ const FloatingEduButton = () => {
       id: 1,
       icon: <DollarSign style={{ width: '16px', height: '16px' }} />,
       title: "¿Qué son las Reservas?",
-      description: "Dinero en moneda extranjera que tiene el BCRA para pagar deudas y estabilizar el dólar.",
+      description: "Activos externos administrados por el BCRA. Para analizarlos importa distinguir reservas brutas y netas.",
       color: "linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)",
       bgColor: "rgba(59, 130, 246, 0.1)",
       emoji: "🏦"

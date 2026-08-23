@@ -55,7 +55,7 @@ const EmpresaCard = ({ empresa }) => {
               </span>
             </div>
             <p className="text-sm text-gray-500">
-              Último balance: {empresa.ultimoBalance} · Precio: ${empresa.precio.toLocaleString('es-AR')}
+              Último balance: {empresa.ultimoBalance} · Precio{empresa.precioEnVivo ? ' de mercado' : ' cargado'}: ${empresa.precio.toLocaleString('es-AR')}
             </p>
           </div>
           

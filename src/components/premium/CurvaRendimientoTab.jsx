@@ -49,102 +49,32 @@ const CurvaRendimientoTab = () => {
 
   // Datos para la curva
   const datosCurva = useMemo(() => {
-    const puntos = [];
+    const hoy = new Date();
+    const crearPunto = (instrumento, tipoPredeterminado) => {
+      const tasa = Number(instrumento.tir ?? instrumento.tea ?? instrumento.tna);
+      const vencimiento = instrumento.vencimiento ? new Date(instrumento.vencimiento) : null;
+      const plazo = Number(instrumento.plazo_anos) || (
+        vencimiento && !Number.isNaN(vencimiento.getTime())
+          ? (vencimiento - hoy) / (365.25 * 24 * 60 * 60 * 1000)
+          : null
+      );
 
-    // 1. Letras del Tesoro (corto plazo)
-    const letrasMap = {
-      'S29Y6': { plazo: 0.16, tasa: 42, nombre: 'S29Y6', tipo: 'Letra', moneda: 'ARS' },
-      'M31G6': { plazo: 0.5, tasa: 36, nombre: 'M31G6', tipo: 'Letra', moneda: 'ARS' },
-      'S30N6': { plazo: 0.75, tasa: 40, nombre: 'S30N6', tipo: 'Letra', moneda: 'ARS' },
-      'X30N6': { plazo: 0.75, tasa: 22, nombre: 'X30N6 (CER)', tipo: 'Letra CER', moneda: 'ARS' }
+      if (!Number.isFinite(tasa) || !Number.isFinite(plazo) || plazo <= 0) return null;
+      return {
+        plazo,
+        tasa,
+        nombre: instrumento.nombre || instrumento.ticker,
+        ticker: instrumento.ticker,
+        tipo: instrumento.tipo || tipoPredeterminado,
+        moneda: instrumento.moneda || 'ARS',
+        precio: Number(instrumento.ultimo)
+      };
     };
 
-    letras.forEach(letra => {
-      const info = letrasMap[letra.ticker];
-      if (info && letra.ultimo) {
-        puntos.push({
-          plazo: info.plazo,
-          tasa: info.tasa,
-          nombre: info.nombre,
-          ticker: letra.ticker,
-          tipo: info.tipo,
-          moneda: info.moneda,
-          precio: letra.ultimo
-        });
-      }
-    });
-
-    // 2. Bonos en pesos (mediano/largo plazo)
-    const bonosPesosMap = {
-      'AO27': { plazo: 0.8, tasa: 3.05, nombre: 'AO27', tipo: 'Bono ARS' },
-      'AN29': { plazo: 2.7, tasa: 2.85, nombre: 'AN29', tipo: 'Bono ARS' },
-      'AL30': { plazo: 4.8, tasa: 2.65, nombre: 'AL30', tipo: 'Bono ARS' },
-      'AL35': { plazo: 9.7, tasa: 2.45, nombre: 'AL35', tipo: 'Bono ARS' },
-      'AE38': { plazo: 12.8, tasa: 2.35, nombre: 'AE38', tipo: 'Bono ARS' },
-      'AL41': { plazo: 15.8, tasa: 2.30, nombre: 'AL41', tipo: 'Bono ARS' }
-    };
-
-    bonos.forEach(bono => {
-      const info = bonosPesosMap[bono.ticker];
-      if (info && bono.ultimo) {
-        puntos.push({
-          plazo: info.plazo,
-          tasa: info.tasa,
-          nombre: info.nombre,
-          ticker: bono.ticker,
-          tipo: info.tipo,
-          moneda: 'ARS',
-          precio: bono.ultimo
-        });
-      }
-    });
-
-    // 3. Bonos en dólares (GD30, GD35) - datos fijos porque la API a veces no los trae
-    const bonosDolaresFijos = [
-      { plazo: 4.8, tasa: 14.8, nombre: 'GD30', ticker: 'GD30', tipo: 'Bono USD', moneda: 'USD', precio: 89240, variacion: -0.48 },
-      { plazo: 9.7, tasa: 15.9, nombre: 'GD35', ticker: 'GD35', tipo: 'Bono USD', moneda: 'USD', precio: 110800, variacion: -0.81 }
-    ];
-
-    // Primero buscar si vienen de la API
-   bonos.forEach(bono => {
-  // GD30 (incluyendo variantes GD30, GD30C, GD30D)
-  if (bono.ticker === 'GD30' || bono.ticker === 'GD30C' || bono.ticker === 'GD30D') {
-    puntos.push({
-      plazo: 4.8,
-      tasa: 14.8,  // TIR aproximada (podríamos calcularla)
-      nombre: 'GD30',
-      ticker: bono.ticker,
-      tipo: 'Bono USD',
-      moneda: 'USD',
-      precio: bono.ultimo,
-      variacion: bono.variacion_dia
-    });
-  }
-  // GD35 (incluyendo variantes GD35, GD35C, GD35D)
-  if (bono.ticker === 'GD35' || bono.ticker === 'GD35C' || bono.ticker === 'GD35D') {
-    puntos.push({ 
-      plazo: 9.7,
-      tasa: 15.9,
-      nombre: 'GD35',
-      ticker: bono.ticker,
-      tipo: 'Bono USD',
-      moneda: 'USD',
-      precio: bono.ultimo,
-      variacion: bono.variacion_dia
-    });
-  }
-});
-
-    // Agregar datos fijos si no aparecieron
-    bonosDolaresFijos.forEach(bono => {
-      const existe = puntos.some(p => p.ticker === bono.ticker || p.ticker === `${bono.ticker}D` || p.ticker === `${bono.ticker}C`);
-      if (!existe) {
-        puntos.push(bono);
-      }
-    });
-
-    // Ordenar por plazo
-    return puntos.sort((a, b) => a.plazo - b.plazo);
+    return [
+      ...letras.map(letra => crearPunto(letra, 'Letra')),
+      ...bonos.map(bono => crearPunto(bono, 'Bono'))
+    ].filter(Boolean).sort((a, b) => a.plazo - b.plazo);
   }, [bonos, letras]);
 
   // Custom tooltip
@@ -267,6 +197,16 @@ const CustomTooltip = ({ active, payload, label }) => {
       </div>
 
       {/* Gráfico */}
+      {datosCurva.length === 0 ? (
+        <div className="bg-yellow-950/20 rounded-xl p-6 border border-yellow-700/30 text-center">
+          <Info className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
+          <h3 className="text-white font-semibold mb-2">No hay rendimientos verificables para construir la curva</h3>
+          <p className="text-sm text-gray-400">
+            La fuente actual informa precios, pero no entrega TIR/TNA, vencimientos y flujos suficientes.
+            No se muestran tasas estimadas ni datos fijos.
+          </p>
+        </div>
+      ) : (
       <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-3">
@@ -353,9 +293,10 @@ const CustomTooltip = ({ active, payload, label }) => {
   </ResponsiveContainer>
 </div>
       </div>
+      )}
 
       {/* Tabla de datos */}
-      {mostrarTabla && (
+      {mostrarTabla && datosCurva.length > 0 && (
         <div className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50">
           <h3 className="text-sm font-semibold text-white mb-3">📊 Datos de la Curva</h3>
           <div className="overflow-x-auto">

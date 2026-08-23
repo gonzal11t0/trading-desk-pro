@@ -1,4 +1,5 @@
 // backend/scripts/get_bonos_iol.js
+const chromium = require('@sparticuz/chromium');
 const puppeteer = require('puppeteer-core');
 
 async function scrapeBonosIOL() {
@@ -6,19 +7,15 @@ async function scrapeBonosIOL() {
   try {
     console.log('🚀 Lanzando navegador...');
     
-    // Usar Chrome instalado en el sistema
-    const executablePath = process.platform === 'win32'
+    const isProduction = process.env.VERCEL === '1';
+    const executablePath = !isProduction && process.platform === 'win32'
       ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-      : '/usr/bin/google-chrome';
+      : await chromium.executablePath();
     
     browser = await puppeteer.launch({
-      executablePath,  // 👈 Usar Chrome instalado
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage'
-      ]
+      executablePath,
+      headless: chromium.headless,
+      args: chromium.args
     });
 
     const page = await browser.newPage();
@@ -65,9 +62,7 @@ async function scrapeBonosIOL() {
 
   } catch (error) {
     console.error('❌ Error en scrapeBonosIOL:', error.message);
-    // Fallback a datos mock
-    const getBonosMock = require('./bonosMock');
-    return getBonosMock();
+    return { success: false, error: error.message, fuente: 'IOL' };
   } finally {
     if (browser) await browser.close();
   }

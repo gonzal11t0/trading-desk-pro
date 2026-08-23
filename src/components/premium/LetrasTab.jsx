@@ -21,18 +21,7 @@ const LetrasTab = () => {
       const letrasArray = Array.isArray(data) ? data : (data.data || []);
       
       if (Array.isArray(letrasArray) && letrasArray.length > 0) {
-        const filtradas = letrasArray.filter(letra => {
-          const ticker = letra.ticker;
-          return ticker === 'S29Y6' || 
-         ticker === 'S30N6' || 
-         ticker === 'M31G6' || 
-         ticker === 'X30N6' ||
-         ticker === 'S27F6' ||
-         ticker === 'X29Y6' ||
-         ticker === 'TZX27' ||
-         ticker === 'D27F6';
-});
-        setLetras(filtradas);
+        setLetras(letrasArray.filter(letra => letra?.ticker && Number.isFinite(Number(letra.ultimo))));
         setLastUpdate(new Date());
       } else {
         console.error('letrasArray no es un array:', letrasArray);

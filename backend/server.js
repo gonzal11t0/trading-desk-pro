@@ -3,7 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const YahooFinance = require('yahoo-finance2').default;
 const yahooFinance = new YahooFinance();
-const getLetrasMock = require('./scripts/letrasMock');
 const jwt = require('jsonwebtoken');
 const { neon } = require('@neondatabase/serverless');
 
@@ -166,10 +165,13 @@ const scrapeBonosIOL = require('./scripts/get_bonos_iol');
 app.get('/api/bonos', async (req, res) => {
   try {
     const data = await scrapeBonosIOL();
+    if (!data.success || !Array.isArray(data.data) || data.data.length === 0) {
+      return res.status(503).json({ error: data.error || 'La fuente de bonos no devolvió datos', fuente: data.fuente || 'IOL' });
+    }
     res.json(data);
   } catch (error) {
     console.error('Error en /api/bonos:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(503).json({ error: 'No fue posible obtener bonos reales', fuente: 'IOL' });
   }
 });
 
@@ -177,14 +179,13 @@ const scrapeLetrasIOL = require('./scripts/get_letras_iol');
 app.get('/api/letras', async (req, res) => {
   try {
     const data = await scrapeLetrasIOL();
-    if (data.success && data.data && data.data.length > 0) {
-      res.json(data);
-    } else {
-      res.json(getLetrasMock());
+    if (!data.success || !Array.isArray(data.data) || data.data.length === 0) {
+      return res.status(503).json({ error: data.error || 'La fuente de letras no devolvió datos', fuente: data.fuente || 'IOL' });
     }
+    res.json(data);
   } catch (error) {
     console.error('Error en /api/letras:', error.message);
-    res.json(getLetrasMock());
+    res.status(503).json({ error: 'No fue posible obtener letras reales', fuente: 'IOL' });
   }
 });
 

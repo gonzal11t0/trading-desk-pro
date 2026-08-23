@@ -12,12 +12,11 @@ const LetraCard = ({ letra }) => {
 
   if (!letra) return null;
 
-  const letraInfo = getLetraData(letra.ticker);
+  const letraInfo = getLetraData(letra.ticker, letra);
   
-  // Usar las propiedades correctas del mock
   const ultimo = letra.ultimo ?? 0;
   const variacion = letra.variacion_dia ?? 0;
-  const variacionPorcentaje = variacion ? (variacion * 100).toFixed(2) : '0.00';
+  const variacionPorcentaje = Number(variacion).toFixed(2);
 
   const getVariacionColor = (valor) => {
     if (valor > 0) return 'text-green-400';

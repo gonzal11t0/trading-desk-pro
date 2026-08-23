@@ -147,9 +147,9 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                   <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-700/30 rounded-lg text-xs text-yellow-400/90">
                     <p className="font-medium mb-1">🔍 Sobre los datos:</p>
                     <ul className="list-disc list-inside space-y-1 text-gray-300">
-                      <li>✅ Todos los datos son <span className="text-green-400">reales</span> de los balances presentados</li>
+                      <li>📁 Las cifras contables provienen del archivo local cargado manualmente</li>
                       <li>📅 Último balance: {datosReales.ultimoBalance} ({datosReales.periodo})</li>
-                      <li>🏦 Fuente: Estados financieros auditados</li>
+                      <li>⚠️ Verificar contra el estado financiero publicado por la emisora o CNV</li>
                     </ul>
                   </div>
                 )}
@@ -292,7 +292,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
               </div>
 
               <div className="text-xs text-gray-500 text-right">
-                Datos basados en balances auditados
+                Datos de carga manual; pueden no reflejar la presentación más reciente
               </div>
 
               <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700">

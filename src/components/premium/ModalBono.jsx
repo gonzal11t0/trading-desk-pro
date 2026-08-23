@@ -148,10 +148,10 @@ const ModalBono = ({ isOpen, onClose, bono }) => {
                 </div>
               </div>
 
-              {/* Recomendación */}
+              {/* Evaluación */}
               <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/30 rounded-lg p-5 border border-gray-700/50">
                 <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                  <span>📊</span> Recomendación
+                  <span>📊</span> Información para evaluar
                 </h3>
                 {(() => {
                   const recomendacion = bonoInfo.recomendacion(precioActual, bono.monto_operado);
@@ -167,7 +167,8 @@ const ModalBono = ({ isOpen, onClose, bono }) => {
                           Riesgo {bonoInfo.riesgo}
                         </span>
                       </div>
-                      <p className="text-gray-300">{recomendacion.razon}</p>
+                      <p className="text-gray-300">Señal configurada manualmente: {recomendacion.razon}</p>
+                      <p className="text-xs text-yellow-400 mt-2">No constituye una recomendación de inversión. Verificá TIR, flujos, legislación y moneda.</p>
                       <div className="mt-3 pt-3 border-t border-gray-700 text-xs text-gray-500">
                         Precio actual: {moneda === 'USD' ? 'U$S' : '$'}{precioActual.toLocaleString('es-AR')} | 
                         Plazo: {diasReales?.toLocaleString() || 'N/A'} días

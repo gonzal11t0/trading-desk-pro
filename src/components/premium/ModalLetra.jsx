@@ -11,8 +11,7 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
   
   if (!isOpen || !letra) return null;
 
-  // Obtener datos fijos de la letra usando ticker
-  const letraInfo = getLetraData(letra.ticker);
+  const letraInfo = getLetraData(letra.ticker, letra);
   
   // Datos reales de la letra
   const precioActual = letra.ultimo || 0;

@@ -19,10 +19,14 @@ const fetchYahooQuote = async (encodedSymbol) => {
 };
 
 const fetchBitcoin = async () => {
-  const data = await fetchJson('/api/coingecko/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
-  const bitcoin = data.bitcoin;
-  if (!Number.isFinite(bitcoin?.usd)) throw new Error('CoinGecko no devolvió precio');
-  return { price: bitcoin.usd, change: null, changePercent: Number(bitcoin.usd_24h_change), source: 'CoinGecko' };
+  try {
+    const data = await fetchJson('/api/coingecko/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+    const bitcoin = data.bitcoin;
+    if (!Number.isFinite(bitcoin?.usd)) throw new Error('CoinGecko no devolvió precio');
+    return { price: bitcoin.usd, change: null, changePercent: Number(bitcoin.usd_24h_change), source: 'CoinGecko' };
+  } catch {
+    return fetchYahooQuote('BTC-USD');
+  }
 };
 
 const fetchDolarBlue = async () => {
