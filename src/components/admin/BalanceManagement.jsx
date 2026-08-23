@@ -111,7 +111,7 @@ const BalanceManagement = () => {
           <ShieldCheck className="w-5 h-5 text-blue-400 mt-0.5 shrink-0" />
           <div>
             <p className="font-semibold text-white">Carga controlada de balances</p>
-            <p className="mt-1">Seleccioná el PDF descargado de CNV. El sistema identifica automáticamente las cifras principales, completa el formulario y espera tu revisión antes de publicar.</p>
+            <p className="mt-1">Seleccioná el informe descargado desde la sección oficial de inversores de la empresa. El sistema identifica automáticamente las cifras principales, completa el formulario y espera tu revisión antes de publicar.</p>
             {officialSource ? (
               <a className="inline-flex items-center gap-1 mt-2 text-blue-400 hover:text-blue-300" href={officialSource.url} target="_blank" rel="noreferrer">
                 Abrir {officialSource.name} <ExternalLink className="w-3 h-3" />

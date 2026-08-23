@@ -135,7 +135,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                     <ul className="list-disc list-inside space-y-1 text-gray-300">
                       <li>📁 Las cifras contables corresponden a una carga revisada por un administrador</li>
                       <li>📅 Último balance: {datosReales.ultimoBalance} ({datosReales.periodo})</li>
-                      <li>⚠️ Verificar contra el estado financiero publicado por la emisora o CNV</li>
+                      <li>⚠️ Verificar contra el informe publicado en la fuente oficial de la emisora</li>
                     </ul>
                   </div>
                 )}

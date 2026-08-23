@@ -149,7 +149,7 @@ class handler(BaseHTTPRequestHandler):
                 'success': True,
                 'fields': fields,
                 'found': found,
-                'warnings': [] if found >= 4 else ['La extracción fue parcial. Revisá cada cifra contra el PDF antes de publicar.']
+                'warnings': ['Extracción preliminar: los formatos cambian entre emisoras y períodos. Revisá cada cifra y su unidad contra el PDF antes de publicar.']
             })
         except PermissionError as error:
             self.send_json(403, {'error': str(error)})
