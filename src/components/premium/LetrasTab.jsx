@@ -1,9 +1,38 @@
 // src/components/premium/LetrasTab.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import LetraCard from './LetraCard';
 import { usePremiumStore } from '../../stores/premiumStore';
 import { letrasApi } from '../../api/letrasApi';
 import { Star, RefreshCw } from 'lucide-react';
+
+const normalizarLetra = (letra) => {
+  const descripcionCompleta = String(letra?.ticker || '').trim();
+  const [ticker = '', ...nombrePartes] = descripcionCompleta.split(/\s+/);
+  const nombre = nombrePartes.join(' ');
+  const fecha = descripcionCompleta.match(/(\d{2})\/(\d{2})\/(\d{2,4})/);
+  const vencimiento = fecha
+    ? `${fecha[3].length === 2 ? `20${fecha[3]}` : fecha[3]}-${fecha[2]}-${fecha[1]}`
+    : null;
+  const plazo = vencimiento
+    ? Math.max(0, Math.ceil((new Date(`${vencimiento}T12:00:00`) - new Date()) / 86400000))
+    : null;
+
+  return {
+    ...letra,
+    ticker,
+    nombre: nombre || ticker,
+    tipo: /cer|aj.*cer/i.test(descripcionCompleta)
+      ? 'Ajustable por CER'
+      : /tamar/i.test(descripcionCompleta)
+        ? 'Capitalizable TAMAR'
+        : /vinc.*usd|d[oó]lar/i.test(descripcionCompleta)
+          ? 'Vinculada al dólar'
+          : 'Capitalizable',
+    moneda: /usd/i.test(descripcionCompleta) ? 'USD vinculada' : 'ARS',
+    vencimiento,
+    plazo
+  };
+};
 
 const LetrasTab = () => {
   const [letras, setLetras] = useState([]);
@@ -12,7 +41,7 @@ const LetrasTab = () => {
   const [lastUpdate, setLastUpdate] = useState(null);
   const { favoritos } = usePremiumStore();
 
-  const fetchLetras = async () => {
+  const fetchLetras = useCallback(async () => {
     try {
       setLoading(true);
       const data = await letrasApi.getLetras();
@@ -21,12 +50,15 @@ const LetrasTab = () => {
       const letrasArray = Array.isArray(data) ? data : (data.data || []);
       
       if (Array.isArray(letrasArray) && letrasArray.length > 0) {
-        const instrumentosNoTesoro = /cheque|pagar[eéa]|#umv|\*mav/i;
-        setLetras(letrasArray.filter(letra => {
-          const ticker = String(letra?.ticker || '').trim();
-          const precio = Number(letra?.ultimo);
-          return ticker && precio > 0 && !instrumentosNoTesoro.test(ticker);
-        }));
+        const letrasNacionales = letrasArray
+          .filter(letra => {
+            const descripcion = String(letra?.ticker || '');
+            const precio = Number(letra?.ultimo);
+            const esTesoroNacional = /tesoro nacional|l\.?\s*t\.?\s*na(?:cio)?/i.test(descripcion);
+            return esTesoroNacional && precio >= 1;
+          })
+          .map(normalizarLetra);
+        setLetras(letrasNacionales);
         setLastUpdate(new Date());
       } else {
         console.error('letrasArray no es un array:', letrasArray);
@@ -38,7 +70,7 @@ const LetrasTab = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchLetras(); // carga inicial
@@ -47,7 +79,7 @@ const LetrasTab = () => {
     const interval = setInterval(fetchLetras, 20 * 60 * 1000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchLetras]);
 
   const letrasFiltradas = letras
     .filter(letra => letra != null)

@@ -56,7 +56,7 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
         <div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 flex justify-between items-center">
           <div>
             <h2 className="text-xl font-bold text-white">{letra.ticker}</h2>
-            <p className="text-sm text-gray-400">{letraInfo.nombre} • {letraInfo.tipo}</p>
+            <p className="text-sm text-gray-400">{letra.nombre || letraInfo.nombre} • {letraInfo.tipo}</p>
             {letraInfo.vencimiento && (
               <p className="text-xs text-gray-500">Vence: {new Date(letraInfo.vencimiento).toLocaleDateString('es-AR')}</p>
             )}

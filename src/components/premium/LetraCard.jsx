@@ -37,7 +37,7 @@ const LetraCard = ({ letra }) => {
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-xl font-bold text-white">{letra.ticker}</h3>
-            <p className="text-sm text-gray-400">{letraInfo.nombre} • {letraInfo.tipo}</p>
+            <p className="text-sm text-gray-400">{letra.nombre || letraInfo.nombre} • {letraInfo.tipo}</p>
           </div>
           
           <div className="flex items-center gap-2">

@@ -95,6 +95,9 @@ export const getLetraData = (ticker, marketData = {}) => {
     if (ticker.includes(key)) {
       return {
         ...data,
+        nombre: marketData.nombre || data.nombre,
+        tipo: marketData.tipo || data.tipo,
+        moneda: marketData.moneda || data.moneda,
         tna: Number.isFinite(Number(marketData.tna)) ? Number(marketData.tna) : null,
         tea: Number.isFinite(Number(marketData.tea)) ? Number(marketData.tea) : null,
         plazo: Number.isFinite(Number(marketData.plazo)) ? Number(marketData.plazo) : null,
