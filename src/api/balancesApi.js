@@ -22,21 +22,15 @@ export const balancesApi = {
   },
 
   extractBalance: async ({ file, ticker }) => {
-    if (file.size > 3_100_000) throw new Error('El PDF supera 3 MB. Descargá una versión reducida o sólo los estados financieros principales.');
-    const pdfBase64 = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result).split(',')[1]);
-      reader.onerror = () => reject(new Error('No fue posible leer el PDF'));
-      reader.readAsDataURL(file);
-    });
+    if (file.size > 4_650_000) throw new Error('El PDF supera 4,65 MB. Descargá una versión reducida o sólo los estados financieros principales.');
     const token = localStorage.getItem('tdp_token');
-    return parseResponse(await fetch(`${API_URL}/admin/balances/extract`, {
+    return parseResponse(await fetch(`${API_URL}/admin/balances/extract?ticker=${encodeURIComponent(ticker)}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/pdf'
       },
-      body: JSON.stringify({ ticker, pdfBase64 })
+      body: file
     }));
   }
 };

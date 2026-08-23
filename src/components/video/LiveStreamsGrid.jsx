@@ -3,13 +3,13 @@ import React, { useState, useCallback, useMemo } from 'react'
 import { streams, getYouTubeEmbedUrl } from '../../utils/youtubeProxy'
 
 // STREAM CARD CON RESTRICCIONES DE ANCHO
-const StreamCard = React.memo(({ stream, onLoad, onError, onRetry, streamState }) => {
+const StreamCard = React.memo(({ stream, onLoad, onError, onRetry, streamState, isActive, onActivate }) => {
   const { id, videoId, title } = stream
   const { hasLoaded, hasError, retryCount } = streamState
   
   const embedUrl = useMemo(() => getYouTubeEmbedUrl(videoId), [videoId])
   
-  const isLoading = hasLoaded === undefined
+  const isLoading = isActive && hasLoaded === undefined
   const currentRetry = retryCount || 0
 
   const handleLoad = useCallback(() => {
@@ -32,9 +32,19 @@ const StreamCard = React.memo(({ stream, onLoad, onError, onRetry, streamState }
   return (
     <div className="terminal-card p-0 overflow-hidden group hover:border-blue-500/30 transition-all duration-300 min-w-0">
       <div className="aspect-video min-h-[180px] bg-gray-900 relative w-full">
+        {!isActive && (
+          <button
+            type="button"
+            onClick={() => onActivate(id)}
+            className="absolute inset-0 w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 transition-colors"
+          >
+            <span className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-white text-xl mb-3">▶</span>
+            <span className="text-sm text-gray-300">Cargar transmisión</span>
+          </button>
+        )}
         
         {/* Loading State */}
-        {isLoading && (
+        {isActive && isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
@@ -44,7 +54,7 @@ const StreamCard = React.memo(({ stream, onLoad, onError, onRetry, streamState }
         )}
 
         {/* Error State */}
-        {hasError && currentRetry < 3 && (
+        {isActive && hasError && currentRetry < 3 && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900 flex-col p-4">
             <div className="text-yellow-400 text-3xl mb-2">⚠️</div>
             <p className="text-gray-400 text-sm text-center mb-3">
@@ -60,7 +70,7 @@ const StreamCard = React.memo(({ stream, onLoad, onError, onRetry, streamState }
         )}
 
         {/* Permanent Error */}
-        {hasError && currentRetry >= 3 && (
+        {isActive && hasError && currentRetry >= 3 && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900 flex-col p-4">
             <div className="text-red-400 text-3xl mb-2">❌</div>
             <p className="text-gray-400 text-sm text-center">
@@ -76,19 +86,21 @@ const StreamCard = React.memo(({ stream, onLoad, onError, onRetry, streamState }
         )}
 
         {/* IFRAME - ANCHO RESPONSIVO */}
-        <iframe
-          id={`iframe-${id}`}
-          src={embedUrl}
-          title={title}
-          className={`w-full h-full max-w-full ${hasError ? 'hidden' : 'block'}`}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          frameBorder="0"
-          onLoad={handleLoad}
-          onError={handleError}
-          referrerPolicy="strict-origin-when-cross-origin"
-          key={`${embedUrl}-${currentRetry}`}
-        />
+        {isActive && (
+          <iframe
+            id={`iframe-${id}`}
+            src={embedUrl}
+            title={title}
+            className={`w-full h-full max-w-full ${hasError ? 'hidden' : 'block'}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            frameBorder="0"
+            onLoad={handleLoad}
+            onError={handleError}
+            referrerPolicy="strict-origin-when-cross-origin"
+            key={`${embedUrl}-${currentRetry}`}
+          />
+        )}
       </div>
       
       {/* FOOTER CON TÍTULO NO TRUNCADO */}
@@ -102,7 +114,7 @@ const StreamCard = React.memo(({ stream, onLoad, onError, onRetry, streamState }
             isLoading ? 'bg-blue-500/20 text-blue-400' : 
             'bg-green-500/20 text-green-400'
           }`}>
-            {hasError ? 'ERROR' : isLoading ? 'CARGANDO' : 'EN VIVO'}
+            {!isActive ? 'DISPONIBLE' : hasError ? 'ERROR' : isLoading ? 'CARGANDO' : 'EN VIVO'}
           </div>
         </div>
       </div>
@@ -111,6 +123,7 @@ const StreamCard = React.memo(({ stream, onLoad, onError, onRetry, streamState }
 })
 
 export function LiveStreamsGrid() {
+  const [activeStream, setActiveStream] = useState(null)
   // Estado estructurado
   const [streamsState, setStreamsState] = useState(() => {
     const initialState = {}
@@ -179,6 +192,8 @@ export function LiveStreamsGrid() {
               onLoad={handleLoad}
               onError={handleError}
               onRetry={handleRetry}
+              isActive={activeStream === stream.id}
+              onActivate={setActiveStream}
             />
           ))}
         </div>

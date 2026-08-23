@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Users, RefreshCw, Trash2, Check, X, Mail, Shield, UserPlus, FileSpreadsheet, Pencil, Save, Key } from 'lucide-react';
+import { Users, RefreshCw, Trash2, Check, X, Mail, Shield, UserPlus, FileSpreadsheet, Pencil, Save, Key, Copy } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { API_URL } from '../../config/runtime';
 import BalanceManagement from './BalanceManagement';

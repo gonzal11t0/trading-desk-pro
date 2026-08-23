@@ -24,6 +24,7 @@ const BalanceManagement = () => {
   const [sourceUrl, setSourceUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [extractionReady, setExtractionReady] = useState(false);
   const [message, setMessage] = useState(null);
 
   const calculated = useMemo(() => {
@@ -46,22 +47,20 @@ const BalanceManagement = () => {
     const existing = balancesData.empresas.find(item => item.ticker === ticker);
     const source = getBalanceSource(ticker);
     const loaded = existing
-      ? { ...emptyBalance, ...existing, resultadoNeto: existing.resultadoNeto ?? '', sector: source?.sector || 'industrial' }
+      ? { ...emptyBalance, ticker: existing.ticker, nombre: existing.nombre, sector: source?.sector || 'industrial' }
       : { ...emptyBalance };
-    if (source?.sector === 'bank') {
-      loaded.ebitda = '';
-      loaded.varEbitda = '';
-      loaded.deuda = '';
-      loaded.varDeuda = '';
-      loaded.deudaEbitda = '';
-    }
     setBalance(loaded);
     setSourceFilename('');
     setSourceUrl(getBalanceSource(ticker)?.url || '');
+    setExtractionReady(false);
     setMessage(null);
   };
 
   const save = async () => {
+    if (!extractionReady) {
+      setMessage({ type: 'error', text: 'Primero cargá y analizá correctamente el PDF del período que vas a publicar.' });
+      return;
+    }
     setSaving(true);
     setMessage(null);
     try {
@@ -76,12 +75,19 @@ const BalanceManagement = () => {
 
   const extractPdf = async (file) => {
     setSourceFilename(file?.name || '');
+    setExtractionReady(false);
     setMessage(null);
     if (!file) return;
     if (!balance.ticker) {
       setMessage({ type: 'error', text: 'Primero seleccioná una empresa o escribí el ticker.' });
       return;
     }
+    setBalance(current => ({
+      ...emptyBalance,
+      ticker: current.ticker,
+      nombre: current.nombre,
+      sector: current.sector
+    }));
     setExtracting(true);
     try {
       const result = await balancesApi.extractBalance({ file, ticker: balance.ticker });
@@ -92,12 +98,14 @@ const BalanceManagement = () => {
         });
         return next;
       });
+      setExtractionReady(true);
       const warning = result.warnings?.[0];
       setMessage({
         type: warning ? 'warning' : 'success',
         text: warning || `Se identificaron automáticamente ${result.found} valores. Revisalos antes de publicar.`
       });
     } catch (error) {
+      setExtractionReady(false);
       setMessage({ type: 'error', text: error.message });
     } finally {
       setExtracting(false);
@@ -184,10 +192,11 @@ const BalanceManagement = () => {
 
       {message && <p className={`text-sm ${message.type === 'success' ? 'text-green-400' : message.type === 'warning' ? 'text-yellow-400' : 'text-red-400'}`}>{message.text}</p>}
 
-      <button onClick={save} disabled={saving} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2">
+      <button onClick={save} disabled={saving || extracting || !extractionReady} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2">
         {saving ? <Save className="w-5 h-5 animate-pulse" /> : <Check className="w-5 h-5" />}
         {saving ? 'Guardando…' : 'Validar y publicar balance'}
       </button>
+      {!extractionReady && <p className="text-center text-xs text-yellow-400">La publicación se habilita únicamente después de analizar correctamente un PDF nuevo.</p>}
     </div>
   );
 };

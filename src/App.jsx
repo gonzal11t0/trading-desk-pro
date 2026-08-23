@@ -133,7 +133,7 @@ const MainLayout = ({ children, showHeader = true }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setTimeLeft(getSessionTimeLeft())
-    }, 1000)
+    }, 30000)
     return () => clearInterval(interval)
   }, [getSessionTimeLeft])
 
