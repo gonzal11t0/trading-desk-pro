@@ -18,8 +18,6 @@ const LetraCard = ({ letra }) => {
   const ultimo = letra.ultimo ?? 0;
   const variacion = letra.variacion_dia ?? 0;
   const variacionPorcentaje = variacion ? (variacion * 100).toFixed(2) : '0.00';
-  const maximo = letra.maximo ?? 0;
-  const minimo = letra.minimo ?? 0;
 
   const getVariacionColor = (valor) => {
     if (valor > 0) return 'text-green-400';

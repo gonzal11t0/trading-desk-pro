@@ -66,7 +66,8 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
   return (
     <div className="w-full min-w-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mt-6">
       {indicators.map((indicator) => {
-        const isPositive = indicator.change >= 0;
+        const hasChange = Number.isFinite(indicator.change);
+        const isPositive = hasChange ? indicator.change >= 0 : true;
         const hasValue = indicator.value || indicator.m3;
         
         return (
@@ -98,7 +99,7 @@ export default function DatosMacros({ reserves, monetaryBase, moneySupply }) {
                 {indicator.value ? indicator.format(indicator.value) : '--'}
               </div>
               
-              {indicator.change !== undefined && (
+              {hasChange && (
                 <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${isPositive ? 'bg-green-500/20 border border-green-500/30' : 'bg-red-500/20 border border-red-500/30'}`}>
                   <span className={`text-lg ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
                     {isPositive ? '↗' : '↘'}

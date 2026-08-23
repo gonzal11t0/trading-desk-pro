@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Users, RefreshCw, Trash2, Plus, Check, X, Mail, Shield, Search, UserPlus, Server } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://trading-backend.vercel.app/api';
+import { API_URL } from '../../config/runtime';
 
 const UserManagement = () => {
 const { isAdmin, currentUser } = useAuth();
@@ -15,14 +14,13 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState('client');
   const [newUserPlan, setNewUserPlan] = useState('basic');
-  const [isAddingUser, setIsAddingUser] = useState(false);
   const [activeTab, setActiveTab] = useState('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState(null);
 
   const getToken = () => localStorage.getItem('tdp_token');
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
       const token = getToken();
@@ -38,11 +36,11 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (isAdmin) loadUsers();
-  }, [isAdmin]);
+  }, [isAdmin, loadUsers]);
 
   const showMessage = (text, type = 'success') => {
     setMessage({ text, type });
@@ -82,12 +80,11 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
       setNewUserEmail('');
       setNewUserName('');
       setNewUserPassword('');
-      setIsAddingUser(false);
       loadUsers();
     } else {
       showMessage(data.error || 'Error creando usuario', 'error');
     }
-  } catch (error) {
+  } catch {
     showMessage('Error de conexión', 'error');
   }
 };
@@ -111,7 +108,7 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
         const data = await response.json();
         showMessage(data.error || 'Error eliminando usuario', 'error');
       }
-    } catch (error) {
+    } catch {
       showMessage('Error de conexión', 'error');
     }
   };

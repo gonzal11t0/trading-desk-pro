@@ -1,5 +1,4 @@
 // backend/scripts/get_bonos_iol.js
-const chromium = require('@sparticuz/chromium');
 const puppeteer = require('puppeteer-core');
 
 async function scrapeBonosIOL() {

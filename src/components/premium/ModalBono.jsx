@@ -37,39 +37,11 @@ const ModalBono = ({ isOpen, onClose, bono }) => {
 
   const diasReales = calcularDias();
   const dias = diasRestantes || diasReales || 360;
-  const añosExactos = dias / 365;
   
   // Calcular cantidad de bonos
   const cantidad = precioActual > 0 ? Math.floor(montoInversion / precioActual) : 0;
   const valorInvertido = cantidad * precioActual;
   
-  // Calcular TIR aproximada
-  const calcularTIR = () => {
-    if (!tasaCupon || precioActual <= 0 || valorNominal <= 0) return null;
-    
-    const pagosPorAnio = {
-      'mensual': 12,
-      'semestral': 2,
-      'trimestral': 4,
-      'anual': 1
-    }[frecuencia] || 2;
-    
-    const pagoPeriodo = (valorNominal * tasaCupon / 100) / pagosPorAnio;
-    const pagoAnual = pagoPeriodo * pagosPorAnio;
-    
-    const gananciaAnual = (valorNominal - precioActual) / añosExactos;
-    const tirAprox = ((pagoAnual + gananciaAnual) / ((precioActual + valorNominal) / 2)) * 100;
-    
-    if (tirAprox > 100) return '>100%';
-    if (tirAprox < -100) return '<-100%';
-    return tirAprox.toFixed(2) + '%';
-  };
-
-  const tirCalculada = calcularTIR();
-  const pagoPeriodo = tasaCupon ? (valorNominal * tasaCupon / 100) / ({
-    'mensual': 12, 'semestral': 2, 'trimestral': 4, 'anual': 1
-  }[frecuencia] || 2) : null;
-
   // Formatear números
   const formatearNumero = (num) => {
     if (num === undefined || num === null || isNaN(num)) return '—';

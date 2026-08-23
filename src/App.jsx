@@ -1,11 +1,11 @@
 // App.jsx - Versión completa y corregida
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import LoginModal from './components/layout/LoginModal'
 import { Toaster, toast } from "react-hot-toast";
 import { usePremiumStore } from './stores/premiumStore' // 👈 IMPORTAR STORE
-import { playAttention, playAlert } from "simple-notification-sounds";
+import { playAlert } from "simple-notification-sounds";
 
 // Tus componentes existentes
 import { TradingHeader } from './components/layout/TradingHeader'
@@ -14,15 +14,13 @@ import { LiveStreamsGrid } from './components/video/LiveStreamsGrid'
 import { EconomicIndicators } from './components/markets/EconomicIndicators'
 import { FinancialDashboard } from './components/markets/FinancialDashboard'
 import { Notice } from './components/charts/Notice'
-import { TradingViewCharts } from './components/charts/TradingViewCharts'
 import TreemapDashboard from './components/charts/TreemapDashboard'
 import EconomicDataBlock from './components/markets/EconomicDataBlock'
 import AdSpace from './components/ads/AdSpace'
 
 // Nuevos componentes premium
-import AnalisisPremiumPage from './pages/AnalisisPremiumPage'
-import UpgradePage from './pages/UpgradePage'
 import PremiumGuard from './components/premium/PremiumGuard'
+import { API_URL } from './config/runtime'
 
 import { FloatingEduButton, MacroExplainer } from './components/markets/MacroExplainer'
 import { 
@@ -43,7 +41,10 @@ import {
 } from 'lucide-react'
 
 // Componente de gestión de usuarios (solo para admin)
-import UserManagement from './components/admin/UserManagement'
+const TradingViewCharts = lazy(() => import('./components/charts/TradingViewCharts').then((module) => ({ default: module.TradingViewCharts })))
+const AnalisisPremiumPage = lazy(() => import('./pages/AnalisisPremiumPage'))
+const UpgradePage = lazy(() => import('./pages/UpgradePage'))
+const UserManagement = lazy(() => import('./components/admin/UserManagement'))
 
 import './App.css'
 
@@ -277,7 +278,6 @@ const NotFoundPage = () => (
 // ============================================
 function App() {
   const { alertas } = usePremiumStore();
-  const [preciosActuales, setPreciosActuales] = useState({});
 
 useEffect(() => {
   
@@ -297,7 +297,7 @@ useEffect(() => {
         let precio = null;
         
         if (alerta.tipo === 'bonos') {
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/bonos`);
+          const res = await fetch(`${API_URL}/bonos`);
           if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
           const bonos = await res.json();
           const bono = bonos.find(b => b.symbol === ticker);
@@ -305,7 +305,7 @@ useEffect(() => {
         } 
         else if (alerta.tipo === 'letras') {
           // Para letras, obtener todas y filtrar
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/letras`);
+          const res = await fetch(`${API_URL}/letras`);
           if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
           const letras = await res.json();
           const letra = letras.find(l => l.symbol === ticker);
@@ -313,7 +313,7 @@ useEffect(() => {
         }
         else {
           // Para empresas (balances)
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/company/${ticker}`);
+          const res = await fetch(`${API_URL}/company/${ticker}`);
           if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
           const data = await res.json();
           precio = data.precio;
@@ -326,8 +326,6 @@ useEffect(() => {
         nuevosPrecios[ticker] = null;
       }
     }
-    
-    setPreciosActuales(nuevosPrecios);
     
     // Verificar cada alerta
     alertas.forEach(alerta => {
@@ -384,6 +382,7 @@ useEffect(() => {
           }
         }}
       />
+      <Suspense fallback={<div className="min-h-[30vh] flex items-center justify-center text-gray-400">Cargando módulo…</div>}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={
@@ -424,6 +423,7 @@ useEffect(() => {
         } />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
     </>
   )
 }

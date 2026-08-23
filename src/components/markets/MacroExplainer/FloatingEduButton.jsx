@@ -68,7 +68,7 @@ const FloatingEduButton = () => {
     }, 8000);
 
     return () => clearInterval(tipInterval);
-  }, [showButton]);
+  }, [showButton, educationalTips.length]);
 
   useEffect(() => {
     if (showButton && !userClosed) {

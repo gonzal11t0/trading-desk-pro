@@ -2,11 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const YahooFinance = require('yahoo-finance2').default;
+const yahooFinance = new YahooFinance();
 const getLetrasMock = require('./scripts/letrasMock');
 const jwt = require('jsonwebtoken');
 const { neon } = require('@neondatabase/serverless');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'trading-desk-pro-secret-key-2026';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error('Falta la variable de entorno JWT_SECRET');
+if (!process.env.POSTGRES_URL) throw new Error('Falta la variable de entorno POSTGRES_URL');
 const sql = neon(process.env.POSTGRES_URL);
 
 console.log('🚀 Iniciando server.js con Neon Postgres...');
@@ -44,17 +47,6 @@ async function createTable() {
     `;
     console.log('✅ Tabla "users" creada/verificada');
     
-    // Verificar si ya existe el admin, si no, crearlo
-    const adminExists = await sql`SELECT * FROM users WHERE email = 'admin@tradingdesk.com'`;
-    if (adminExists.length === 0) {
-      const bcrypt = require('bcryptjs');
-      const hashedPassword = await bcrypt.hash('Admin@Trading2025!', 10);
-      await sql`
-        INSERT INTO users (email, password, name, role, plan, active)
-        VALUES ('admin@tradingdesk.com', ${hashedPassword}, 'Administrador', 'admin', 'enterprise', true)
-      `;
-      console.log('✅ Usuario admin creado en la base de datos');
-    }
   } catch (error) {
     console.error('❌ Error creando tabla:', error);
   }
@@ -82,27 +74,6 @@ app.post('/api/auth/login', async (req, res) => {
         success: true,
         token,
         user: { email: user.email, name: user.name, role: user.role, plan: user.plan }
-      });
-    }
-    
-    // Fallback para admin hardcodeado (por si la tabla falla)
-    const validCredentials = {
-      'ZW1haWw9YWRtaW5AdHJhZGluZ2Rlc2suY29tJnBhc3M9QWRtaW5AVHJhZGluZzIwMjUh': {
-        role: 'admin', name: 'Administrador', plan: 'enterprise'
-      }
-    };
-    const credentialHash = Buffer.from(`email=${email}&pass=${password}`).toString('base64');
-    const userInfo = validCredentials[credentialHash];
-    
-    if (userInfo) {
-      const token = jwt.sign(
-        { email, role: userInfo.role, name: userInfo.name },
-        JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-      return res.json({
-        success: true, token,
-        user: { email, name: userInfo.name, role: userInfo.role, plan: userInfo.plan }
       });
     }
     
@@ -226,9 +197,9 @@ const tickerMap = {
 app.get('/api/company/:ticker', async (req, res) => {
   try {
     const ticker = tickerMap[req.params.ticker] || req.params.ticker;
-    const quote = await YahooFinance.quote(ticker);
+    const quote = await yahooFinance.quote(ticker);
     const endDate = new Date(); const startDate = new Date(); startDate.setMonth(startDate.getMonth() - 3);
-    const historical = await YahooFinance.historical(ticker, { period1: startDate, period2: endDate, interval: '1mo' });
+    const historical = await yahooFinance.historical(ticker, { period1: startDate, period2: endDate, interval: '1mo' });
     res.json({ ticker: req.params.ticker, nombre: quote.longName || quote.shortName, precio: quote.regularMarketPrice, per: quote.trailingPE, marketCap: quote.marketCap, historical: historical.slice(0, 4) });
   } catch (error) {
     console.error('❌ Error:', error.message);

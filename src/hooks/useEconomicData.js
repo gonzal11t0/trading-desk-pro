@@ -1,6 +1,6 @@
 // src/hooks/useEconomicData.js - VERSIÓN COMPLETA CORREGIDA
 import { useState, useEffect } from 'react';
-import { fetchEconomicData, getBcraMonetaryData } from '../api/economicApi';
+import { fetchEconomicData } from '../api/economicApi';
 
 export const useEconomicData = () => {
   const [data, setData] = useState({
@@ -21,11 +21,8 @@ export const useEconomicData = () => {
       // 1. Obtener datos económicos completos
       const economicData = await fetchEconomicData();
       
-      // 2. Obtener datos BCRA en formato de array
-      const bcraData = await getBcraMonetaryData();
-      
       setData({
-        bcra: bcraData || [],
+        bcra: economicData?.bcraData || [],
         indicators: economicData?.indicators || [],
         reserves: economicData?.reserves || null,
         monetaryBase: economicData?.monetaryBase || null,

@@ -1,12 +1,10 @@
 import React from 'react';
-import EconomicDataTable from './EconomicDataTable';
 import DatosMacros from './DatosMacros';
 import { useEconomicData } from '../../hooks/useEconomicData';
 import { Database, RefreshCw, AlertTriangle, Clock, Building } from 'lucide-react';
 
 const EconomicDataBlock = () => {
   const { 
-    bcraData,           
     reserves, 
     monetaryBase, 
     moneySupply, 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import LetraCard from './LetraCard';
 import { usePremiumStore } from '../../stores/premiumStore';
-import { letrasApi } from '../../../api/letrasApi';
+import { letrasApi } from '../../api/letrasApi';
 import { Star, RefreshCw } from 'lucide-react';
 
 const LetrasTab = () => {

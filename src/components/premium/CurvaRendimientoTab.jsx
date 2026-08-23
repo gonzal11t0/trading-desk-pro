@@ -12,8 +12,8 @@ import {
   Legend
 } from 'recharts';
 import { TrendingUp, Download, RefreshCw, Info } from 'lucide-react';
-import { bonosApi } from '../../../api/bonosApi';
-import { letrasApi } from '../../../api/letrasApi';
+import { bonosApi } from '../../api/bonosApi';
+import { letrasApi } from '../../api/letrasApi';
 
 const CurvaRendimientoTab = () => {
   const [bonos, setBonos] = useState([]);
@@ -146,34 +146,6 @@ const CurvaRendimientoTab = () => {
     // Ordenar por plazo
     return puntos.sort((a, b) => a.plazo - b.plazo);
   }, [bonos, letras]);
-
-  // Puntos para la curva suave (solo ARS)
-  const puntosCurva = useMemo(() => {
-    const plazos = [0.1, 0.2, 0.3, 0.5, 0.75, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16];
-    const resultados = [];
-
-    // Solo usar puntos ARS para la curva
-    const puntosARS = datosCurva.filter(p => p.moneda === 'ARS');
-
-    plazos.forEach(plazo => {
-      const cercanos = puntosARS.filter(p => Math.abs(p.plazo - plazo) < 1.5);
-      if (cercanos.length >= 2) {
-        const ordenados = cercanos.sort((a, b) => Math.abs(a.plazo - plazo) - Math.abs(b.plazo - plazo));
-        const p1 = ordenados[0];
-        const p2 = ordenados[1];
-        if (p1 && p2 && p1.plazo !== p2.plazo) {
-          const tasa = p1.tasa + (p2.tasa - p1.tasa) * ((plazo - p1.plazo) / (p2.plazo - p1.plazo));
-          resultados.push({ plazo, tasa: Math.max(0, Math.min(tasa, 50)) });
-        } else if (p1) {
-          resultados.push({ plazo, tasa: p1.tasa });
-        }
-      } else if (cercanos.length === 1) {
-        resultados.push({ plazo, tasa: cercanos[0].tasa });
-      }
-    });
-
-    return resultados;
-  }, [datosCurva]);
 
   // Custom tooltip
   // Custom tooltip mejorado - muestra todos los puntos en la misma coordenada X

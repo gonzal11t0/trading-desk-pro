@@ -1,5 +1,5 @@
 // src/components/premium/ModalAnalisis.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, TrendingUp, TrendingDown, Download, Calendar, Clock, BarChart3, Info } from 'lucide-react';
 import { exportarEmpresaPDF } from '../../utils/pdfExport';
 import GraficoLinea from './GraficoLinea';

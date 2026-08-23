@@ -337,12 +337,9 @@ export function QuotesCarousel() {
                         {quote.price}
                       </div>
                       
-                      {/* Volume - MANTENGO CONDICIONAL ORIGINAL */}
-                      {quote.volume && (
-                        <div className="text-gray-400 text-xs font-mono">
-                          VOL: {quote.volume}
-                        </div>
-                      )}
+                      <div className="text-gray-500 text-[10px] font-mono mt-1">
+                        {quote.source}
+                      </div>
                     </div>
                     
                     {/* Indicador de dirección - MANTENGO TAMAÑOS ORIGINALES */}
