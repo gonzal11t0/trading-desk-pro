@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Users, RefreshCw, Trash2, Check, X, Mail, Shield, UserPlus, FileSpreadsheet } from 'lucide-react';
+import { Users, RefreshCw, Trash2, Check, X, Mail, Shield, UserPlus, FileSpreadsheet, Pencil, Save } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { API_URL } from '../../config/runtime';
 import BalanceManagement from './BalanceManagement';
@@ -19,6 +19,7 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState(null);
   const [loadError, setLoadError] = useState('');
+  const [editingUser, setEditingUser] = useState(null);
 
   const getToken = () => localStorage.getItem('tdp_token');
 
@@ -115,6 +116,33 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
       }
     } catch {
       showMessage('Error de conexión', 'error');
+    }
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editingUser) return;
+    try {
+      const response = await fetch(`${API_URL}/admin/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: editingUser.name,
+          role: editingUser.role,
+          plan: editingUser.plan,
+          active: editingUser.active,
+          password: editingUser.password || undefined
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `Error HTTP ${response.status}`);
+      showMessage(`✅ Usuario ${editingUser.email} actualizado`);
+      setEditingUser(null);
+      loadUsers();
+    } catch (error) {
+      showMessage(error.message || 'No fue posible modificar el usuario', 'error');
     }
   };
 
@@ -229,6 +257,9 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
                     </span>
                   </div>
                   <div className="col-span-3 flex items-center justify-end space-x-2">
+                    <button onClick={() => setEditingUser({ ...user, password: '' })} className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-900/20 rounded" title="Modificar usuario">
+                      <Pencil className="w-4 h-4" />
+                    </button>
                     {user.role !== 'admin' && user.id !== currentUser?.id && (
                       <button onClick={() => handleDeleteUser(user.id, user.email)} className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded" title="Eliminar usuario">
                         <Trash2 className="w-4 h-4" />
@@ -290,6 +321,42 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
       )}
 
       {activeTab === 'balances' && <BalanceManagement />}
+
+      {editingUser && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-xl border border-gray-700 bg-gray-900 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-white">Modificar usuario</h3>
+                <p className="text-sm text-gray-400">{editingUser.email}</p>
+              </div>
+              <button onClick={() => setEditingUser(null)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+            </div>
+            <label className="block text-sm text-gray-300">Nombre
+              <input value={editingUser.name || ''} onChange={event => setEditingUser(user => ({ ...user, name: event.target.value }))} className="mt-1 w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white" />
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <label className="text-sm text-gray-300">Rol
+                <select value={editingUser.role} onChange={event => setEditingUser(user => ({ ...user, role: event.target.value }))} className="mt-1 w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white">
+                  <option value="client">Cliente</option><option value="admin">Administrador</option>
+                </select>
+              </label>
+              <label className="text-sm text-gray-300">Plan
+                <select value={editingUser.plan} onChange={event => setEditingUser(user => ({ ...user, plan: event.target.value }))} className="mt-1 w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white">
+                  <option value="basic">Básico</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option>
+                </select>
+              </label>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-gray-300">
+              <input type="checkbox" checked={editingUser.active !== false} onChange={event => setEditingUser(user => ({ ...user, active: event.target.checked }))} /> Usuario activo
+            </label>
+            <label className="block text-sm text-gray-300">Nueva contraseña (opcional)
+              <input type="password" value={editingUser.password} onChange={event => setEditingUser(user => ({ ...user, password: event.target.value }))} placeholder="Dejar vacío para conservarla" className="mt-1 w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white" />
+            </label>
+            <button onClick={handleUpdateUser} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2"><Save className="w-4 h-4" /> Guardar cambios</button>
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 pt-4 border-t border-gray-800/30">
         <p className="text-xs text-gray-500 text-center">🔒 Usuarios gestionados desde el backend (JWT + bcrypt)</p>

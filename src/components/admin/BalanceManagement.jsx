@@ -12,7 +12,7 @@ const emptyBalance = {
 
 const numberFields = [
   ['ingresos', 'Ingresos'], ['ebitda', 'EBITDA'], ['deuda', 'Deuda total'],
-  ['patrimonio', 'Patrimonio'], ['resultadoNeto', 'Resultado neto'], ['precio', 'Precio de referencia'],
+  ['patrimonio', 'Patrimonio'], ['resultadoNeto', 'Resultado neto'],
   ['varIngresos', 'Var. ingresos (%)'], ['varEbitda', 'Var. EBITDA (%)'],
   ['varDeuda', 'Var. deuda (%)'], ['per', 'PER'], ['varPer', 'Var. PER (%)']
 ];
@@ -22,6 +22,7 @@ const BalanceManagement = () => {
   const [sourceFilename, setSourceFilename] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const [saving, setSaving] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [message, setMessage] = useState(null);
 
   const calculated = useMemo(() => {
@@ -59,6 +60,36 @@ const BalanceManagement = () => {
     }
   };
 
+  const extractPdf = async (file) => {
+    setSourceFilename(file?.name || '');
+    setMessage(null);
+    if (!file) return;
+    if (!balance.ticker) {
+      setMessage({ type: 'error', text: 'Primero seleccioná una empresa o escribí el ticker.' });
+      return;
+    }
+    setExtracting(true);
+    try {
+      const result = await balancesApi.extractBalance({ file, ticker: balance.ticker });
+      setBalance(current => {
+        const next = { ...current };
+        Object.entries(result.fields || {}).forEach(([field, value]) => {
+          if (value !== null && value !== '') next[field] = value;
+        });
+        return next;
+      });
+      const warning = result.warnings?.[0];
+      setMessage({
+        type: warning ? 'warning' : 'success',
+        text: warning || `Se identificaron automáticamente ${result.found} valores. Revisalos antes de publicar.`
+      });
+    } catch (error) {
+      setMessage({ type: 'error', text: error.message });
+    } finally {
+      setExtracting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-blue-800/40 bg-blue-950/20 p-4 text-sm text-gray-300">
@@ -66,7 +97,7 @@ const BalanceManagement = () => {
           <ShieldCheck className="w-5 h-5 text-blue-400 mt-0.5 shrink-0" />
           <div>
             <p className="font-semibold text-white">Carga controlada de balances</p>
-            <p className="mt-1">Seleccioná el PDF descargado de CNV, verificá sus cifras y publicá. El PDF se usa como referencia documental; las cifras no se publican hasta que las confirmás.</p>
+            <p className="mt-1">Seleccioná el PDF descargado de CNV. El sistema identifica automáticamente las cifras principales, completa el formulario y espera tu revisión antes de publicar.</p>
             <a className="inline-flex items-center gap-1 mt-2 text-blue-400 hover:text-blue-300" href="https://aif2.cnv.gov.ar/" target="_blank" rel="noreferrer">
               Abrir Autopista de Información Financiera (CNV) <ExternalLink className="w-3 h-3" />
             </a>
@@ -114,6 +145,8 @@ const BalanceManagement = () => {
         <p className="text-sm text-gray-300">Deuda / EBITDA: <strong className="text-white">{calculated.deudaEbitda}</strong></p>
       </div>
 
+      <p className="text-xs text-gray-500">El precio y el PER se consultan automáticamente al mercado en la pantalla Premium; no hace falta cargarlos desde el balance.</p>
+
       <label className="block text-sm text-gray-300">Comentario descriptivo
         <textarea rows="3" value={balance.analisis} onChange={event => update('analisis', event.target.value)} className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white" />
       </label>
@@ -122,15 +155,16 @@ const BalanceManagement = () => {
         <label className="text-sm text-gray-300">PDF fuente
           <span className="mt-1 flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white">
             <FileText className="w-4 h-4 text-red-400" />
-            <input type="file" accept="application/pdf" onChange={event => setSourceFilename(event.target.files?.[0]?.name || '')} className="w-full text-sm" />
+            <input type="file" accept="application/pdf" disabled={extracting} onChange={event => extractPdf(event.target.files?.[0])} className="w-full text-sm" />
           </span>
+          {extracting && <span className="mt-1 block text-xs text-blue-400">Analizando el PDF…</span>}
         </label>
         <label className="text-sm text-gray-300">Enlace público de la presentación CNV
           <input type="url" value={sourceUrl} onChange={event => setSourceUrl(event.target.value)} className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white" />
         </label>
       </div>
 
-      {message && <p className={`text-sm ${message.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{message.text}</p>}
+      {message && <p className={`text-sm ${message.type === 'success' ? 'text-green-400' : message.type === 'warning' ? 'text-yellow-400' : 'text-red-400'}`}>{message.text}</p>}
 
       <button onClick={save} disabled={saving} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2">
         {saving ? <Save className="w-5 h-5 animate-pulse" /> : <Check className="w-5 h-5" />}

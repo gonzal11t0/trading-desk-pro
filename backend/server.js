@@ -100,7 +100,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.json({
         success: true,
         token,
-        user: { email: user.email, name: user.name, role: user.role, plan: user.plan }
+        user: { id: user.id, email: user.email, name: user.name, role: user.role, plan: user.plan }
       });
     }
     
@@ -167,6 +167,58 @@ app.post('/api/admin/users', async (req, res) => {
   }
 });
 
+// Modificar nombre, rol, plan, estado y opcionalmente contraseña
+app.put('/api/admin/users/:id', async (req, res) => {
+  try {
+    const admin = getAdminFromRequest(req);
+    const userId = Number.parseInt(req.params.id, 10);
+    const { name, role, plan, active, password } = req.body || {};
+    const allowedRoles = ['admin', 'client'];
+    const allowedPlans = ['basic', 'pro', 'enterprise'];
+
+    if (!Number.isInteger(userId)) return res.status(400).json({ error: 'Usuario inválido' });
+    if (!allowedRoles.includes(role) || !allowedPlans.includes(plan)) {
+      return res.status(400).json({ error: 'Rol o plan inválido' });
+    }
+
+    const existing = await sql`SELECT id, email, role, active FROM users WHERE id = ${userId}`;
+    const user = existing[0];
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    if (user.id === admin.userId && (role !== 'admin' || active === false)) {
+      return res.status(400).json({ error: 'No podés quitarte tu propio acceso de administrador' });
+    }
+    if (user.role === 'admin' && (role !== 'admin' || active === false)) {
+      const admins = await sql`SELECT COUNT(*)::int AS count FROM users WHERE role = 'admin' AND active = true`;
+      if (admins[0].count <= 1) return res.status(400).json({ error: 'Debe quedar al menos un administrador activo' });
+    }
+
+    let passwordHash = null;
+    if (password) {
+      if (String(password).length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+      passwordHash = await require('bcryptjs').hash(String(password), 10);
+    }
+
+    const result = passwordHash
+      ? await sql`
+          UPDATE users SET name = ${String(name || '').trim()}, role = ${role}, plan = ${plan},
+            active = ${active !== false}, password = ${passwordHash}
+          WHERE id = ${userId}
+          RETURNING id, email, name, role, plan, active, created_at as "createdAt"
+        `
+      : await sql`
+          UPDATE users SET name = ${String(name || '').trim()}, role = ${role}, plan = ${plan},
+            active = ${active !== false}
+          WHERE id = ${userId}
+          RETURNING id, email, name, role, plan, active, created_at as "createdAt"
+        `;
+    res.json({ success: true, user: result[0] });
+  } catch (error) {
+    console.error('Error modificando usuario:', error);
+    res.status(error.status || 500).json({ error: error.message || 'No fue posible modificar el usuario' });
+  }
+});
+
 // Eliminar usuario
 app.delete('/api/admin/users/:id', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
@@ -177,6 +229,13 @@ app.delete('/api/admin/users/:id', async (req, res) => {
     if (decoded.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
 
     const userId = parseInt(req.params.id);
+    if (decoded.userId === userId) return res.status(400).json({ error: 'No podés eliminarte a vos mismo' });
+    const target = await sql`SELECT role, active FROM users WHERE id = ${userId}`;
+    if (!target[0]) return res.status(404).json({ error: 'Usuario no encontrado' });
+    if (target[0].role === 'admin' && target[0].active) {
+      const admins = await sql`SELECT COUNT(*)::int AS count FROM users WHERE role = 'admin' AND active = true`;
+      if (admins[0].count <= 1) return res.status(400).json({ error: 'No se puede eliminar el último administrador activo' });
+    }
     await sql`DELETE FROM users WHERE id = ${userId}`;
     
     res.json({ success: true });

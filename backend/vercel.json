@@ -4,9 +4,17 @@
     {
       "src": "server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/extract_balance.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
+    {
+      "src": "/api/admin/balances/extract",
+      "dest": "api/extract_balance.py"
+    },
     {
       "src": "/(.*)",
       "dest": "server.js"
