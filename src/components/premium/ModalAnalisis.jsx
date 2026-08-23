@@ -43,6 +43,11 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
     if (valor < 0) return 'text-red-400';
     return 'text-gray-400';
   };
+  const formatVariation = (value) => {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number === 0) return '—';
+    return `${number > 0 ? '+' : ''}${number}%`;
+  };
 
   const moneda = datosReales.moneda || 'ARS';
   const perValue = Number.isFinite(Number(datosReales.per)) ? Number(datosReales.per) : null;
@@ -151,7 +156,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                   <div className="p-3 bg-gray-800/30 rounded-lg">
                     <p className="text-xs text-gray-400 mb-1">PER</p>
                     <p className="text-xl font-bold text-white">
-                      {perValue === null ? '—' : `${perValue}x`}
+                      {perValue === null ? '—' : `${perValue.toFixed(2)}x`}
                     </p>
                   </div>
                   
@@ -184,7 +189,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                     <div className="text-right">
                       <span className="text-white font-semibold">{formatNumber(datosReales.ingresos, moneda)}</span>
                       <span className={`text-xs ml-2 ${getVariacionColor(datosReales.varIngresos)}`}>
-                        {datosReales.varIngresos > 0 ? '+' : ''}{datosReales.varIngresos}%
+                        {formatVariation(datosReales.varIngresos)}
                       </span>
                     </div>
                   </div>
@@ -193,7 +198,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                     <div className="text-right">
                       <span className="text-white font-semibold">{formatNumber(datosReales.ebitda, moneda)}</span>
                       <span className={`text-xs ml-2 ${getVariacionColor(datosReales.varEbitda)}`}>
-                        {datosReales.varEbitda > 0 ? '+' : ''}{datosReales.varEbitda}%
+                        {formatVariation(datosReales.varEbitda)}
                       </span>
                     </div>
                   </div>}
@@ -202,7 +207,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                     <div className="text-right">
                       <span className="text-white font-semibold">{formatNumber(datosReales.deuda, moneda)}</span>
                       <span className={`text-xs ml-2 ${getVariacionColor(datosReales.varDeuda)}`}>
-                        {datosReales.varDeuda > 0 ? '+' : ''}{datosReales.varDeuda}%
+                        {formatVariation(datosReales.varDeuda)}
                       </span>
                     </div>
                   </div>}
@@ -281,7 +286,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                         <td className="text-right py-3 px-2 text-blue-400">{formatNumber(item.ingresos, moneda)}</td>
                         <td className="text-right py-3 px-2 text-purple-400">{formatNumber(isBank ? item.resultadoNeto : item.ebitda, moneda)}</td>
                         <td className="text-right py-3 px-2 text-yellow-400">{formatNumber(isBank ? item.patrimonio : item.deuda, moneda)}</td>
-                        <td className="text-right py-3 px-2 text-green-400">{item.per}x</td>
+                        <td className="text-right py-3 px-2 text-green-400">{Number.isFinite(Number(item.per)) ? `${Number(item.per).toFixed(2)}x` : '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -289,7 +294,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
               </div>
 
               <div className="text-xs text-gray-500 text-right">
-                Datos de carga manual; pueden no reflejar la presentación más reciente
+                Datos publicados mediante carga validada; verificar siempre contra la fuente oficial
               </div>
 
               <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700">

@@ -305,6 +305,10 @@ app.post('/api/admin/balances', async (req, res) => {
     ];
     const cleanBalance = { ...balance, ticker };
     for (const field of numericFields) {
+      if (cleanBalance[field] === '' || cleanBalance[field] === null || cleanBalance[field] === undefined) {
+        cleanBalance[field] = null;
+        continue;
+      }
       const value = Number(cleanBalance[field]);
       cleanBalance[field] = Number.isFinite(value) ? value : null;
     }

@@ -35,6 +35,16 @@ const EmpresaCard = ({ empresa }) => {
     per: 'Precio / Ganancia por acción'
   };
   const precio = Number(empresa.precio);
+  const formatIndicator = (item) => {
+    const value = Number(item.value);
+    if (!Number.isFinite(value)) return '—';
+    return item.key === 'per' ? value.toFixed(2) : item.value;
+  };
+  const formatVariation = (value) => {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number === 0) return '—';
+    return `${number > 0 ? '+' : ''}${number}%`;
+  };
   const isBank = empresa.sector === 'bank' || ['BMA', 'GGAL'].includes(empresa.ticker);
   const indicadores = isBank
     ? [
@@ -110,11 +120,11 @@ const EmpresaCard = ({ empresa }) => {
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-white font-semibold">{item.value ?? '—'}</span>
+                <span className="text-white font-semibold">{formatIndicator(item)}</span>
                 <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${getVariacionColor(item.var)}`}>
                   {getVariacionIcon(item.var)}
                   <span className="text-xs font-medium">
-                    {Number.isFinite(Number(item.var)) ? `${item.var > 0 ? '+' : ''}${item.var}%` : '—'}
+                    {formatVariation(item.var)}
                   </span>
                 </div>
               </div>
