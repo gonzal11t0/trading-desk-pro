@@ -1,7 +1,6 @@
 // src/components/premium/ModalBono.jsx
 import React from 'react';
 import { X, Download, AlertCircle } from 'lucide-react';
-import { exportarBonoPDF } from '../../utils/pdfExport';
 import { getBonoData } from '../../data/bonosData';
 
 const ModalBono = ({ isOpen, onClose, bono }) => {
@@ -74,7 +73,7 @@ const ModalBono = ({ isOpen, onClose, bono }) => {
           {/* Botones de acción */}
           <div className="flex gap-3 pt-6 mt-4 border-t border-gray-700">
             <button 
-              onClick={() => exportarBonoPDF(bono)}
+              onClick={async () => (await import('../../utils/pdfExport')).exportarBonoPDF(bono)}
               className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4" />

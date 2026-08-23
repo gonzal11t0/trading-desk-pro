@@ -8,7 +8,12 @@ const { neon } = require('@neondatabase/serverless');
 
 // Mantener compatibilidad con el despliegue existente, que todavía no tiene
 // JWT_SECRET configurado. La variable de entorno sigue teniendo prioridad.
-const JWT_SECRET = process.env.JWT_SECRET || 'trading-desk-pro-secret-key-2026';
+const LEGACY_JWT_SECRET = 'trading-desk-pro-secret-key-2026';
+const JWT_SECRET = process.env.JWT_SECRET || LEGACY_JWT_SECRET;
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️ JWT_SECRET no configurado: usando compatibilidad temporal. Configuralo en Vercel antes de activar REQUIRE_JWT_SECRET.');
+  if (process.env.REQUIRE_JWT_SECRET === 'true') throw new Error('Falta la variable de entorno JWT_SECRET');
+}
 if (!process.env.POSTGRES_URL) throw new Error('Falta la variable de entorno POSTGRES_URL');
 const sql = neon(process.env.POSTGRES_URL);
 
@@ -74,6 +79,27 @@ async function createTable() {
       )
     `;
     console.log('✅ Tabla "balances" creada/verificada');
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS balance_versions (
+        id BIGSERIAL PRIMARY KEY,
+        ticker TEXT NOT NULL,
+        data JSONB NOT NULL,
+        source_filename TEXT,
+        source_url TEXT,
+        published_by TEXT NOT NULL,
+        published_at TIMESTAMP DEFAULT NOW(),
+        active BOOLEAN DEFAULT true
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS balance_versions_ticker_idx ON balance_versions (ticker, published_at DESC)`;
+    await sql`
+      INSERT INTO balance_versions (ticker, data, source_filename, source_url, published_by, published_at, active)
+      SELECT b.ticker, b.data, b.source_filename, b.source_url, b.updated_by, b.updated_at, true
+      FROM balances b
+      WHERE NOT EXISTS (SELECT 1 FROM balance_versions v WHERE v.ticker = b.ticker)
+    `;
+    console.log('✅ Historial de balances creado/verificado');
     
   } catch (error) {
     console.error('❌ Error creando tabla:', error);
@@ -256,13 +282,26 @@ app.get('/api/balances', async (_req, res) => {
              source_url as "sourceUrl", updated_at as "updatedAt"
       FROM balances ORDER BY ticker
     `;
+    const versions = await sql`
+      SELECT ticker, data, source_filename as "sourceFilename", source_url as "sourceUrl",
+             published_by as "publishedBy", published_at as "publishedAt", id
+      FROM balance_versions ORDER BY published_at ASC
+    `;
+    const historyByTicker = new Map();
+    for (const version of versions) {
+      const history = historyByTicker.get(version.ticker) || [];
+      history.push({ ...version.data, versionId: version.id, fuenteArchivo: version.sourceFilename,
+        fuenteUrl: version.sourceUrl, publicadoPor: version.publishedBy, publicadoEn: version.publishedAt });
+      historyByTicker.set(version.ticker, history);
+    }
     res.json({
       empresas: result.map(row => ({
         ...row.data,
         ticker: row.ticker,
         fuenteArchivo: row.sourceFilename,
         fuenteUrl: row.sourceUrl,
-        actualizadoEn: row.updatedAt
+        actualizadoEn: row.updatedAt,
+        historial: historyByTicker.get(row.ticker) || []
       })),
       ultima_actualizacion: result.reduce(
         (latest, row) => !latest || row.updatedAt > latest ? row.updatedAt : latest,
@@ -329,6 +368,12 @@ app.post('/api/admin/balances', async (req, res) => {
     cleanBalance.analisis = String(cleanBalance.analisis || '').trim()
       || 'Datos publicados para análisis. Revisar el documento fuente y su unidad de medida.';
 
+    await sql`UPDATE balance_versions SET active = false WHERE ticker = ${ticker} AND active = true`;
+    await sql`
+      INSERT INTO balance_versions (ticker, data, source_filename, source_url, published_by, published_at, active)
+      VALUES (${ticker}, ${JSON.stringify(cleanBalance)}::jsonb, ${sourceFilename || null},
+              ${sourceUrl || null}, ${admin.email}, NOW(), true)
+    `;
     const result = await sql`
       INSERT INTO balances (ticker, data, source_filename, source_url, updated_by, updated_at)
       VALUES (${ticker}, ${JSON.stringify(cleanBalance)}::jsonb,
@@ -347,6 +392,62 @@ app.post('/api/admin/balances', async (req, res) => {
     res.status(error.status || 401).json({ error: error.message || 'No fue posible guardar el balance' });
   }
 });
+
+app.get('/api/admin/balances', async (req, res) => {
+  try {
+    getAdminFromRequest(req);
+    const versions = await sql`
+      SELECT id, ticker, data, source_filename as "sourceFilename", source_url as "sourceUrl",
+             published_by as "publishedBy", published_at as "publishedAt", active
+      FROM balance_versions ORDER BY ticker, published_at DESC
+    `;
+    res.json({ versions });
+  } catch (error) {
+    res.status(error.status || 401).json({ error: error.message || 'No fue posible listar los balances' });
+  }
+});
+
+app.post('/api/admin/balances/:ticker/versions/:id/restore', async (req, res) => {
+  try {
+    const admin = getAdminFromRequest(req);
+    const ticker = String(req.params.ticker || '').toUpperCase();
+    const versionId = Number.parseInt(req.params.id, 10);
+    const rows = await sql`SELECT * FROM balance_versions WHERE id = ${versionId} AND ticker = ${ticker}`;
+    if (!rows[0]) return res.status(404).json({ error: 'Versión no encontrada' });
+    const version = rows[0];
+    await sql`UPDATE balance_versions SET active = false WHERE ticker = ${ticker}`;
+    await sql`UPDATE balance_versions SET active = true WHERE id = ${versionId}`;
+    await sql`
+      INSERT INTO balances (ticker, data, source_filename, source_url, updated_by, updated_at)
+      VALUES (${ticker}, ${JSON.stringify(version.data)}::jsonb, ${version.source_filename},
+              ${version.source_url}, ${admin.email}, NOW())
+      ON CONFLICT (ticker) DO UPDATE SET data = EXCLUDED.data, source_filename = EXCLUDED.source_filename,
+        source_url = EXCLUDED.source_url, updated_by = EXCLUDED.updated_by, updated_at = NOW()
+    `;
+    res.json({ success: true });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message || 'No fue posible restaurar la versión' });
+  }
+});
+
+app.delete('/api/admin/balances/:ticker', async (req, res) => {
+  try {
+    getAdminFromRequest(req);
+    const ticker = String(req.params.ticker || '').toUpperCase();
+    await sql`DELETE FROM balances WHERE ticker = ${ticker}`;
+    await sql`UPDATE balance_versions SET active = false WHERE ticker = ${ticker}`;
+    res.json({ success: true, recoverable: true });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.message || 'No fue posible retirar el balance' });
+  }
+});
+
+app.get('/api/health', (_req, res) => res.json({
+  ok: true,
+  databaseConfigured: Boolean(process.env.POSTGRES_URL),
+  jwtSecretConfigured: Boolean(process.env.JWT_SECRET),
+  strictJwtMode: process.env.REQUIRE_JWT_SECRET === 'true'
+}));
 
 // ============================================
 // TUS ENDPOINTS EXISTENTES (bonos, letras, etc.)

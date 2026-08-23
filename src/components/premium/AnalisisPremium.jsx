@@ -1,22 +1,25 @@
 // src/components/premium/AnalisisPremium.jsx
-import React, { useState } from 'react';
-import BalancesTab from './BalancesTab';
-import BonosTab from './BonosTab';
-import LetrasTab from './LetrasTab';
-import CurvaRendimientoTab from './CurvaRendimientoTab'; 
-import PanelAlertas from './PanelAlertas';
-import { Crown, Bell, Sparkles, TrendingUp } from 'lucide-react';
+import React, { lazy, Suspense, useState } from 'react';
+import ErrorBoundary from '../common/ErrorBoundary';
+import { Crown, Bell, Sparkles } from 'lucide-react';
+
+const BalancesTab = lazy(() => import('./BalancesTab'));
+const BonosTab = lazy(() => import('./BonosTab'));
+const LetrasTab = lazy(() => import('./LetrasTab'));
+const CurvaRendimientoTab = lazy(() => import('./CurvaRendimientoTab'));
+const PanelAlertas = lazy(() => import('./PanelAlertas'));
 
 const AnalisisPremium = () => {
   const [tabActiva, setTabActiva] = useState('balances');
   const [panelAlertasAbierto, setPanelAlertasAbierto] = useState(false);
   
   const tabs = [
-    { id: 'balances', nombre: '📈 Balances', icono: '📈', componente: <BalancesTab /> },
-    { id: 'bonos', nombre: '💰 Bonos', icono: '💰', componente: <BonosTab /> },
-    { id: 'letras', nombre: '📝 Letras', icono: '📝', componente: <LetrasTab /> },
-    { id: 'curva', nombre: '📊 Curva', icono: '📊', componente: <CurvaRendimientoTab /> }  // 🆕
+    { id: 'balances', nombre: '📈 Balances', icono: '📈', Component: BalancesTab },
+    { id: 'bonos', nombre: '💰 Bonos', icono: '💰', Component: BonosTab },
+    { id: 'letras', nombre: '📝 Letras', icono: '📝', Component: LetrasTab },
+    { id: 'curva', nombre: '📊 Curva', icono: '📊', Component: CurvaRendimientoTab }
   ];
+  const ActiveTab = tabs.find(tab => tab.id === tabActiva)?.Component;
 
   return (
     <div className="min-w-0 animate-fadeIn">
@@ -80,13 +83,17 @@ const AnalisisPremium = () => {
 
       {/* Contenido */}
       <div className="transition-opacity duration-300 animate-slideUp">
-        {tabs.find(t => t.id === tabActiva)?.componente}
+        <ErrorBoundary>
+          <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">Cargando sección Premium…</div>}>
+            {ActiveTab ? <ActiveTab /> : null}
+          </Suspense>
+        </ErrorBoundary>
       </div>
 
-      <PanelAlertas
-        isOpen={panelAlertasAbierto}
-        onClose={() => setPanelAlertasAbierto(false)}
-      />
+      {panelAlertasAbierto && <Suspense fallback={null}><PanelAlertas
+          isOpen={panelAlertasAbierto}
+          onClose={() => setPanelAlertasAbierto(false)}
+        /></Suspense>}
     </div>
   );
 };

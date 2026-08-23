@@ -18,7 +18,10 @@ def decode_segment(value):
 def require_admin(authorization):
     if not authorization or not authorization.startswith('Bearer '):
         raise ValueError('Token no proporcionado')
-    secret = os.environ.get('JWT_SECRET') or 'trading-desk-pro-secret-key-2026'
+    secret = os.environ.get('JWT_SECRET')
+    if not secret and os.environ.get('REQUIRE_JWT_SECRET') == 'true':
+        raise RuntimeError('JWT_SECRET no está configurado')
+    secret = secret or 'trading-desk-pro-secret-key-2026'
     token = authorization.split(' ', 1)[1]
     header_part, payload_part, signature_part = token.split('.')
     header = json.loads(decode_segment(header_part))
@@ -208,12 +211,18 @@ class handler(BaseHTTPRequestHandler):
                 text = '\n'.join(page.extract_text() or '' for page in document.pages)
             if not text.strip():
                 return self.send_json(422, {'error': 'El PDF no contiene texto extraíble; puede ser un documento escaneado'})
-            fields, found = extract_cepu_fields(text) if ticker == 'CEPU' and re.search(r'2T\s*2026|2T26', text, re.I) else extract_fields(text, ticker)
+            verified = ticker == 'CEPU' and bool(re.search(r'2T\s*2026|2T26', text, re.I))
+            fields, found = extract_cepu_fields(text) if verified else extract_fields(text, ticker)
             self.send_json(200, {
                 'success': True,
                 'fields': fields,
                 'found': found,
                 'sourceUrl': source_url or None,
+                'extractor': {
+                    'verified': verified,
+                    'label': 'Central Puerto 2T 2026' if verified else f'{ticker} genérico',
+                    'message': 'Reglas comprobadas contra la presentación oficial.' if verified else 'Formato aún no comprobado para esta emisora y período; requiere revisión completa.'
+                },
                 'warnings': ['Extracción preliminar: los formatos cambian entre emisoras y períodos. Revisá cada cifra y su unidad contra el PDF antes de publicar.']
             })
         except PermissionError as error:

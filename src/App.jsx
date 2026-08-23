@@ -14,6 +14,7 @@ import { LiveStreamsGrid } from './components/video/LiveStreamsGrid'
 // Nuevos componentes premium
 import PremiumGuard from './components/premium/PremiumGuard'
 import { API_URL } from './config/runtime'
+import ErrorBoundary from './components/common/ErrorBoundary'
 
 import { FloatingEduButton, MacroExplainer } from './components/markets/MacroExplainer'
 import { 
@@ -78,7 +79,7 @@ const DeferredSection = ({ children, minHeight = 180 }) => {
     <div ref={sectionRef} style={{ minHeight: isNearViewport ? undefined : minHeight }}>
       {isNearViewport ? (
         <Suspense fallback={<div className="text-center text-sm text-gray-500 py-8">Cargando módulo…</div>}>
-          {children}
+          <ErrorBoundary>{children}</ErrorBoundary>
         </Suspense>
       ) : null}
     </div>

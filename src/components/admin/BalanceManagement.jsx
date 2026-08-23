@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Check, ExternalLink, FileText, Save, ShieldCheck } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Check, ExternalLink, FileText, History, RefreshCw, RotateCcw, Save, ShieldCheck, Trash2 } from 'lucide-react';
 import balancesData from '../../data/balances_reales.json';
 import { balancesApi } from '../../api/balancesApi';
 import { getBalanceSource } from '../../data/balanceSources';
@@ -26,6 +26,18 @@ const BalanceManagement = () => {
   const [extracting, setExtracting] = useState(false);
   const [extractionReady, setExtractionReady] = useState(false);
   const [message, setMessage] = useState(null);
+  const [extractor, setExtractor] = useState(null);
+  const [reviewed, setReviewed] = useState(false);
+  const [versions, setVersions] = useState([]);
+  const [loadingVersions, setLoadingVersions] = useState(true);
+
+  const loadVersions = useCallback(async () => {
+    setLoadingVersions(true);
+    try { setVersions((await balancesApi.getAdminBalances()).versions || []); }
+    catch (error) { setMessage({ type: 'error', text: error.message }); }
+    finally { setLoadingVersions(false); }
+  }, []);
+  useEffect(() => { loadVersions(); }, [loadVersions]);
 
   const calculated = useMemo(() => {
     const deuda = Number(balance.deuda);
@@ -53,6 +65,8 @@ const BalanceManagement = () => {
     setSourceFilename('');
     setSourceUrl(getBalanceSource(ticker)?.url || '');
     setExtractionReady(false);
+    setReviewed(false);
+    setExtractor(null);
     setMessage(null);
   };
 
@@ -66,6 +80,7 @@ const BalanceManagement = () => {
     try {
       await balancesApi.saveBalance({ balance, sourceFilename, sourceUrl: sourceUrl || officialSource?.url || '' });
       setMessage({ type: 'success', text: `${balance.ticker} fue validado y publicado.` });
+      await loadVersions();
     } catch (error) {
       setMessage({ type: 'error', text: error.message });
     } finally {
@@ -76,6 +91,7 @@ const BalanceManagement = () => {
   const extractPdf = async (file) => {
     setSourceFilename(file?.name || '');
     setExtractionReady(false);
+    setReviewed(false);
     setMessage(null);
     if (!file) return;
     if (!balance.ticker) {
@@ -100,6 +116,7 @@ const BalanceManagement = () => {
         return next;
       });
       setExtractionReady(true);
+      setExtractor(result.extractor || null);
       const warning = result.warnings?.[0];
       setMessage({
         type: warning ? 'warning' : 'success',
@@ -111,6 +128,28 @@ const BalanceManagement = () => {
     } finally {
       setExtracting(false);
     }
+  };
+
+  const editVersion = version => {
+    setBalance({ ...emptyBalance, ...(version.data || {}), ticker: version.ticker });
+    setSourceFilename(version.sourceFilename || '');
+    setSourceUrl(version.sourceUrl || '');
+    setExtractionReady(false);
+    setReviewed(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setMessage({ type: 'warning', text: 'Versión cargada para consulta. Para republicarla, analizá nuevamente el PDF fuente.' });
+  };
+
+  const restoreVersion = async version => {
+    if (!window.confirm(`¿Restaurar ${version.ticker} · ${version.data?.ultimoBalance || version.data?.periodo}?`)) return;
+    try { await balancesApi.restoreBalance(version.ticker, version.id); await loadVersions(); setMessage({ type: 'success', text: 'Versión restaurada.' }); }
+    catch (error) { setMessage({ type: 'error', text: error.message }); }
+  };
+
+  const withdraw = async ticker => {
+    if (!window.confirm(`¿Retirar ${ticker} de Premium? El historial se conservará y podrá restaurarse.`)) return;
+    try { await balancesApi.withdrawBalance(ticker); await loadVersions(); setMessage({ type: 'success', text: `${ticker} retirado; su historial sigue disponible.` }); }
+    catch (error) { setMessage({ type: 'error', text: error.message }); }
   };
 
   return (
@@ -193,11 +232,39 @@ const BalanceManagement = () => {
 
       {message && <p className={`text-sm ${message.type === 'success' ? 'text-green-400' : message.type === 'warning' ? 'text-yellow-400' : 'text-red-400'}`}>{message.text}</p>}
 
-      <button onClick={save} disabled={saving || extracting || !extractionReady} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2">
+      {extractor && <div className={`rounded-lg border p-3 text-sm ${extractor.verified ? 'border-green-800/50 bg-green-950/20 text-green-300' : 'border-yellow-800/50 bg-yellow-950/20 text-yellow-300'}`}>
+        <strong>{extractor.verified ? 'Extractor verificado' : 'Extractor preliminar'}</strong> · {extractor.label}
+        <p className="mt-1 text-xs text-gray-400">{extractor.message}</p>
+      </div>}
+
+      {extractionReady && <label className="flex items-start gap-3 rounded-lg border border-gray-700 bg-gray-800/40 p-3 text-sm text-gray-300">
+        <input type="checkbox" checked={reviewed} onChange={event => setReviewed(event.target.checked)} className="mt-1" />
+        Confirmo que revisé período, unidad y cada cifra contra el informe oficial.
+      </label>}
+
+      <button onClick={save} disabled={saving || extracting || !extractionReady || !reviewed} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg flex items-center justify-center gap-2">
         {saving ? <Save className="w-5 h-5 animate-pulse" /> : <Check className="w-5 h-5" />}
         {saving ? 'Guardando…' : 'Validar y publicar balance'}
       </button>
       {!extractionReady && <p className="text-center text-xs text-yellow-400">La publicación se habilita únicamente después de analizar correctamente un PDF nuevo.</p>}
+
+      <section className="mt-10 border-t border-gray-700 pt-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div><h3 className="flex items-center gap-2 font-semibold text-white"><History className="w-5 h-5" /> Publicaciones e historial</h3><p className="text-xs text-gray-500">Auditoría de quién publicó, cuándo y desde qué fuente.</p></div>
+          <button onClick={loadVersions} className="p-2 text-gray-400 hover:text-white"><RefreshCw className={`w-4 h-4 ${loadingVersions ? 'animate-spin' : ''}`} /></button>
+        </div>
+        <div className="space-y-2">
+          {versions.map(version => <div key={version.id} className="flex flex-col gap-3 rounded-lg border border-gray-700 bg-gray-800/30 p-3 md:flex-row md:items-center md:justify-between">
+            <div><p className="font-medium text-white">{version.ticker} · {version.data?.ultimoBalance || version.data?.periodo || 'Sin período'} {version.active && <span className="ml-2 rounded bg-green-900/40 px-2 py-0.5 text-xs text-green-300">publicado</span>}</p><p className="text-xs text-gray-500">{version.publishedBy} · {new Date(version.publishedAt).toLocaleString('es-AR')} · {version.sourceFilename || 'sin archivo'}</p></div>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => editVersion(version)} className="rounded bg-gray-700 px-3 py-1 text-xs text-white">Ver/corregir</button>
+              {!version.active && <button onClick={() => restoreVersion(version)} className="flex items-center gap-1 rounded bg-blue-800 px-3 py-1 text-xs text-white"><RotateCcw className="w-3 h-3" /> Restaurar</button>}
+              {version.active && <button onClick={() => withdraw(version.ticker)} className="flex items-center gap-1 rounded bg-red-900/60 px-3 py-1 text-xs text-red-200"><Trash2 className="w-3 h-3" /> Retirar</button>}
+            </div>
+          </div>)}
+          {!loadingVersions && versions.length === 0 && <p className="text-sm text-gray-500">Todavía no hay publicaciones registradas.</p>}
+        </div>
+      </section>
     </div>
   );
 };

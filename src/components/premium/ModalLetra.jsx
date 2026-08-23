@@ -1,7 +1,6 @@
 // src/components/premium/ModalLetra.jsx
 import React, { useState } from 'react';
 import { X, Download, Calculator, Calendar, AlertCircle } from 'lucide-react';
-import { exportarLetraPDF } from '../../utils/pdfExport';
 import { getLetraData } from '../../data/letrasData';
 
 const ModalLetra = ({ isOpen, onClose, letra }) => {
@@ -234,7 +233,7 @@ const ModalLetra = ({ isOpen, onClose, letra }) => {
           {/* Botones de acción */}
           <div className="flex gap-3 pt-6 mt-4 border-t border-gray-700">
             <button 
-              onClick={() => exportarLetraPDF(letra)}
+              onClick={async () => (await import('../../utils/pdfExport')).exportarLetraPDF(letra)}
               className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4" />

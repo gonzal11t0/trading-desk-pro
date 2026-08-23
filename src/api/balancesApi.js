@@ -21,6 +21,18 @@ export const balancesApi = {
     }));
   },
 
+  getAdminBalances: async () => parseResponse(await fetch(`${API_URL}/admin/balances`, {
+    headers: { Authorization: `Bearer ${localStorage.getItem('tdp_token')}` }
+  })),
+
+  restoreBalance: async (ticker, versionId) => parseResponse(await fetch(`${API_URL}/admin/balances/${ticker}/versions/${versionId}/restore`, {
+    method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('tdp_token')}` }
+  })),
+
+  withdrawBalance: async ticker => parseResponse(await fetch(`${API_URL}/admin/balances/${ticker}`, {
+    method: 'DELETE', headers: { Authorization: `Bearer ${localStorage.getItem('tdp_token')}` }
+  })),
+
   extractBalance: async ({ file, ticker, sourceUrl }) => {
     const token = localStorage.getItem('tdp_token');
     if (file.size > 4_400_000) {

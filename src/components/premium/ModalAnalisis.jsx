@@ -1,7 +1,6 @@
 // src/components/premium/ModalAnalisis.jsx
 import React, { useState } from 'react';
 import { X, TrendingUp, TrendingDown, Download, Calendar, Clock, BarChart3, Info } from 'lucide-react';
-import { exportarEmpresaPDF } from '../../utils/pdfExport';
 import GraficoLinea from './GraficoLinea';
 
 const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
@@ -14,8 +13,9 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   const isBank = datosReales.sector === 'bank' || ['BMA', 'GGAL'].includes(datosReales.ticker);
 
   // Sólo se grafica el período publicado; no se fabrican puntos históricos.
-  const historico = [
-    { 
+  const historico = Array.isArray(datosReales.historial) && datosReales.historial.length
+    ? datosReales.historial.map(item => ({ ...item, periodo: item.ultimoBalance || item.periodo }))
+    : [{
       periodo: datosReales.ultimoBalance, 
       precio: datosReales.precio,
       ingresos: datosReales.ingresos,
@@ -24,8 +24,11 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
       resultadoNeto: datosReales.resultadoNeto,
       patrimonio: datosReales.patrimonio,
       per: datosReales.per
-    }
-  ];
+    }];
+  const exportPdf = async () => {
+    const { exportarEmpresaPDF } = await import('../../utils/pdfExport');
+    exportarEmpresaPDF(datosReales);
+  };
   
   // Formatear números según moneda
   const formatNumber = (value, moneda) => {
@@ -333,7 +336,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
           {/* Botones de acción */}
           <div className="flex gap-3 pt-6 mt-4 border-t border-gray-700">
             <button 
-              onClick={() => exportarEmpresaPDF(datosReales)}
+              onClick={exportPdf}
               className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4" />
