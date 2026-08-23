@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Users, RefreshCw, Trash2, Plus, Check, X, Mail, Shield, Search, UserPlus, Server } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Users, RefreshCw, Trash2, Check, X, Mail, Shield, UserPlus, FileSpreadsheet, Pencil, Save, Key } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://trading-backend.vercel.app/api';
+import { API_URL } from '../../config/runtime';
+import BalanceManagement from './BalanceManagement';
 
 const UserManagement = () => {
 const { isAdmin, currentUser } = useAuth();
@@ -15,34 +15,38 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState('client');
   const [newUserPlan, setNewUserPlan] = useState('basic');
-  const [isAddingUser, setIsAddingUser] = useState(false);
   const [activeTab, setActiveTab] = useState('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState(null);
+  const [loadError, setLoadError] = useState('');
+  const [editingUser, setEditingUser] = useState(null);
 
   const getToken = () => localStorage.getItem('tdp_token');
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const token = getToken();
+      if (!token) throw new Error('La sesión no contiene un token. Cerrá sesión y volvé a ingresar.');
       const response = await fetch(`${API_URL}/admin/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data.users || []);
-      }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `Error HTTP ${response.status}`);
+      setUsers(data.users || []);
     } catch (error) {
       console.error('Error cargando usuarios:', error);
+      setUsers([]);
+      setLoadError(error.message || 'No fue posible cargar los usuarios');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (isAdmin) loadUsers();
-  }, [isAdmin]);
+  }, [isAdmin, loadUsers]);
 
   const showMessage = (text, type = 'success') => {
     setMessage({ text, type });
@@ -82,12 +86,11 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
       setNewUserEmail('');
       setNewUserName('');
       setNewUserPassword('');
-      setIsAddingUser(false);
       loadUsers();
     } else {
       showMessage(data.error || 'Error creando usuario', 'error');
     }
-  } catch (error) {
+  } catch {
     showMessage('Error de conexión', 'error');
   }
 };
@@ -111,8 +114,35 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
         const data = await response.json();
         showMessage(data.error || 'Error eliminando usuario', 'error');
       }
-    } catch (error) {
+    } catch {
       showMessage('Error de conexión', 'error');
+    }
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editingUser) return;
+    try {
+      const response = await fetch(`${API_URL}/admin/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: editingUser.name,
+          role: editingUser.role,
+          plan: editingUser.plan,
+          active: editingUser.active,
+          password: editingUser.password || undefined
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `Error HTTP ${response.status}`);
+      showMessage(`✅ Usuario ${editingUser.email} actualizado`);
+      setEditingUser(null);
+      loadUsers();
+    } catch (error) {
+      showMessage(error.message || 'No fue posible modificar el usuario', 'error');
     }
   };
 
@@ -175,6 +205,9 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
             <button onClick={() => setActiveTab('create')} className={`px-4 py-2 text-sm font-medium ${activeTab === 'create' ? 'text-blue-400 border-b-2 border-blue-500' : 'text-gray-400'}`}>
               <UserPlus className="w-4 h-4 inline mr-2" /> Crear Usuario
             </button>
+            <button onClick={() => setActiveTab('balances')} className={`px-4 py-2 text-sm font-medium ${activeTab === 'balances' ? 'text-blue-400 border-b-2 border-blue-500' : 'text-gray-400'}`}>
+              <FileSpreadsheet className="w-4 h-4 inline mr-2" /> Cargar balance
+            </button>
           </div>
           <div className="relative">
             <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Buscar usuario..." className="pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white text-sm w-full md:w-64" />
@@ -184,7 +217,13 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
 
       {activeTab === 'users' && (
         <div className="space-y-4">
-          {loading ? (
+          {loadError ? (
+            <div className="rounded-lg border border-red-800/40 bg-red-950/20 p-4 text-sm text-red-300">
+              <p className="font-semibold">No se pudo consultar la base de usuarios</p>
+              <p className="mt-1">{loadError}</p>
+              <button onClick={loadUsers} className="mt-3 px-3 py-1.5 bg-red-700/40 hover:bg-red-700/60 rounded text-white">Reintentar</button>
+            </div>
+          ) : loading ? (
             <div className="text-center py-8">Cargando...</div>
           ) : filteredUsers.length === 0 ? (
             <div className="text-center py-8 text-gray-500">No se encontraron usuarios</div>
@@ -218,6 +257,9 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
                     </span>
                   </div>
                   <div className="col-span-3 flex items-center justify-end space-x-2">
+                    <button onClick={() => setEditingUser({ ...user, password: '' })} className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-900/20 rounded" title="Modificar usuario">
+                      <Pencil className="w-4 h-4" />
+                    </button>
                     {user.role !== 'admin' && user.id !== currentUser?.id && (
                       <button onClick={() => handleDeleteUser(user.id, user.email)} className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded" title="Eliminar usuario">
                         <Trash2 className="w-4 h-4" />
@@ -274,6 +316,44 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
                 <Check className="w-5 h-5 mr-2" /> Crear Usuario
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'balances' && <BalanceManagement />}
+
+      {editingUser && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-xl border border-gray-700 bg-gray-900 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-white">Modificar usuario</h3>
+                <p className="text-sm text-gray-400">{editingUser.email}</p>
+              </div>
+              <button onClick={() => setEditingUser(null)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+            </div>
+            <label className="block text-sm text-gray-300">Nombre
+              <input value={editingUser.name || ''} onChange={event => setEditingUser(user => ({ ...user, name: event.target.value }))} className="mt-1 w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white" />
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <label className="text-sm text-gray-300">Rol
+                <select value={editingUser.role} onChange={event => setEditingUser(user => ({ ...user, role: event.target.value }))} className="mt-1 w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white">
+                  <option value="client">Cliente</option><option value="admin">Administrador</option>
+                </select>
+              </label>
+              <label className="text-sm text-gray-300">Plan
+                <select value={editingUser.plan} onChange={event => setEditingUser(user => ({ ...user, plan: event.target.value }))} className="mt-1 w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white">
+                  <option value="basic">Básico</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option>
+                </select>
+              </label>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-gray-300">
+              <input type="checkbox" checked={editingUser.active !== false} onChange={event => setEditingUser(user => ({ ...user, active: event.target.checked }))} /> Usuario activo
+            </label>
+            <label className="block text-sm text-gray-300">Nueva contraseña (opcional)
+              <input type="password" value={editingUser.password} onChange={event => setEditingUser(user => ({ ...user, password: event.target.value }))} placeholder="Dejar vacío para conservarla" className="mt-1 w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white" />
+            </label>
+            <button onClick={handleUpdateUser} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2"><Save className="w-4 h-4" /> Guardar cambios</button>
           </div>
         </div>
       )}

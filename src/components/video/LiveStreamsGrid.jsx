@@ -148,7 +148,7 @@ export function LiveStreamsGrid() {
     }))
   }, [])
 
-  const handleRetry = useCallback((streamId, videoId) => {
+  const handleRetry = useCallback((streamId) => {
     setStreamsState(prev => ({
       ...prev,
       [streamId]: {

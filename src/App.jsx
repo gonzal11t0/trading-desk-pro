@@ -1,28 +1,19 @@
 // App.jsx - Versión completa y corregida
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import LoginModal from './components/layout/LoginModal'
 import { Toaster, toast } from "react-hot-toast";
 import { usePremiumStore } from './stores/premiumStore' // 👈 IMPORTAR STORE
-import { playAttention, playAlert } from "simple-notification-sounds";
 
 // Tus componentes existentes
 import { TradingHeader } from './components/layout/TradingHeader'
 import { QuotesCarousel } from './components/markets/QuotesCarousel'
 import { LiveStreamsGrid } from './components/video/LiveStreamsGrid'
-import { EconomicIndicators } from './components/markets/EconomicIndicators'
-import { FinancialDashboard } from './components/markets/FinancialDashboard'
-import { Notice } from './components/charts/Notice'
-import { TradingViewCharts } from './components/charts/TradingViewCharts'
-import TreemapDashboard from './components/charts/TreemapDashboard'
-import EconomicDataBlock from './components/markets/EconomicDataBlock'
-import AdSpace from './components/ads/AdSpace'
 
 // Nuevos componentes premium
-import AnalisisPremiumPage from './pages/AnalisisPremiumPage'
-import UpgradePage from './pages/UpgradePage'
 import PremiumGuard from './components/premium/PremiumGuard'
+import { API_URL } from './config/runtime'
 
 import { FloatingEduButton, MacroExplainer } from './components/markets/MacroExplainer'
 import { 
@@ -43,9 +34,56 @@ import {
 } from 'lucide-react'
 
 // Componente de gestión de usuarios (solo para admin)
-import UserManagement from './components/admin/UserManagement'
+const TradingViewCharts = lazy(() => import('./components/charts/TradingViewCharts').then((module) => ({ default: module.TradingViewCharts })))
+const EconomicIndicators = lazy(() => import('./components/markets/EconomicIndicators').then((module) => ({ default: module.EconomicIndicators })))
+const FinancialDashboard = lazy(() => import('./components/markets/FinancialDashboard').then((module) => ({ default: module.FinancialDashboard })))
+const Notice = lazy(() => import('./components/charts/Notice').then((module) => ({ default: module.Notice })))
+const TreemapDashboard = lazy(() => import('./components/charts/TreemapDashboard'))
+const EconomicDataBlock = lazy(() => import('./components/markets/EconomicDataBlock'))
+const AdSpace = lazy(() => import('./components/ads/AdSpace'))
+const AnalisisPremiumPage = lazy(() => import('./pages/AnalisisPremiumPage'))
+const UpgradePage = lazy(() => import('./pages/UpgradePage'))
+const UserManagement = lazy(() => import('./components/admin/UserManagement'))
 
 import './App.css'
+
+const DeferredSection = ({ children, minHeight = 180 }) => {
+  const sectionRef = useRef(null)
+  const [isNearViewport, setIsNearViewport] = useState(false)
+
+  useEffect(() => {
+    const node = sectionRef.current
+    if (!node || isNearViewport) return undefined
+
+    if (!('IntersectionObserver' in window)) {
+      setIsNearViewport(true)
+      return undefined
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsNearViewport(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '400px 0px' }
+    )
+
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [isNearViewport])
+
+  return (
+    <div ref={sectionRef} style={{ minHeight: isNearViewport ? undefined : minHeight }}>
+      {isNearViewport ? (
+        <Suspense fallback={<div className="text-center text-sm text-gray-500 py-8">Cargando módulo…</div>}>
+          {children}
+        </Suspense>
+      ) : null}
+    </div>
+  )
+}
 
 // ============================================
 // COMPONENTE PROTECTED ROUTE
@@ -228,24 +266,24 @@ const DashboardPage = () => {
           <div className="xl:w-[70%] min-w-0">
             <div className="space-y-6">
               <LiveStreamsGrid />
-              <EconomicIndicators />
-              <AdSpace />
-              <FinancialDashboard />
+              <DeferredSection><EconomicIndicators /></DeferredSection>
+              <DeferredSection><AdSpace /></DeferredSection>
+              <DeferredSection minHeight={320}><FinancialDashboard /></DeferredSection>
             </div>
           </div>
           
           <div className="xl:w-[30%] min-w-0 space-y-6">
-            <Notice /> 
-            <TreemapDashboard />
+            <DeferredSection><Notice /></DeferredSection>
+            <DeferredSection minHeight={320}><TreemapDashboard /></DeferredSection>
           </div>
         </div>
         
         <div className="w-full min-w-0 mt-6">
-          <EconomicDataBlock />
+          <DeferredSection minHeight={320}><EconomicDataBlock /></DeferredSection>
         </div>
         
         <div className="w-full min-w-0 mt-6">
-          <TradingViewCharts />
+          <DeferredSection minHeight={500}><TradingViewCharts /></DeferredSection>
         </div>
       </div>
     </MainLayout>
@@ -277,57 +315,48 @@ const NotFoundPage = () => (
 // ============================================
 function App() {
   const { alertas } = usePremiumStore();
-  const [preciosActuales, setPreciosActuales] = useState({});
 
 useEffect(() => {
   
   const verificarAlertas = async () => {
     
-    const tickers = [...new Set(alertas.map(a => a.ticker))];
-    
     const nuevosPrecios = {};
-    
-    for (const ticker of tickers) {
+    const alertasPorTipo = {
+      bonos: alertas.filter((alerta) => alerta.tipo === 'bonos'),
+      letras: alertas.filter((alerta) => alerta.tipo === 'letras'),
+      empresas: alertas.filter((alerta) => alerta.tipo !== 'bonos' && alerta.tipo !== 'letras')
+    };
+
+    const cargarListado = async (tipo, lista) => {
+      if (lista.length === 0) return;
       try {
-        // Buscar la alerta para saber el tipo
-        const alerta = alertas.find(a => a.ticker === ticker);
-        if (!alerta) continue;
-        
-        
-        let precio = null;
-        
-        if (alerta.tipo === 'bonos') {
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/bonos`);
-          if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
-          const bonos = await res.json();
-          const bono = bonos.find(b => b.symbol === ticker);
-          precio = bono?.last;
-        } 
-        else if (alerta.tipo === 'letras') {
-          // Para letras, obtener todas y filtrar
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/letras`);
-          if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
-          const letras = await res.json();
-          const letra = letras.find(l => l.symbol === ticker);
-          precio = letra?.last;
-        }
-        else {
-          // Para empresas (balances)
-          const res = await fetch(`${import.meta.env.VITE_API_URL}/company/${ticker}`);
+        const res = await fetch(`${API_URL}/${tipo}`);
+        if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+        const instrumentos = await res.json();
+        lista.forEach(({ ticker }) => {
+          nuevosPrecios[ticker] = instrumentos.find((item) => item.symbol === ticker)?.last ?? null;
+        });
+      } catch (error) {
+        console.error(`Error obteniendo ${tipo}`, error);
+        lista.forEach(({ ticker }) => { nuevosPrecios[ticker] = null; });
+      }
+    };
+
+    await Promise.all([
+      cargarListado('bonos', alertasPorTipo.bonos),
+      cargarListado('letras', alertasPorTipo.letras),
+      ...alertasPorTipo.empresas.map(async ({ ticker }) => {
+        try {
+          const res = await fetch(`${API_URL}/company/${ticker}`);
           if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
           const data = await res.json();
-          precio = data.precio;
+          nuevosPrecios[ticker] = data.precio ?? null;
+        } catch (error) {
+          console.error('Error obteniendo precio para', ticker, error);
+          nuevosPrecios[ticker] = null;
         }
-        
-        nuevosPrecios[ticker] = precio;
-        
-      } catch (error) {
-        console.error('Error obteniendo precio para', ticker, error);
-        nuevosPrecios[ticker] = null;
-      }
-    }
-    
-    setPreciosActuales(nuevosPrecios);
+      })
+    ]);
     
     // Verificar cada alerta
     alertas.forEach(alerta => {
@@ -347,8 +376,6 @@ useEffect(() => {
         : precioActual <= alerta.precioObjetivo;
             
       if (condicionCumplida) {
-  playAlert("medium"); 
-  
   toast.success(`🔔 ${alerta.ticker} alcanzó $${precioActual.toFixed(2)}`, {
     duration: 10000,
     icon: '🔔',
@@ -384,6 +411,7 @@ useEffect(() => {
           }
         }}
       />
+      <Suspense fallback={<div className="min-h-[30vh] flex items-center justify-center text-gray-400">Cargando módulo…</div>}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={
@@ -424,6 +452,7 @@ useEffect(() => {
         } />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
     </>
   )
 }

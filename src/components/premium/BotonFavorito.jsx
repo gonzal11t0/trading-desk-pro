@@ -4,7 +4,7 @@ import { Star } from 'lucide-react';
 import { usePremiumStore } from '../../stores/premiumStore';
 
 const BotonFavorito = ({ tipo, ticker, size = 'md' }) => {
-  const { favoritos, toggleFavorito, esFavorito } = usePremiumStore();
+  const { toggleFavorito, esFavorito } = usePremiumStore();
   const isFav = esFavorito(tipo, ticker);
 
   const sizes = {

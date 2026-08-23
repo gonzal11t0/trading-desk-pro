@@ -27,7 +27,7 @@ const GraficoLinea = ({ data, lines, xKey, height = 300 }) => {
           }}
         />
         <Legend wrapperStyle={{ color: '#F3F4F6' }} />
-        {lines.map((line, index) => (
+        {lines.map((line) => (
           <Line
             key={line.key}
             type="monotone"

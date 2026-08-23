@@ -6,7 +6,7 @@ import { useAuthBackend } from '../../hooks/useAuthBackend';
 import { useAuth } from '../../hooks/useAuth';
 
 const LoginModal = () => {
-  const { login: loginBackend, isLoading: isLoadingBackend } = useAuthBackend();
+  const { login: loginBackend } = useAuthBackend();
 const { isAuthenticated, isChecking } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -337,4 +337,4 @@ const { isAuthenticated, isChecking } = useAuth();
   );
 };
 
-export default LoginModal; 
+export default LoginModal;

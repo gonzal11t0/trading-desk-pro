@@ -1,8 +1,7 @@
 // src/hooks/useAuthBackend.js
 import { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { API_URL } from '../config/runtime';
 
 export const useAuthBackend = () => {
   const authStore = useAuthStore();
@@ -26,8 +25,8 @@ export const useAuthBackend = () => {
         throw new Error(data.error || 'Credenciales incorrectas');
       }
       
-      const { user } = data;
-      const token = 'tdp_backend_' + Date.now();
+      const { user, token } = data;
+      if (!token || !user) throw new Error('El backend devolvió una sesión inválida');
       
       authStore.loginSuccess(user, token, rememberMe);
       

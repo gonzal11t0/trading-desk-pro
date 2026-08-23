@@ -1,9 +1,8 @@
 // src/components/premium/ModalAnalisis.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, TrendingUp, TrendingDown, Download, Calendar, Clock, BarChart3, Info } from 'lucide-react';
 import { exportarEmpresaPDF } from '../../utils/pdfExport';
 import GraficoLinea from './GraficoLinea';
-import balancesData from '../../data/balances_reales.json';
 
 const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   const [tabActiva, setTabActiva] = useState('actual');
@@ -11,14 +10,10 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   
   if (!isOpen) return null;
 
-  // Buscar los datos reales de la empresa en el JSON
-  const empresaReal = balancesData.empresas.find(e => e.ticker === empresa.ticker);
-  
-  // Si no se encuentra en el JSON, usar los datos pasados como prop
-  const datosReales = empresaReal || empresa;
+  const datosReales = empresa;
+  const isBank = datosReales.sector === 'bank' || ['BMA', 'GGAL'].includes(datosReales.ticker);
 
-  // Preparar datos históricos basados en los datos reales
-  // Simulamos 4 trimestres con tendencia basada en variaciones
+  // Sólo se grafica el período publicado; no se fabrican puntos históricos.
   const historico = [
     { 
       periodo: datosReales.ultimoBalance, 
@@ -26,33 +21,17 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
       ingresos: datosReales.ingresos,
       ebitda: datosReales.ebitda,
       deuda: datosReales.deuda,
+      resultadoNeto: datosReales.resultadoNeto,
+      patrimonio: datosReales.patrimonio,
       per: datosReales.per
     }
   ];
   
-  // Si tenemos variaciones, podemos simular trimestres anteriores
-  if (datosReales.varIngresos) {
-    const ingresosPrev = datosReales.ingresos / (1 + datosReales.varIngresos / 100);
-    const ebitdaPrev = datosReales.ebitda / (1 + datosReales.varEbitda / 100);
-    const deudaPrev = datosReales.deuda / (1 + datosReales.varDeuda / 100);
-    const perPrev = datosReales.per / (1 + datosReales.varPer / 100);
-    const precioPrev = datosReales.precio / (1 + (datosReales.varPer / 100) * 0.5);
-    
-    historico.unshift({
-      periodo: 'Sep 2025',
-      precio: precioPrev,
-      ingresos: ingresosPrev,
-      ebitda: ebitdaPrev,
-      deuda: deudaPrev,
-      per: perPrev
-    });
-  }
-
   // Formatear números según moneda
   const formatNumber = (value, moneda) => {
     if (!value && value !== 0) return 'N/A';
     
-    if (moneda === 'USD') {
+    if (String(moneda).startsWith('USD')) {
       return `US$ ${value.toFixed(1)}M`;
     }
     return `$${Math.round(value).toLocaleString('es-AR')}M`;
@@ -66,7 +45,14 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   };
 
   const moneda = datosReales.moneda || 'ARS';
-  const perValue = datosReales.per || 8.0;
+  const perValue = Number.isFinite(Number(datosReales.per)) ? Number(datosReales.per) : null;
+  const precio = Number(datosReales.precio);
+  const deudaPatrimonio = Number(datosReales.patrimonio) !== 0
+    ? (Number(datosReales.deuda) / Number(datosReales.patrimonio)).toFixed(2)
+    : '—';
+  const margenEbitda = Number(datosReales.ingresos) !== 0
+    ? ((Number(datosReales.ebitda) / Number(datosReales.ingresos)) * 100).toFixed(1)
+    : '—';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
@@ -78,7 +64,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
               {datosReales.ticker} - {datosReales.nombre}
             </h2>
             <p className="text-sm text-gray-400">
-              Último balance: {datosReales.ultimoBalance} · Precio: ${datosReales.precio.toLocaleString('es-AR')}
+              Último balance: {datosReales.ultimoBalance} · Precio: {Number.isFinite(precio) ? `$${precio.toLocaleString('es-AR')}` : '—'}
             </p>
             {datosReales.periodo && (
               <p className="text-xs text-gray-500 mt-1">Período: {datosReales.periodo}</p>
@@ -147,9 +133,9 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                   <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-700/30 rounded-lg text-xs text-yellow-400/90">
                     <p className="font-medium mb-1">🔍 Sobre los datos:</p>
                     <ul className="list-disc list-inside space-y-1 text-gray-300">
-                      <li>✅ Todos los datos son <span className="text-green-400">reales</span> de los balances presentados</li>
+                      <li>📁 Las cifras contables corresponden a una carga revisada por un administrador</li>
                       <li>📅 Último balance: {datosReales.ultimoBalance} ({datosReales.periodo})</li>
-                      <li>🏦 Fuente: Estados financieros auditados</li>
+                      <li>⚠️ Verificar contra el informe publicado en la fuente oficial de la emisora</li>
                     </ul>
                   </div>
                 )}
@@ -158,14 +144,14 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                   <div className="p-3 bg-gray-800/30 rounded-lg">
                     <p className="text-xs text-gray-400 mb-1">Precio actual</p>
                     <p className="text-xl font-bold text-green-400">
-                      ${datosReales.precio.toLocaleString('es-AR')}
+                      {Number.isFinite(precio) ? `$${precio.toLocaleString('es-AR')}` : '—'}
                     </p>
                   </div>
                   
                   <div className="p-3 bg-gray-800/30 rounded-lg">
                     <p className="text-xs text-gray-400 mb-1">PER</p>
                     <p className="text-xl font-bold text-white">
-                      {perValue}x
+                      {perValue === null ? '—' : `${perValue}x`}
                     </p>
                   </div>
                   
@@ -177,9 +163,9 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                   </div>
                   
                   <div className="p-3 bg-gray-800/30 rounded-lg">
-                    <p className="text-xs text-gray-400 mb-1">Deuda/EBITDA</p>
+                    <p className="text-xs text-gray-400 mb-1">{isBank ? 'Resultado neto' : 'Deuda/EBITDA'}</p>
                     <p className="text-xl font-bold text-white">
-                      {datosReales.deudaEbitda}x
+                      {isBank ? formatNumber(datosReales.resultadoNeto, moneda) : `${datosReales.deudaEbitda ?? '—'}x`}
                     </p>
                   </div>
                 </div>
@@ -188,8 +174,8 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
               {/* Datos reales del balance */}
               <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700">
                 <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                  <span>📈 Datos del Balance (Reales)</span>
-                  <span className="text-xs bg-green-600/20 text-green-400 px-2 py-0.5 rounded">datos auditados</span>
+                  <span>📈 Datos del balance</span>
+                  <span className="text-xs bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded">carga validada</span>
                 </h3>
                 
                 <div className="space-y-3">
@@ -202,7 +188,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                       </span>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
+                  {!isBank && <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
                     <span className="text-sm text-gray-400">EBITDA</span>
                     <div className="text-right">
                       <span className="text-white font-semibold">{formatNumber(datosReales.ebitda, moneda)}</span>
@@ -210,8 +196,8 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                         {datosReales.varEbitda > 0 ? '+' : ''}{datosReales.varEbitda}%
                       </span>
                     </div>
-                  </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
+                  </div>}
+                  {!isBank && <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
                     <span className="text-sm text-gray-400">Deuda Total</span>
                     <div className="text-right">
                       <span className="text-white font-semibold">{formatNumber(datosReales.deuda, moneda)}</span>
@@ -219,11 +205,21 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                         {datosReales.varDeuda > 0 ? '+' : ''}{datosReales.varDeuda}%
                       </span>
                     </div>
-                  </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
+                  </div>}
+                  {!isBank && <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
                     <span className="text-sm text-gray-400">Deuda/EBITDA</span>
                     <span className="text-white font-semibold">{datosReales.deudaEbitda}x</span>
-                  </div>
+                  </div>}
+                  {isBank && <>
+                    <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
+                      <span className="text-sm text-gray-400">Resultado neto</span>
+                      <span className="text-white font-semibold">{formatNumber(datosReales.resultadoNeto, moneda)}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
+                      <span className="text-sm text-gray-400">Patrimonio neto</span>
+                      <span className="text-white font-semibold">{formatNumber(datosReales.patrimonio, moneda)}</span>
+                    </div>
+                  </>}
                 </div>
               </div>
 
@@ -232,8 +228,9 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   <h4 className="font-semibold text-white mb-3">📈 Análisis de Tendencia</h4>
   <div className="space-y-2 text-sm text-gray-300">
     <p>• <span className="text-yellow-400">ROE:</span> {datosReales.roe}%</p>
-    <p>• <span className="text-yellow-400">Deuda/Patrimonio:</span> {(datosReales.deuda / datosReales.patrimonio).toFixed(2)}x</p>
-    <p>• <span className="text-yellow-400">Margen EBITDA:</span> {((datosReales.ebitda / datosReales.ingresos) * 100).toFixed(1)}%</p>
+    {!isBank && <p>• <span className="text-yellow-400">Deuda/Patrimonio:</span> {deudaPatrimonio}x</p>}
+    {!isBank && <p>• <span className="text-yellow-400">Margen EBITDA:</span> {margenEbitda}%</p>}
+    {isBank && <p>• <span className="text-yellow-400">Resultado neto:</span> {formatNumber(datosReales.resultadoNeto, moneda)}</p>}
   </div>
 </div>
               <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/30 rounded-lg p-5 border border-gray-700/50">
@@ -272,8 +269,8 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                     <tr className="border-b border-gray-700">
                       <th className="text-left py-3 px-2 text-gray-400">Período</th>
                       <th className="text-right py-3 px-2 text-gray-400">Ingresos</th>
-                      <th className="text-right py-3 px-2 text-gray-400">EBITDA</th>
-                      <th className="text-right py-3 px-2 text-gray-400">Deuda</th>
+                      <th className="text-right py-3 px-2 text-gray-400">{isBank ? 'Resultado neto' : 'EBITDA'}</th>
+                      <th className="text-right py-3 px-2 text-gray-400">{isBank ? 'Patrimonio' : 'Deuda'}</th>
                       <th className="text-right py-3 px-2 text-gray-400">PER</th>
                     </tr>
                   </thead>
@@ -282,8 +279,8 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                       <tr key={index} className="border-b border-gray-800 hover:bg-gray-800/30">
                         <td className="py-3 px-2 text-white font-medium">{item.periodo}</td>
                         <td className="text-right py-3 px-2 text-blue-400">{formatNumber(item.ingresos, moneda)}</td>
-                        <td className="text-right py-3 px-2 text-purple-400">{formatNumber(item.ebitda, moneda)}</td>
-                        <td className="text-right py-3 px-2 text-yellow-400">{formatNumber(item.deuda, moneda)}</td>
+                        <td className="text-right py-3 px-2 text-purple-400">{formatNumber(isBank ? item.resultadoNeto : item.ebitda, moneda)}</td>
+                        <td className="text-right py-3 px-2 text-yellow-400">{formatNumber(isBank ? item.patrimonio : item.deuda, moneda)}</td>
                         <td className="text-right py-3 px-2 text-green-400">{item.per}x</td>
                       </tr>
                     ))}
@@ -292,15 +289,16 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
               </div>
 
               <div className="text-xs text-gray-500 text-right">
-                Datos basados en balances auditados
+                Datos de carga manual; pueden no reflejar la presentación más reciente
               </div>
 
               <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700">
                 <h4 className="font-semibold text-white mb-3">📈 Análisis de Tendencia</h4>
                 <div className="space-y-2 text-sm text-gray-300">
                   <p>• <span className="text-yellow-400">ROE:</span> {datosReales.roe}%</p>
-                  <p>• <span className="text-yellow-400">Deuda/Patrimonio:</span> {(datosReales.deuda / datosReales.patrimonio).toFixed(2)}x</p>
-                  <p>• <span className="text-yellow-400">Margen EBITDA:</span> {((datosReales.ebitda / datosReales.ingresos) * 100).toFixed(1)}%</p>
+                  {!isBank && <p>• <span className="text-yellow-400">Deuda/Patrimonio:</span> {deudaPatrimonio}x</p>}
+                  {!isBank && <p>• <span className="text-yellow-400">Margen EBITDA:</span> {margenEbitda}%</p>}
+                  {isBank && <p>• <span className="text-yellow-400">Resultado neto:</span> {formatNumber(datosReales.resultadoNeto, moneda)}</p>}
                 </div>
               </div>
             </div>
@@ -313,16 +311,16 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
               </h3>
               
               <GraficoLinea
-                data={historico.map(h => ({ periodo: h.periodo, ingresos: h.ingresos, ebitda: h.ebitda }))}
+                data={historico.map(h => ({ periodo: h.periodo, ingresos: h.ingresos, resultado: isBank ? h.resultadoNeto : h.ebitda }))}
                 xKey="periodo"
                 lines={[
                   { key: 'ingresos', name: 'Ingresos', color: '#3B82F6' },
-                  { key: 'ebitda', name: 'EBITDA', color: '#A855F7' }
+                  { key: 'resultado', name: isBank ? 'Resultado neto' : 'EBITDA', color: '#A855F7' }
                 ]}
               />
               
               <div className="text-xs text-gray-500 text-center">
-                * Datos en {moneda === 'USD' ? 'millones de dólares' : 'millones de pesos argentinos'}
+                * Unidad informada: {moneda}
               </div>
             </div>
           )}

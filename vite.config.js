@@ -14,15 +14,15 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      '/api/backend': {
+        target: 'https://trading-backend-psi.vercel.app',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/backend/, '/api')
+      },
       '/api/argentina-datos': {
         target: 'https://api.argentinadatos.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/argentina-datos/, '')
-      },
-      '/api/fmp': {
-        target: 'https://financialmodelingprep.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/fmp/, '')
       },
       '/api/coingecko': {
   target: 'https://api.coingecko.com/api/v3',
@@ -34,10 +34,15 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/yahoo/, '')
       },
-      '/api/eoddata': {
-        target: 'https://eoddata.com',
+      '/api/rss/bbc': {
+        target: 'https://feeds.bbci.co.uk',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/eoddata/, '')
+        rewrite: () => '/news/business/rss.xml'
+      },
+      '/api/rss/ft': {
+        target: 'https://www.ft.com',
+        changeOrigin: true,
+        rewrite: () => '/rss/home'
       }
     }
   }

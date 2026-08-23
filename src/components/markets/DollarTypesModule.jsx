@@ -5,7 +5,7 @@ export function DollarTypesModule() {
   const [isRefreshing, setIsRefreshing] = React.useState(false)
   const [dollarTypesData, setDollarTypesData] = React.useState([])
 
-  const fetchMEPCCL = async () => {
+  const fetchMEPCCL = React.useCallback(async () => {
     try {
       const response = await fetch('https://dolarapi.com/v1/dolares');
       const data = await response.json();
@@ -34,10 +34,10 @@ export function DollarTypesModule() {
       console.error('Error fetching MEP/CCL from DolarAPI:', error);
       return null;
     }
-  };
+  }, []);
 
   // Función para obtener datos reales de Bluelytics (misma que QuotesCarousel)
-  const fetchRealDollarData = async () => {
+  const fetchRealDollarData = React.useCallback(async () => {
     try {
       const [bluelyticsResponse, mepCclData] = await Promise.all([
         fetch('https://api.bluelytics.com.ar/v2/latest'),
@@ -116,7 +116,7 @@ export function DollarTypesModule() {
         { type: 'Dólar Mayorista', buy: 348, sell: 350, variation: 0.1, spread: 2, color: '#6b7280' }
       ]);
     }
-  };
+  }, [fetchMEPCCL]);
 
   // Cargar datos al montar el componente
   React.useEffect(() => {
@@ -125,7 +125,7 @@ export function DollarTypesModule() {
     // Actualizar cada 2 minutos
     const interval = setInterval(fetchRealDollarData, 120000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchRealDollarData]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);

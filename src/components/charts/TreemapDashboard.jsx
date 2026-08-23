@@ -53,7 +53,7 @@ const resultados = useMemo(() => {
     teaNeta: teaNeta,      // TEA neta (después de gastos)
     rendimientoNeto: (interesNeto / monto) * 100  // rendimiento del período
   };
-}, [monto, plazo, tasa, cantidad]);
+}, [monto, plazo, tasa]);
 
   // Formatear moneda
   const formatCurrency = (value) => {

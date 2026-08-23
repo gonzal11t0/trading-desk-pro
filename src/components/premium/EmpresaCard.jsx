@@ -30,8 +30,25 @@ const EmpresaCard = ({ empresa }) => {
     ingresos: 'Ingresos totales del último trimestre',
     ebitda: 'Ganancias antes de intereses, impuestos, depreciaciones',
     deuda: 'Deuda financiera total',
+    resultadoNeto: 'Ganancia o pérdida neta informada para el período',
+    roe: 'Resultado neto sobre patrimonio neto',
     per: 'Precio / Ganancia por acción'
   };
+  const precio = Number(empresa.precio);
+  const isBank = empresa.sector === 'bank' || ['BMA', 'GGAL'].includes(empresa.ticker);
+  const indicadores = isBank
+    ? [
+        { key: 'ingresos', label: 'Ingresos operativos', value: empresa.ingresos, var: empresa.varIngresos },
+        { key: 'resultadoNeto', label: 'Resultado neto', value: empresa.resultadoNeto, var: empresa.varResultadoNeto },
+        { key: 'roe', label: 'ROE', value: empresa.roe, var: empresa.varRoe },
+        { key: 'per', label: 'PER', value: empresa.per, var: empresa.varPer }
+      ]
+    : [
+        { key: 'ingresos', label: 'Ingresos', value: empresa.ingresos, var: empresa.varIngresos },
+        { key: 'ebitda', label: 'EBITDA', value: empresa.ebitda, var: empresa.varEbitda },
+        { key: 'deuda', label: 'Deuda', value: empresa.deuda, var: empresa.varDeuda },
+        { key: 'per', label: 'PER', value: empresa.per, var: empresa.varPer }
+      ];
 
   return (
     <>
@@ -55,7 +72,7 @@ const EmpresaCard = ({ empresa }) => {
               </span>
             </div>
             <p className="text-sm text-gray-500">
-              Último balance: {empresa.ultimoBalance} · Precio: ${empresa.precio.toLocaleString('es-AR')}
+              Último balance: {empresa.ultimoBalance} · Precio{empresa.precioEnVivo ? ' de mercado' : ' de referencia'}: {Number.isFinite(precio) ? `$${precio.toLocaleString('es-AR')}` : '—'}
             </p>
           </div>
           
@@ -74,12 +91,7 @@ const EmpresaCard = ({ empresa }) => {
 
         {/* Grid de indicadores con tooltips */}
         <div className="grid grid-cols-2 gap-3 mb-5">
-          {[
-            { key: 'ingresos', label: 'Ingresos', value: empresa.ingresos, var: empresa.varIngresos },
-            { key: 'ebitda', label: 'EBITDA', value: empresa.ebitda, var: empresa.varEbitda },
-            { key: 'deuda', label: 'Deuda', value: empresa.deuda, var: empresa.varDeuda },
-            { key: 'per', label: 'PER', value: empresa.per, var: empresa.varPer }
-          ].map(item => (
+          {indicadores.map(item => (
             <div 
               key={item.key}
               className="p-3 bg-gray-800/30 rounded-lg border border-gray-700/30 relative group/indicator"
@@ -98,11 +110,11 @@ const EmpresaCard = ({ empresa }) => {
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-white font-semibold">{item.value}</span>
+                <span className="text-white font-semibold">{item.value ?? '—'}</span>
                 <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${getVariacionColor(item.var)}`}>
                   {getVariacionIcon(item.var)}
                   <span className="text-xs font-medium">
-                    {item.var > 0 ? '+' : ''}{item.var}%
+                    {Number.isFinite(Number(item.var)) ? `${item.var > 0 ? '+' : ''}${item.var}%` : '—'}
                   </span>
                 </div>
               </div>

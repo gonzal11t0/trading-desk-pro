@@ -1,41 +1,29 @@
-// src/api/inflationApi.js
-const ARGENSTATS_API_KEY = 'as_prod_ZVEVYAdpAPGIhYexnSMZVjURoQJGtb1H';
+const INFLATION_URL = '/api/argentina-datos/v1/finanzas/indices/inflacion';
 
 export const inflationApi = {
-  getLastMonthsInflation: async (months = 12) => {
-    return getMockHistoricalData(months);
+  async getLastMonthsInflation(months = 12) {
+    const response = await fetch(INFLATION_URL, { signal: AbortSignal.timeout(15000) });
+    if (!response.ok) throw new Error(`La API de inflación respondió HTTP ${response.status}`);
+    const payload = await response.json();
+    if (!Array.isArray(payload) || payload.length === 0) throw new Error('La API de inflación no devolvió datos');
+
+    const latest = payload
+      .filter((item) => item.fecha && Number.isFinite(Number(item.valor)))
+      .sort((a, b) => b.fecha.localeCompare(a.fecha))
+      .slice(0, months);
+
+    return latest.map((item, index) => {
+      const previousValue = latest[index + 1] ? Number(latest[index + 1].valor) : null;
+      const currentValue = Number(item.valor);
+      const change = previousValue ? ((currentValue - previousValue) / Math.abs(previousValue)) * 100 : null;
+      return {
+        date: item.fecha,
+        values: { monthly: currentValue, yearly: null, accumulated: null },
+        change: { monthly: change === null ? null : `${change >= 0 ? '+' : ''}${change.toFixed(1)}`, yearly: null, accumulated: null },
+        source: 'ArgentinaDatos'
+      };
+    });
   }
 };
-
-function getMockHistoricalData(months = 12) {
-  const realData = [
-    { date: "2026-02-02", value: 2.9 },
-    { date: "2026-02-01", value: 2.9 },
-    { date: "2025-12-03", value: 2.8 },  
-    { date: "2025-11-03", value: 2.5 },  
-    { date: "2025-10-03", value: 2.3 },  
-    { date: "2025-09-03", value: 2.1 },  
-    { date: "2025-08-03", value: 1.9 },  
-
-
-
-  ];
-  
-  return realData.slice(0, months).map((item, index, arr) => {
-    let monthlyChange = null;
-    if (index < arr.length - 1) {
-      const current = item.value;
-      const prev = arr[index + 1].value;
-      const change = ((current - prev) / prev) * 100;
-      monthlyChange = change > 0 ? `+${change.toFixed(1)}` : change.toFixed(1);
-    }
-    
-    return {
-      date: item.date,
-      values: { monthly: item.value, yearly: null, accumulated: null },
-      change: { monthly: monthlyChange, yearly: null, accumulated: null }
-    };
-  });
-}
 
 export default inflationApi;

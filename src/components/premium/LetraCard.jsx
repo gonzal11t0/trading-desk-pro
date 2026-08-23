@@ -12,14 +12,11 @@ const LetraCard = ({ letra }) => {
 
   if (!letra) return null;
 
-  const letraInfo = getLetraData(letra.ticker);
+  const letraInfo = getLetraData(letra.ticker, letra);
   
-  // Usar las propiedades correctas del mock
   const ultimo = letra.ultimo ?? 0;
   const variacion = letra.variacion_dia ?? 0;
-  const variacionPorcentaje = variacion ? (variacion * 100).toFixed(2) : '0.00';
-  const maximo = letra.maximo ?? 0;
-  const minimo = letra.minimo ?? 0;
+  const variacionPorcentaje = Number(variacion).toFixed(2);
 
   const getVariacionColor = (valor) => {
     if (valor > 0) return 'text-green-400';
@@ -40,7 +37,7 @@ const LetraCard = ({ letra }) => {
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-xl font-bold text-white">{letra.ticker}</h3>
-            <p className="text-sm text-gray-400">{letraInfo.nombre} • {letraInfo.tipo}</p>
+            <p className="text-sm text-gray-400">{letra.nombre || letraInfo.nombre} • {letraInfo.tipo}</p>
           </div>
           
           <div className="flex items-center gap-2">

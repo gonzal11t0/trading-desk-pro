@@ -136,6 +136,8 @@ const cargarDatosBandas = async (forceRefreshIPC = false) => {
     }, 3600000);
     
     return () => clearInterval(interval);
+    // El intervalo debe conservar una sola instancia durante la vida del componente.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {

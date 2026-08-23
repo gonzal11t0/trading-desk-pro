@@ -89,21 +89,31 @@ export const letrasData = {
   }
 };
 
-export const getLetraData = (ticker) => {
+export const getLetraData = (ticker, marketData = {}) => {
   // Buscar si el ticker contiene alguna de las claves
   for (const [key, data] of Object.entries(letrasData)) {
     if (ticker.includes(key)) {
-      return data;
+      return {
+        ...data,
+        nombre: marketData.nombre || data.nombre,
+        tipo: marketData.tipo || data.tipo,
+        moneda: marketData.moneda || data.moneda,
+        tna: Number.isFinite(Number(marketData.tna)) ? Number(marketData.tna) : null,
+        tea: Number.isFinite(Number(marketData.tea)) ? Number(marketData.tea) : null,
+        plazo: Number.isFinite(Number(marketData.plazo)) ? Number(marketData.plazo) : null,
+        vencimiento: marketData.vencimiento || null
+      };
     }
   }
   
   // Si no encuentra, devolver datos genéricos
   return {
     nombre: ticker,
-    tipo: 'Capitalización',
-    tna: null,
-    tea: null,
-    plazo: null,
-    moneda: 'ARS'
+    tipo: marketData.tipo || 'Instrumento del Tesoro',
+    tna: Number.isFinite(Number(marketData.tna)) ? Number(marketData.tna) : null,
+    tea: Number.isFinite(Number(marketData.tea)) ? Number(marketData.tea) : null,
+    plazo: Number.isFinite(Number(marketData.plazo)) ? Number(marketData.plazo) : null,
+    vencimiento: marketData.vencimiento || null,
+    moneda: marketData.moneda || 'ARS'
   };
 };

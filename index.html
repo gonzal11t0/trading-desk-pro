@@ -9,15 +9,13 @@
     <meta name="author" content="Trading Desk Pro">
 
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://tudominio.com/">
+    <meta property="og:url" content="https://trading-desk-pro.vercel.app/">
     <meta property="og:title" content="Trading Desk Pro | Terminal Financiero">
     <meta property="og:description" content="Dashboard financiero profesional con datos de mercados en tiempo real">
-    <meta property="og:image" content="https://tudominio.com/og-image.png">
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://tudominio.com/">
+    <meta property="twitter:url" content="https://trading-desk-pro.vercel.app/">
     <meta property="twitter:title" content="Trading Desk Pro | Terminal Financiero">
     <meta property="twitter:description" content="Dashboard financiero profesional con datos de mercados en tiempo real">
-    <meta property="twitter:image" content="https://tudominio.com/twitter-image.png">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -40,7 +38,7 @@
       "@type": "WebApplication",
       "name": "Trading Desk Pro",
       "description": "Terminal financiero profesional con datos de mercados en tiempo real",
-      "url": "https://tudominio.com",
+      "url": "https://trading-desk-pro.vercel.app",
       "applicationCategory": "FinanceApplication",
       "operatingSystem": "Web Browser",
       "offers": {
@@ -50,24 +48,6 @@
       }
     }
     </script>
-    <script>
-  // Forzar passive event listeners para mejor performance
-  (function() {
-    const originalAddEventListener = EventTarget.prototype.addEventListener;
-    
-    EventTarget.prototype.addEventListener = function(type, listener, options) {
-      const passiveEvents = ['touchstart', 'touchmove', 'wheel', 'mousewheel', 'scroll'];
-      
-      if (passiveEvents.includes(type) && !options) {
-        options = { passive: true };
-      } else if (passiveEvents.includes(type) && options && typeof options === 'object') {
-        options.passive = options.passive !== false;
-      }
-      
-      return originalAddEventListener.call(this, type, listener, options);
-    };
-  })();
-</script>
     <style>
       body {
         margin: 0;
@@ -178,62 +158,6 @@
         }
       });
     </script>
-     <script>
-    // BLOQUEAR TODAS LAS LLAMADAS PROBLEMÁTICAS DE TRADINGVIEW
-    (function() {
-      // Dominios que causan errores
-      const blockedDomains = [
-        'telemetry.tradingview.com',
-        'support.tradingview.com',
-        '/support/support-portal-problems',
-        'snowplow-embed-widget-tracker',
-        'chart-data.tradingview.com'
-      ];
-      
-      // Guardar fetch original
-      const originalFetch = window.fetch;
-      window.fetch = function(url, options) {
-        if (typeof url === 'string') {
-          const shouldBlock = blockedDomains.some(domain => url.includes(domain));
-          if (shouldBlock) {
-            console.log('🚫 TradingView bloqueado:', url);
-            // Retornar una promesa rechazada inmediatamente
-            return Promise.reject(new Error(`TradingView bloqueado: ${url.split('/')[2]}`));
-          }
-        }
-        return originalFetch.call(this, url, options);
-      };
-      
-      // También interceptar XMLHttpRequest
-      const originalXHROpen = XMLHttpRequest.prototype.open;
-      XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
-        if (typeof url === 'string') {
-          const shouldBlock = blockedDomains.some(domain => url.includes(domain));
-          if (shouldBlock) {
-            console.log('🚫 TradingView XHR bloqueado:', url);
-            // Evitar que se envíe la request
-            this._blocked = true;
-            return;
-          }
-        }
-        return originalXHROpen.apply(this, arguments);
-      };
-      
-      const originalXHRSend = XMLHttpRequest.prototype.send;
-      XMLHttpRequest.prototype.send = function(body) {
-        if (this._blocked) {
-          // Si está bloqueado, disparar error inmediatamente
-          setTimeout(() => {
-            if (this.onerror) this.onerror(new ProgressEvent('error'));
-          }, 0);
-          return;
-        }
-        return originalXHRSend.apply(this, arguments);
-      };
-      
-      console.log('✅ Bloqueador de TradingView ACTIVADO');
-    })();
-  </script>
     <script type="module" src="/src/main.jsx"></script>
     
     <!-- Analytics (Opcional - Descomenta cuando lo necesites) -->

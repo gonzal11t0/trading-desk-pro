@@ -151,7 +151,7 @@ const formatTimeAgo = (timestamp) => {
       month: 'short' 
     }).replace('.', '')
     
-  } catch (error) {
+  } catch {
     return 'Reciente'
   }
 }

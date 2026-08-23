@@ -42,7 +42,7 @@ export const MACRO_INDICATORS = [
     id: 'M2',
     nombre: 'M2 (Oferta Monetaria)',
     categoria: 'Monetario',
-    definicion: 'Suma de circulante, depósitos a la vista y a plazo en pesos.',
+    definicion: 'Circulante en poder del público más depósitos en cuenta corriente y cajas de ahorro en pesos.',
     unidad: 'ARS millones',
     frecuencia: 'Mensual',
     fuente: 'BCRA',
@@ -55,7 +55,7 @@ export const MACRO_INDICATORS = [
       pbi: 'directa',
       consumo: 'directa'
     },
-    nota: 'Incluye dinero “casi líquido” como plazos fijos.'
+    nota: 'Los depósitos a plazo se incorporan en agregados monetarios más amplios, como M3.'
   },
   {
     id: 'TASA_POLITICA',
@@ -78,9 +78,9 @@ export const MACRO_INDICATORS = [
   },
   {
     id: 'TASA_LELIQ',
-    nombre: 'Tasa de LELIQ / Depósitos',
+    nombre: 'Tasas de Referencia y Depósitos',
     categoria: 'Monetario',
-    definicion: 'Rendimiento de las letras de liquidez del BCRA y depósitos bancarios.',
+    definicion: 'Tasas de referencia del sistema financiero, incluidas las tasas de depósitos y otros instrumentos vigentes.',
     unidad: '% anual',
     frecuencia: 'Diaria',
     fuente: 'BCRA',
@@ -92,7 +92,7 @@ export const MACRO_INDICATORS = [
       dolar: 'inversa',
       inflacion: 'directa'
     },
-    nota: 'Refleja el costo de captación de pesos por parte del sistema financiero.'
+    nota: 'Las LELIQ dejaron de ser el instrumento de referencia; conviene identificar siempre qué tasa y plazo se comparan.'
   },
   {
     id: 'DEFICIT_FISCAL',
@@ -169,7 +169,7 @@ export const MACRO_INDICATORS = [
       expectativas_inflacion: 'directa',
       dolar: 'directa'
     },
-    nota: 'Meta de inflación del BCRA para 2025: 5-7% anual (en discusión).'
+    nota: 'Para evaluar la tendencia conviene comparar la variación mensual, la acumulada del año y la interanual.'
   },
   {
     id: 'EXPECTATIVAS_INFLACION',
@@ -253,7 +253,7 @@ export const MACRO_INDICATORS = [
     id: 'DOLAR_CCL',
     nombre: 'Dólar CCL (Contado con Liquidación)',
     categoria: 'Tipo de Cambio',
-    definicion: 'Cotización implícita al comprar bonos en USD y vender en pesos.',
+    definicion: 'Cotización implícita obtenida al comprar un activo en pesos y vender su especie contra dólares con liquidación externa.',
     unidad: 'ARS per USD',
     frecuencia: 'Intradiaria',
     fuente: 'BYMA / Mercados',
@@ -306,13 +306,13 @@ export const MACRO_INDICATORS = [
       deuda: 'directa',
       dolar: 'directa'
     },
-    nota: 'Por encima de 1000 puntos se considera “bono basura”.'
+    nota: 'Un nivel alto implica una prima de riesgo elevada; no existe un umbral único que determine por sí solo una calificación crediticia.'
   },
   {
     id: 'MERVAL',
-    nombre: 'Índice MERVAL',
+    nombre: 'Índice S&P MERVAL',
     categoria: 'Mercado',
-    definicion: 'Principal índice de la Bolsa de Buenos Aires (en pesos).',
+    definicion: 'Principal índice accionario de BYMA, compuesto por acciones líderes y expresado en puntos.',
     unidad: 'Puntos',
     frecuencia: 'Intradiaria',
     fuente: 'BYMA',
@@ -482,10 +482,10 @@ export const MACRO_INDICATORS = [
     nota: 'Sensible a reglas de juego y estabilidad jurídica.'
   },
   {
-    id: 'ISAC',
-    nombre: 'Índice de Salarios (ISAC)',
+    id: 'INDICE_SALARIOS',
+    nombre: 'Índice de Salarios',
     categoria: 'Real',
-    definicion: 'Evolución promedio de los salarios registrados.',
+    definicion: 'Evolución de los salarios registrados y no registrados relevados por INDEC.',
     unidad: 'Variación % interanual',
     frecuencia: 'Mensual',
     fuente: 'INDEC',
@@ -498,7 +498,7 @@ export const MACRO_INDICATORS = [
       consumo: 'directa',
       costos: 'directa'
     },
-    nota: 'Clave para negociaciones paritarias.'
+    nota: 'No debe confundirse con el ISAC, que mide la actividad de la construcción.'
   },
   {
     id: 'CONFIANZA_CONSUMIDOR',
@@ -547,7 +547,7 @@ export const MACRO_INDICATORS = [
     definicion: 'Índice bursátil de las 500 mayores empresas de EE.UU.',
     unidad: 'Puntos',
     frecuencia: 'Intradiaria',
-    fuente: 'NYSE / NASDAQ',
+    fuente: 'S&P Dow Jones Indices',
     interpretacion: {
       sube: 'Optimismo global, aversión al riesgo baja, fluye capital a acciones.',
       baja: 'Temor recesión, aversión al riesgo alta, fuga a bonos o oro.'

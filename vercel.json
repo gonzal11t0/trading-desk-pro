@@ -4,28 +4,34 @@
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
   "installCommand": "npm install --include=dev",
-    "rewrites": [
+  "rewrites": [
+    {
+      "source": "/api/backend/:path*",
+      "destination": "https://trading-backend-psi.vercel.app/api/:path*"
+    },
     {
       "source": "/api/argentina-datos/:path*",
       "destination": "https://api.argentinadatos.com/:path*"
     },
     {
-      "source": "/api/fmp/:path*",
-      "destination": "https://financialmodelingprep.com/:path*"
+      "source": "/api/coingecko/:path*",
+      "destination": "https://api.coingecko.com/api/v3/:path*"
     },
     {
-      "source": "/api/eoddata/:path*",
-      "destination": "https://eoddata.com/:path*"
+      "source": "/api/yahoo/:path*",
+      "destination": "https://query2.finance.yahoo.com/:path*"
+    },
+    {
+      "source": "/api/rss/bbc",
+      "destination": "https://feeds.bbci.co.uk/news/business/rss.xml"
+    },
+    {
+      "source": "/api/rss/ft",
+      "destination": "https://www.ft.com/rss/home"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "routes": [
-    { "src": "/assets/(.*)", "dest": "/assets/$1" },
-    { "src": "/upgrade", "dest": "/index.html" },
-    { "src": "/analisis-premium", "dest": "/index.html" },
-    { "src": "/dashboard", "dest": "/index.html" },
-    { "src": "/admin", "dest": "/index.html" },
-    { "src": "/login", "dest": "/index.html" },
-    { "src": "/(.*)", "dest": "/index.html" }
   ]
-  
 }

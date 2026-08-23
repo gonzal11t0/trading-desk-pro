@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import BonoCard from './BonoCard';
 import { usePremiumStore } from '../../stores/premiumStore';
-import { bonosApi } from '../../../api/bonosApi';
+import { bonosApi } from '../../api/bonosApi';
 import { Star, RefreshCw } from 'lucide-react';
 
 const BonosTab = () => {
