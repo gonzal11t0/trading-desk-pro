@@ -1,14 +1,5 @@
 const CACHE_KEY = 'tradingDeskQuotesCache';
 
-const SOURCES = [
-  { symbol: 'S&P 500', loader: () => fetchYahooQuote('%5EGSPC') },
-  { symbol: 'NASDAQ', loader: () => fetchYahooQuote('%5EIXIC') },
-  { symbol: 'BTC/USD', loader: fetchBitcoin },
-  { symbol: 'DÓLAR BLUE', loader: fetchDolarBlue },
-  { symbol: 'MERVAL', loader: () => fetchYahooQuote('%5EMERV') },
-  { symbol: 'ORO', loader: () => fetchYahooQuote('GC%3DF') }
-];
-
 const fetchJson = async (url) => {
   const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -40,6 +31,15 @@ const fetchDolarBlue = async () => {
   if (!Number.isFinite(price)) throw new Error('DolarApi no devolvió cotización blue');
   return { price, change: null, changePercent: null, source: 'DolarApi' };
 };
+
+const SOURCES = [
+  { symbol: 'S&P 500', loader: () => fetchYahooQuote('%5EGSPC') },
+  { symbol: 'NASDAQ', loader: () => fetchYahooQuote('%5EIXIC') },
+  { symbol: 'BTC/USD', loader: fetchBitcoin },
+  { symbol: 'DÓLAR BLUE', loader: fetchDolarBlue },
+  { symbol: 'MERVAL', loader: () => fetchYahooQuote('%5EMERV') },
+  { symbol: 'ORO', loader: () => fetchYahooQuote('GC%3DF') }
+];
 
 const readCache = () => {
   try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || {}; }
