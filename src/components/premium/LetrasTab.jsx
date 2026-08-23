@@ -21,7 +21,12 @@ const LetrasTab = () => {
       const letrasArray = Array.isArray(data) ? data : (data.data || []);
       
       if (Array.isArray(letrasArray) && letrasArray.length > 0) {
-        setLetras(letrasArray.filter(letra => letra?.ticker && Number.isFinite(Number(letra.ultimo))));
+        const instrumentosNoTesoro = /cheque|pagar[eéa]|#umv|\*mav/i;
+        setLetras(letrasArray.filter(letra => {
+          const ticker = String(letra?.ticker || '').trim();
+          const precio = Number(letra?.ultimo);
+          return ticker && precio > 0 && !instrumentosNoTesoro.test(ticker);
+        }));
         setLastUpdate(new Date());
       } else {
         console.error('letrasArray no es un array:', letrasArray);
