@@ -11,9 +11,6 @@ from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 from urllib.request import Request, urlopen
 
-import pdfplumber
-
-
 def decode_segment(value):
     return base64.urlsafe_b64decode(value + '=' * (-len(value) % 4))
 
@@ -206,6 +203,7 @@ class handler(BaseHTTPRequestHandler):
                 return self.send_json(400, {'error': 'Seleccioná o escribí un ticker antes del PDF'})
             if len(pdf_bytes) > 15_000_000 or not pdf_bytes.startswith(b'%PDF'):
                 return self.send_json(400, {'error': 'El archivo no es un PDF válido o supera 15 MB'})
+            import pdfplumber
             with pdfplumber.open(io.BytesIO(pdf_bytes)) as document:
                 text = '\n'.join(page.extract_text() or '' for page in document.pages)
             if not text.strip():
