@@ -4,7 +4,11 @@
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
   "installCommand": "npm install --include=dev",
-    "rewrites": [
+  "rewrites": [
+    {
+      "source": "/api/backend/:path*",
+      "destination": "https://trading-backend-psi.vercel.app/api/:path*"
+    },
     {
       "source": "/api/argentina-datos/:path*",
       "destination": "https://api.argentinadatos.com/:path*"

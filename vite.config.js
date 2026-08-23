@@ -14,6 +14,11 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      '/api/backend': {
+        target: 'https://trading-backend-psi.vercel.app',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/backend/, '/api')
+      },
       '/api/argentina-datos': {
         target: 'https://api.argentinadatos.com',
         changeOrigin: true,
