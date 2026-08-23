@@ -99,18 +99,21 @@ def extract_fields(text, ticker):
     )
     period = date_match.group(0).replace('finalizado el ', '').replace('al ', '').title() if date_match else ''
 
+    is_bank = ticker.upper() in ('BMA', 'GGAL')
     fields = {
         'ticker': ticker.upper(),
+        'sector': 'bank' if is_bank else 'industrial',
         'ultimoBalance': period,
         'periodo': period,
         'moneda': unit,
-        'ingresos': first_value(lines, [r'ingresos(?: por ventas| de actividades ordinarias)?', r'ventas netas']),
-        'ebitda': first_value(lines, [r'ebitda ajustado', r'ebitda']),
-        'deuda': first_value(lines, [r'deuda financiera total', r'deuda total', r'pr[eé]stamos totales']),
+        'ingresos': first_value(lines, [r'ingreso operativo neto', r'ingresos(?: por ventas| de actividades ordinarias)?', r'ventas netas']),
+        'ebitda': None if is_bank else first_value(lines, [r'ebitda ajustado', r'ebitda']),
+        'deuda': None if is_bank else first_value(lines, [r'deuda financiera total', r'deuda total', r'pr[eé]stamos totales']),
         'patrimonio': first_value(lines, [r'patrimonio neto total', r'patrimonio atribuible', r'patrimonio neto']),
         'resultadoNeto': first_value(lines, [r'resultado neto del (?:ejercicio|per[ií]odo)', r'ganancia \(p[eé]rdida\) neta', r'resultado del per[ií]odo'])
     }
-    found = sum(fields[key] is not None for key in ('ingresos', 'ebitda', 'deuda', 'patrimonio', 'resultadoNeto'))
+    expected = ('ingresos', 'patrimonio', 'resultadoNeto') if is_bank else ('ingresos', 'ebitda', 'deuda', 'patrimonio', 'resultadoNeto')
+    found = sum(fields[key] is not None for key in expected)
     return fields, found
 
 

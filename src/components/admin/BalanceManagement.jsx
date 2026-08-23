@@ -2,12 +2,13 @@ import React, { useMemo, useState } from 'react';
 import { Check, ExternalLink, FileText, Save, ShieldCheck } from 'lucide-react';
 import balancesData from '../../data/balances_reales.json';
 import { balancesApi } from '../../api/balancesApi';
+import { getBalanceSource } from '../../data/balanceSources';
 
 const emptyBalance = {
   ticker: '', nombre: '', ultimoBalance: '', periodo: '', moneda: 'ARS', precio: '',
   ingresos: '', varIngresos: '', ebitda: '', varEbitda: '', deuda: '', varDeuda: '',
   patrimonio: '', resultadoNeto: '', per: '', varPer: '', roe: '', varRoe: '',
-  deudaEbitda: '', tendencia: '📈 estable', analisis: '', recomendacion: 'SIN RECOMENDACIÓN'
+  deudaEbitda: '', tendencia: '📈 estable', analisis: '', recomendacion: 'SIN RECOMENDACIÓN', sector: 'industrial'
 };
 
 const numberFields = [
@@ -36,14 +37,27 @@ const BalanceManagement = () => {
         ? ((resultadoNeto / patrimonio) * 100).toFixed(2) : '—'
     };
   }, [balance]);
+  const officialSource = getBalanceSource(balance.ticker);
+  const isBank = officialSource?.sector === 'bank';
 
   const update = (field, value) => setBalance(current => ({ ...current, [field]: value }));
 
   const loadExisting = (ticker) => {
     const existing = balancesData.empresas.find(item => item.ticker === ticker);
-    setBalance(existing ? { ...emptyBalance, ...existing, resultadoNeto: existing.resultadoNeto ?? '' } : emptyBalance);
+    const source = getBalanceSource(ticker);
+    const loaded = existing
+      ? { ...emptyBalance, ...existing, resultadoNeto: existing.resultadoNeto ?? '', sector: source?.sector || 'industrial' }
+      : { ...emptyBalance };
+    if (source?.sector === 'bank') {
+      loaded.ebitda = '';
+      loaded.varEbitda = '';
+      loaded.deuda = '';
+      loaded.varDeuda = '';
+      loaded.deudaEbitda = '';
+    }
+    setBalance(loaded);
     setSourceFilename('');
-    setSourceUrl('');
+    setSourceUrl(getBalanceSource(ticker)?.url || '');
     setMessage(null);
   };
 
@@ -51,7 +65,7 @@ const BalanceManagement = () => {
     setSaving(true);
     setMessage(null);
     try {
-      await balancesApi.saveBalance({ balance, sourceFilename, sourceUrl });
+      await balancesApi.saveBalance({ balance, sourceFilename, sourceUrl: sourceUrl || officialSource?.url || '' });
       setMessage({ type: 'success', text: `${balance.ticker} fue validado y publicado.` });
     } catch (error) {
       setMessage({ type: 'error', text: error.message });
@@ -98,9 +112,11 @@ const BalanceManagement = () => {
           <div>
             <p className="font-semibold text-white">Carga controlada de balances</p>
             <p className="mt-1">Seleccioná el PDF descargado de CNV. El sistema identifica automáticamente las cifras principales, completa el formulario y espera tu revisión antes de publicar.</p>
-            <a className="inline-flex items-center gap-1 mt-2 text-blue-400 hover:text-blue-300" href="https://aif2.cnv.gov.ar/" target="_blank" rel="noreferrer">
-              Abrir Autopista de Información Financiera (CNV) <ExternalLink className="w-3 h-3" />
-            </a>
+            {officialSource ? (
+              <a className="inline-flex items-center gap-1 mt-2 text-blue-400 hover:text-blue-300" href={officialSource.url} target="_blank" rel="noreferrer">
+                Abrir {officialSource.name} <ExternalLink className="w-3 h-3" />
+              </a>
+            ) : <p className="mt-2 text-yellow-400">Seleccioná una empresa para abrir su fuente oficial.</p>}
           </div>
         </div>
       </div>
@@ -133,17 +149,19 @@ const BalanceManagement = () => {
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {numberFields.map(([field, label]) => (
+        {numberFields.filter(([field]) => !isBank || !['ebitda', 'deuda', 'varEbitda', 'varDeuda'].includes(field)).map(([field, label]) => (
           <label key={field} className="text-sm text-gray-300">{label}
             <input type="number" step="any" value={balance[field]} onChange={event => update(field, event.target.value)} className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white" />
           </label>
         ))}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4 rounded-lg bg-gray-800/40 p-4">
+      <div className={`grid ${isBank ? 'md:grid-cols-1' : 'md:grid-cols-2'} gap-4 rounded-lg bg-gray-800/40 p-4`}>
         <p className="text-sm text-gray-300">ROE calculado: <strong className="text-white">{calculated.roe}%</strong></p>
-        <p className="text-sm text-gray-300">Deuda / EBITDA: <strong className="text-white">{calculated.deudaEbitda}</strong></p>
+        {!isBank && <p className="text-sm text-gray-300">Deuda / EBITDA: <strong className="text-white">{calculated.deudaEbitda}</strong></p>}
       </div>
+
+      {isBank && <p className="text-xs text-blue-300">Para bancos no se utilizan EBITDA ni Deuda/EBITDA. El análisis se centra en resultado neto, patrimonio, ROE, ingresos operativos y PER.</p>}
 
       <p className="text-xs text-gray-500">El precio y el PER se consultan automáticamente al mercado en la pantalla Premium; no hace falta cargarlos desde el balance.</p>
 
@@ -159,7 +177,7 @@ const BalanceManagement = () => {
           </span>
           {extracting && <span className="mt-1 block text-xs text-blue-400">Analizando el PDF…</span>}
         </label>
-        <label className="text-sm text-gray-300">Enlace público de la presentación CNV
+        <label className="text-sm text-gray-300">Enlace público del informe o presentación
           <input type="url" value={sourceUrl} onChange={event => setSourceUrl(event.target.value)} className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white" />
         </label>
       </div>

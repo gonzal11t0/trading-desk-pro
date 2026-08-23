@@ -280,7 +280,10 @@ app.post('/api/admin/balances', async (req, res) => {
     const { balance, sourceFilename, sourceUrl } = req.body || {};
     const ticker = String(balance?.ticker || '').trim().toUpperCase();
     const requiredText = ['nombre', 'ultimoBalance', 'periodo', 'moneda'];
-    const requiredNumbers = ['ingresos', 'ebitda', 'deuda', 'patrimonio'];
+    const isBank = balance?.sector === 'bank' || ['BMA', 'GGAL'].includes(ticker);
+    const requiredNumbers = isBank
+      ? ['ingresos', 'patrimonio', 'resultadoNeto']
+      : ['ingresos', 'ebitda', 'deuda', 'patrimonio'];
 
     if (!/^[A-Z0-9.]{2,10}$/.test(ticker)) {
       return res.status(400).json({ error: 'Ticker inválido' });
@@ -289,7 +292,9 @@ app.post('/api/admin/balances', async (req, res) => {
       return res.status(400).json({ error: 'Completá empresa, balance, período y moneda' });
     }
     if (requiredNumbers.some(field => !Number.isFinite(Number(balance?.[field])))) {
-      return res.status(400).json({ error: 'Ingresos, EBITDA, deuda y patrimonio deben ser números' });
+      return res.status(400).json({ error: isBank
+        ? 'Ingresos operativos, resultado neto y patrimonio deben ser números'
+        : 'Ingresos, EBITDA, deuda y patrimonio deben ser números' });
     }
 
     const numericFields = [
@@ -302,7 +307,14 @@ app.post('/api/admin/balances', async (req, res) => {
       const value = Number(cleanBalance[field]);
       cleanBalance[field] = Number.isFinite(value) ? value : null;
     }
-    cleanBalance.deudaEbitda = cleanBalance.ebitda !== 0
+    cleanBalance.sector = isBank ? 'bank' : 'industrial';
+    if (isBank) {
+      cleanBalance.ebitda = null;
+      cleanBalance.varEbitda = null;
+      cleanBalance.deuda = null;
+      cleanBalance.varDeuda = null;
+    }
+    cleanBalance.deudaEbitda = Number.isFinite(cleanBalance.deuda) && Number.isFinite(cleanBalance.ebitda) && cleanBalance.ebitda !== 0
       ? Number((cleanBalance.deuda / cleanBalance.ebitda).toFixed(2))
       : null;
     cleanBalance.roe = Number.isFinite(cleanBalance.resultadoNeto) && cleanBalance.patrimonio !== 0

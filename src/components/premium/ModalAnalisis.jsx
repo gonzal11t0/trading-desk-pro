@@ -11,6 +11,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   if (!isOpen) return null;
 
   const datosReales = empresa;
+  const isBank = datosReales.sector === 'bank' || ['BMA', 'GGAL'].includes(datosReales.ticker);
 
   // Sólo se grafica el período publicado; no se fabrican puntos históricos.
   const historico = [
@@ -20,6 +21,8 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
       ingresos: datosReales.ingresos,
       ebitda: datosReales.ebitda,
       deuda: datosReales.deuda,
+      resultadoNeto: datosReales.resultadoNeto,
+      patrimonio: datosReales.patrimonio,
       per: datosReales.per
     }
   ];
@@ -160,9 +163,9 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                   </div>
                   
                   <div className="p-3 bg-gray-800/30 rounded-lg">
-                    <p className="text-xs text-gray-400 mb-1">Deuda/EBITDA</p>
+                    <p className="text-xs text-gray-400 mb-1">{isBank ? 'Resultado neto' : 'Deuda/EBITDA'}</p>
                     <p className="text-xl font-bold text-white">
-                      {datosReales.deudaEbitda}x
+                      {isBank ? formatNumber(datosReales.resultadoNeto, moneda) : `${datosReales.deudaEbitda ?? '—'}x`}
                     </p>
                   </div>
                 </div>
@@ -185,7 +188,7 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                       </span>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
+                  {!isBank && <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
                     <span className="text-sm text-gray-400">EBITDA</span>
                     <div className="text-right">
                       <span className="text-white font-semibold">{formatNumber(datosReales.ebitda, moneda)}</span>
@@ -193,8 +196,8 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                         {datosReales.varEbitda > 0 ? '+' : ''}{datosReales.varEbitda}%
                       </span>
                     </div>
-                  </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
+                  </div>}
+                  {!isBank && <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
                     <span className="text-sm text-gray-400">Deuda Total</span>
                     <div className="text-right">
                       <span className="text-white font-semibold">{formatNumber(datosReales.deuda, moneda)}</span>
@@ -202,11 +205,21 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                         {datosReales.varDeuda > 0 ? '+' : ''}{datosReales.varDeuda}%
                       </span>
                     </div>
-                  </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
+                  </div>}
+                  {!isBank && <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
                     <span className="text-sm text-gray-400">Deuda/EBITDA</span>
                     <span className="text-white font-semibold">{datosReales.deudaEbitda}x</span>
-                  </div>
+                  </div>}
+                  {isBank && <>
+                    <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
+                      <span className="text-sm text-gray-400">Resultado neto</span>
+                      <span className="text-white font-semibold">{formatNumber(datosReales.resultadoNeto, moneda)}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-gray-900/50 rounded">
+                      <span className="text-sm text-gray-400">Patrimonio neto</span>
+                      <span className="text-white font-semibold">{formatNumber(datosReales.patrimonio, moneda)}</span>
+                    </div>
+                  </>}
                 </div>
               </div>
 
@@ -215,8 +228,9 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
   <h4 className="font-semibold text-white mb-3">📈 Análisis de Tendencia</h4>
   <div className="space-y-2 text-sm text-gray-300">
     <p>• <span className="text-yellow-400">ROE:</span> {datosReales.roe}%</p>
-    <p>• <span className="text-yellow-400">Deuda/Patrimonio:</span> {deudaPatrimonio}x</p>
-    <p>• <span className="text-yellow-400">Margen EBITDA:</span> {margenEbitda}%</p>
+    {!isBank && <p>• <span className="text-yellow-400">Deuda/Patrimonio:</span> {deudaPatrimonio}x</p>}
+    {!isBank && <p>• <span className="text-yellow-400">Margen EBITDA:</span> {margenEbitda}%</p>}
+    {isBank && <p>• <span className="text-yellow-400">Resultado neto:</span> {formatNumber(datosReales.resultadoNeto, moneda)}</p>}
   </div>
 </div>
               <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/30 rounded-lg p-5 border border-gray-700/50">
@@ -255,8 +269,8 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                     <tr className="border-b border-gray-700">
                       <th className="text-left py-3 px-2 text-gray-400">Período</th>
                       <th className="text-right py-3 px-2 text-gray-400">Ingresos</th>
-                      <th className="text-right py-3 px-2 text-gray-400">EBITDA</th>
-                      <th className="text-right py-3 px-2 text-gray-400">Deuda</th>
+                      <th className="text-right py-3 px-2 text-gray-400">{isBank ? 'Resultado neto' : 'EBITDA'}</th>
+                      <th className="text-right py-3 px-2 text-gray-400">{isBank ? 'Patrimonio' : 'Deuda'}</th>
                       <th className="text-right py-3 px-2 text-gray-400">PER</th>
                     </tr>
                   </thead>
@@ -265,8 +279,8 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                       <tr key={index} className="border-b border-gray-800 hover:bg-gray-800/30">
                         <td className="py-3 px-2 text-white font-medium">{item.periodo}</td>
                         <td className="text-right py-3 px-2 text-blue-400">{formatNumber(item.ingresos, moneda)}</td>
-                        <td className="text-right py-3 px-2 text-purple-400">{formatNumber(item.ebitda, moneda)}</td>
-                        <td className="text-right py-3 px-2 text-yellow-400">{formatNumber(item.deuda, moneda)}</td>
+                        <td className="text-right py-3 px-2 text-purple-400">{formatNumber(isBank ? item.resultadoNeto : item.ebitda, moneda)}</td>
+                        <td className="text-right py-3 px-2 text-yellow-400">{formatNumber(isBank ? item.patrimonio : item.deuda, moneda)}</td>
                         <td className="text-right py-3 px-2 text-green-400">{item.per}x</td>
                       </tr>
                     ))}
@@ -282,8 +296,9 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
                 <h4 className="font-semibold text-white mb-3">📈 Análisis de Tendencia</h4>
                 <div className="space-y-2 text-sm text-gray-300">
                   <p>• <span className="text-yellow-400">ROE:</span> {datosReales.roe}%</p>
-                  <p>• <span className="text-yellow-400">Deuda/Patrimonio:</span> {deudaPatrimonio}x</p>
-                  <p>• <span className="text-yellow-400">Margen EBITDA:</span> {margenEbitda}%</p>
+                  {!isBank && <p>• <span className="text-yellow-400">Deuda/Patrimonio:</span> {deudaPatrimonio}x</p>}
+                  {!isBank && <p>• <span className="text-yellow-400">Margen EBITDA:</span> {margenEbitda}%</p>}
+                  {isBank && <p>• <span className="text-yellow-400">Resultado neto:</span> {formatNumber(datosReales.resultadoNeto, moneda)}</p>}
                 </div>
               </div>
             </div>
@@ -296,11 +311,11 @@ const ModalAnalisis = ({ isOpen, onClose, empresa }) => {
               </h3>
               
               <GraficoLinea
-                data={historico.map(h => ({ periodo: h.periodo, ingresos: h.ingresos, ebitda: h.ebitda }))}
+                data={historico.map(h => ({ periodo: h.periodo, ingresos: h.ingresos, resultado: isBank ? h.resultadoNeto : h.ebitda }))}
                 xKey="periodo"
                 lines={[
                   { key: 'ingresos', name: 'Ingresos', color: '#3B82F6' },
-                  { key: 'ebitda', name: 'EBITDA', color: '#A855F7' }
+                  { key: 'resultado', name: isBank ? 'Resultado neto' : 'EBITDA', color: '#A855F7' }
                 ]}
               />
               
