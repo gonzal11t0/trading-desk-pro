@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Users, RefreshCw, Trash2, Plus, Check, X, Mail, Shield, Search, UserPlus, Server } from 'lucide-react';
+import { Users, RefreshCw, Trash2, Check, X, Mail, Shield, UserPlus, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { API_URL } from '../../config/runtime';
+import BalanceManagement from './BalanceManagement';
 
 const UserManagement = () => {
 const { isAdmin, currentUser } = useAuth();
@@ -172,6 +173,9 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
             <button onClick={() => setActiveTab('create')} className={`px-4 py-2 text-sm font-medium ${activeTab === 'create' ? 'text-blue-400 border-b-2 border-blue-500' : 'text-gray-400'}`}>
               <UserPlus className="w-4 h-4 inline mr-2" /> Crear Usuario
             </button>
+            <button onClick={() => setActiveTab('balances')} className={`px-4 py-2 text-sm font-medium ${activeTab === 'balances' ? 'text-blue-400 border-b-2 border-blue-500' : 'text-gray-400'}`}>
+              <FileSpreadsheet className="w-4 h-4 inline mr-2" /> Cargar balance
+            </button>
           </div>
           <div className="relative">
             <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Buscar usuario..." className="pl-10 pr-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white text-sm w-full md:w-64" />
@@ -274,6 +278,8 @@ const [generatedPassword, setGeneratedPassword] = useState(null);
           </div>
         </div>
       )}
+
+      {activeTab === 'balances' && <BalanceManagement />}
 
       <div className="mt-6 pt-4 border-t border-gray-800/30">
         <p className="text-xs text-gray-500 text-center">🔒 Usuarios gestionados desde el backend (JWT + bcrypt)</p>

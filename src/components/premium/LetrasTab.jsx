@@ -21,12 +21,12 @@ const normalizarLetra = (letra) => {
     ...letra,
     ticker,
     nombre: nombre || ticker,
-    tipo: /cer|aj.*cer/i.test(descripcionCompleta)
-      ? 'Ajustable por CER'
-      : /tamar/i.test(descripcionCompleta)
-        ? 'Capitalizable TAMAR'
-        : /vinc.*usd|d[oó]lar/i.test(descripcionCompleta)
-          ? 'Vinculada al dólar'
+    tipo: /tamar/i.test(descripcionCompleta)
+      ? 'Capitalizable TAMAR'
+      : /vinc.*usd|d[oó]lar/i.test(descripcionCompleta)
+        ? 'Vinculada al dólar'
+        : /\bcer\b|aj.*cer/i.test(descripcionCompleta)
+          ? 'Ajustable por CER'
           : 'Capitalizable',
     moneda: /usd/i.test(descripcionCompleta) ? 'USD vinculada' : 'ARS',
     vencimiento,

@@ -32,6 +32,7 @@ const EmpresaCard = ({ empresa }) => {
     deuda: 'Deuda financiera total',
     per: 'Precio / Ganancia por acción'
   };
+  const precio = Number(empresa.precio);
 
   return (
     <>
@@ -55,7 +56,7 @@ const EmpresaCard = ({ empresa }) => {
               </span>
             </div>
             <p className="text-sm text-gray-500">
-              Último balance: {empresa.ultimoBalance} · Precio{empresa.precioEnVivo ? ' de mercado' : ' cargado'}: ${empresa.precio.toLocaleString('es-AR')}
+              Último balance: {empresa.ultimoBalance} · Precio{empresa.precioEnVivo ? ' de mercado' : ' de referencia'}: {Number.isFinite(precio) ? `$${precio.toLocaleString('es-AR')}` : '—'}
             </p>
           </div>
           

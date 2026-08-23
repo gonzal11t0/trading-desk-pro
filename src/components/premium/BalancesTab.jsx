@@ -4,24 +4,53 @@ import { usePremiumStore } from '../../stores/premiumStore';
 import { Star } from 'lucide-react';
 import balancesData from '../../data/balances_reales.json';
 import { companyApi } from '../../api/companyApi';
+import { balancesApi } from '../../api/balancesApi';
 
 const BalancesTab = () => {
   const [empresas, setEmpresas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [soloFavoritos, setSoloFavoritos] = useState(false);
   const [preciosActualizados, setPreciosActualizados] = useState(0);
+  const [balanceSource, setBalanceSource] = useState({
+    label: balancesData.ultima_actualizacion,
+    remote: false
+  });
   const { favoritos } = usePremiumStore();
 
   useEffect(() => {
-    setEmpresas(balancesData.empresas);
-    setLoading(false);
+    let active = true;
 
-    Promise.allSettled(
-      balancesData.empresas.map(async empresa => ({
+    const load = async () => {
+      let base = balancesData.empresas;
+      try {
+        const published = await balancesApi.getBalances();
+        if (Array.isArray(published.empresas) && published.empresas.length > 0) {
+          const remoteByTicker = new Map(published.empresas.map(item => [item.ticker, item]));
+          base = [
+            ...balancesData.empresas.map(item => remoteByTicker.get(item.ticker) || item),
+            ...published.empresas.filter(item => !balancesData.empresas.some(local => local.ticker === item.ticker))
+          ];
+          if (active) setBalanceSource({
+            label: published.ultima_actualizacion
+              ? new Date(published.ultima_actualizacion).toLocaleDateString('es-AR')
+              : 'Neon',
+            remote: true
+          });
+        }
+      } catch {
+        // El archivo fechado permanece como respaldo explícito durante la migración.
+      }
+      if (!active) return;
+      setEmpresas(base);
+      setLoading(false);
+
+      const results = await Promise.allSettled(
+        base.map(async empresa => ({
         ticker: empresa.ticker,
         data: await companyApi.getCompany(empresa.ticker)
       }))
-    ).then(results => {
+      );
+      if (!active) return;
       const cotizaciones = new Map(
         results
           .filter(result => result.status === 'fulfilled' && Number.isFinite(Number(result.value.data?.precio)))
@@ -37,7 +66,10 @@ const BalancesTab = () => {
           precioEnVivo: true
         } : empresa;
       }));
-    });
+    };
+
+    load();
+    return () => { active = false; };
   }, []);
 
   const empresasFiltradas = useMemo(() => {
@@ -80,10 +112,10 @@ const BalancesTab = () => {
             </span>
           )}
           <span className="text-xs text-gray-500 ml-2">
-            Balances cargados: {balancesData.ultima_actualizacion}
+            Balances cargados: {balanceSource.label}{balanceSource.remote ? ' · Neon' : ' · respaldo local'}
           </span>
           <span className="text-xs text-gray-500">
-            · Cotizaciones actualizadas: {preciosActualizados}/{balancesData.empresas.length}
+            · Cotizaciones actualizadas: {preciosActualizados}/{empresas.length}
           </span>
         </div>
         
@@ -116,7 +148,7 @@ const BalancesTab = () => {
       )}
       
       <p className="text-xs text-gray-500 text-center px-4">
-        Los importes del balance provienen del archivo local fechado. Precio y PER se consultan al mercado cuando la fuente responde.
+        Los importes provienen del último balance validado por un administrador. Precio y PER se consultan al mercado cuando la fuente responde.
         No constituyen una recomendación de inversión.
       </p>
     </div>

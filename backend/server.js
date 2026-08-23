@@ -25,7 +25,23 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+
+const getAdminFromRequest = (req) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    const error = new Error('Token no proporcionado');
+    error.status = 401;
+    throw error;
+  }
+  const decoded = jwt.verify(token, JWT_SECRET);
+  if (decoded.role !== 'admin') {
+    const error = new Error('Acceso denegado');
+    error.status = 403;
+    throw error;
+  }
+  return decoded;
+};
 
 // ============================================
 // CREAR TABLA DE USUARIOS SI NO EXISTE
@@ -45,6 +61,18 @@ async function createTable() {
       )
     `;
     console.log('✅ Tabla "users" creada/verificada');
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS balances (
+        ticker TEXT PRIMARY KEY,
+        data JSONB NOT NULL,
+        source_filename TEXT,
+        source_url TEXT,
+        updated_by TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `;
+    console.log('✅ Tabla "balances" creada/verificada');
     
   } catch (error) {
     console.error('❌ Error creando tabla:', error);
@@ -155,6 +183,92 @@ app.delete('/api/admin/users/:id', async (req, res) => {
   } catch (error) {
     console.error('Error eliminando usuario:', error);
     res.status(401).json({ error: 'Token inválido' });
+  }
+});
+
+// ============================================
+// BALANCES PUBLICADOS Y CARGA ADMINISTRATIVA
+// ============================================
+app.get('/api/balances', async (_req, res) => {
+  try {
+    const result = await sql`
+      SELECT ticker, data, source_filename as "sourceFilename",
+             source_url as "sourceUrl", updated_at as "updatedAt"
+      FROM balances ORDER BY ticker
+    `;
+    res.json({
+      empresas: result.map(row => ({
+        ...row.data,
+        ticker: row.ticker,
+        fuenteArchivo: row.sourceFilename,
+        fuenteUrl: row.sourceUrl,
+        actualizadoEn: row.updatedAt
+      })),
+      ultima_actualizacion: result.reduce(
+        (latest, row) => !latest || row.updatedAt > latest ? row.updatedAt : latest,
+        null
+      )
+    });
+  } catch (error) {
+    console.error('Error obteniendo balances:', error);
+    res.status(500).json({ error: 'No fue posible obtener los balances publicados' });
+  }
+});
+
+app.post('/api/admin/balances', async (req, res) => {
+  try {
+    const admin = getAdminFromRequest(req);
+    const { balance, sourceFilename, sourceUrl } = req.body || {};
+    const ticker = String(balance?.ticker || '').trim().toUpperCase();
+    const requiredText = ['nombre', 'ultimoBalance', 'periodo', 'moneda'];
+    const requiredNumbers = ['ingresos', 'ebitda', 'deuda', 'patrimonio'];
+
+    if (!/^[A-Z0-9.]{2,10}$/.test(ticker)) {
+      return res.status(400).json({ error: 'Ticker inválido' });
+    }
+    if (requiredText.some(field => !String(balance?.[field] || '').trim())) {
+      return res.status(400).json({ error: 'Completá empresa, balance, período y moneda' });
+    }
+    if (requiredNumbers.some(field => !Number.isFinite(Number(balance?.[field])))) {
+      return res.status(400).json({ error: 'Ingresos, EBITDA, deuda y patrimonio deben ser números' });
+    }
+
+    const numericFields = [
+      'precio', 'ingresos', 'varIngresos', 'ebitda', 'varEbitda', 'deuda',
+      'varDeuda', 'patrimonio', 'resultadoNeto', 'per', 'varPer', 'roe',
+      'varRoe', 'deudaEbitda'
+    ];
+    const cleanBalance = { ...balance, ticker };
+    for (const field of numericFields) {
+      const value = Number(cleanBalance[field]);
+      cleanBalance[field] = Number.isFinite(value) ? value : null;
+    }
+    cleanBalance.deudaEbitda = cleanBalance.ebitda !== 0
+      ? Number((cleanBalance.deuda / cleanBalance.ebitda).toFixed(2))
+      : null;
+    cleanBalance.roe = Number.isFinite(cleanBalance.resultadoNeto) && cleanBalance.patrimonio !== 0
+      ? Number(((cleanBalance.resultadoNeto / cleanBalance.patrimonio) * 100).toFixed(2))
+      : cleanBalance.roe;
+    cleanBalance.recomendacion = 'SIN RECOMENDACIÓN';
+    cleanBalance.analisis = String(cleanBalance.analisis || '').trim()
+      || 'Datos publicados para análisis. Revisar el documento fuente y su unidad de medida.';
+
+    const result = await sql`
+      INSERT INTO balances (ticker, data, source_filename, source_url, updated_by, updated_at)
+      VALUES (${ticker}, ${JSON.stringify(cleanBalance)}::jsonb,
+              ${sourceFilename || null}, ${sourceUrl || null}, ${admin.email}, NOW())
+      ON CONFLICT (ticker) DO UPDATE SET
+        data = EXCLUDED.data,
+        source_filename = EXCLUDED.source_filename,
+        source_url = EXCLUDED.source_url,
+        updated_by = EXCLUDED.updated_by,
+        updated_at = NOW()
+      RETURNING ticker, data, updated_at as "updatedAt"
+    `;
+    res.json({ success: true, balance: result[0] });
+  } catch (error) {
+    console.error('Error guardando balance:', error);
+    res.status(error.status || 401).json({ error: error.message || 'No fue posible guardar el balance' });
   }
 });
 
